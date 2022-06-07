@@ -41,13 +41,6 @@ public class SecurityManagementAPIController {
     @Autowired
     private ISecurityDataProvider securityDataProvider;
 
-    private AuthorizationManager authorizationManager;
-
-    @Autowired // inject by setter to avoid dependency cycle
-    public void setAuthorizationManager(AuthorizationManager authorizationManager) {
-        this.authorizationManager = authorizationManager;
-    }
-
     @GetMapping(SECURITY_MANAGEMENT_API_ROLES_FIND_URI)
     public IBusinessRole findBusinessRoleByName(@PathVariable(SECURITY_MANAGEMENT_API_ROLE_NAME) String roleName) {
         return securityDataProvider.findBusinessRoleByName(roleName);
@@ -88,18 +81,18 @@ public class SecurityManagementAPIController {
 
     @GetMapping(SECURITY_MANAGEMENT_API_CACHE_FUNCTIONS_URI)
     public Set<AuthorizationManager.Function> getAllSystemFunctions() {
-        return authorizationManager.getAllSystemFunctions();
+        return securityDataProvider.getAllSystemFunctions();
     }
 
     @GetMapping(SECURITY_MANAGEMENT_API_CACHE_MODULES_URI)
     public List<AuthorizationManager.Module> getAllModules() {
-        return authorizationManager.getAllModules();
+        return securityDataProvider.getAllModules();
     }
 
     @GetMapping(SECURITY_MANAGEMENT_API_CACHE_INVALIDATE_URI)
     public void invalidatePermissionCacheForRole(@PathVariable(SECURITY_MANAGEMENT_API_ROLE_NAME) String roleName) {
         IBusinessRole businessRole = securityDataProvider.findBusinessRoleByName(roleName);
-        authorizationManager.invalidatePermissionCacheForRole(businessRole);
+        securityDataProvider.invalidatePermissionCacheForRole(businessRole);
     }
 
 }

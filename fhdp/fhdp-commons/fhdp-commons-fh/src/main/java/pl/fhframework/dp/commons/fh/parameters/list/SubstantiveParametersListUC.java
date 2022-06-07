@@ -6,7 +6,6 @@ import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
-import pl.fhframework.core.i18n.MessageService;
 import pl.fhframework.dp.commons.fh.document.list.searchtemplate.ISearchTemplateCriteriaProvider;
 import pl.fhframework.dp.commons.fh.document.list.searchtemplate.SearchTemplateBuilderModel;
 import pl.fhframework.dp.commons.fh.parameters.details.SubstantiveParametersDetailEditForm;
@@ -36,9 +35,6 @@ public class SubstantiveParametersListUC extends GenericListUC<SubstantiveParame
 
     @Autowired
     private SubstantiveParametersService substantiveParametersService;
-
-    @Autowired
-    MessageService messageService;
 
     @Value("${fhdp.parameters.search.box.buttons:false}")
     private boolean isSearchBoxButtons;

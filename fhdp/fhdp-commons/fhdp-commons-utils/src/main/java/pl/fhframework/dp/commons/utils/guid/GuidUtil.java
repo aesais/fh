@@ -14,8 +14,4 @@ public class GuidUtil {
             return activityId;
         }
     }
-
-    public static String composeMessageId(String activityId, String processInstanceId) {
-        return (activityId.replace("Activity_", "") + "-" + processInstanceId).replace("-", "");
-    }
 }

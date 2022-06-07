@@ -1,4 +1,13 @@
 package pl.fhframework.dp.commons.utils.xml;
+/*
+ * LightXMLHelper.java
+ *
+ * Prawa autorskie do oprogramowania i jego kodów źródłowych
+ * przysługują w pełnym zakresie wyłącznie SKG S.A.
+ *
+ * All copyrights to software and its source code
+ * belong fully and exclusively to SKG S.A.
+ */
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.LoggerFactory;

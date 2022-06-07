@@ -4,13 +4,11 @@ import 'fh-basic-controls/dist/source/external/bootstrap-datepicker';
 import { InputTextFhDP } from './InputTextFhDP';
 import {InputDateFhDPPl} from './i18n/InputDateFhDP.pl';
 import {InputDateFhDPEn} from './i18n/InputDateFhDP.en';
-import {InputDateFhDPLt} from './i18n/InputDateFhDP.lt';
-import {InputDateFhDPRu} from './i18n/InputDateFhDP.ru';
+import {InputDateFhDPLt} from './i18n/InputDateFhDP.lt'
 import {FhContainer, FormComponent, HTMLFormComponent, LanguageChangeObserver} from 'fh-forms-handler';
 import {InputTimestampFhDPPl} from './i18n/InputTimestampFhDP.pl';
 import {InputTimestampFhDPEn} from './i18n/InputTimestampFhDP.en';
 import {InputTimestampFhDPLt} from './i18n/InputTimestampFhDP.lt';
-import {InputTimestampFhDPRu} from './i18n/InputTimestampFhDP.ru';
 
 class InputDateFhDP extends InputTextFhDP implements LanguageChangeObserver {
     protected backendFormat: string;
@@ -26,8 +24,7 @@ class InputDateFhDP extends InputTextFhDP implements LanguageChangeObserver {
     protected tooltipsI18n = {
         "pl": InputTimestampFhDPPl,
         "en": InputTimestampFhDPEn,
-        "lt": InputTimestampFhDPLt,
-        "ru": InputTimestampFhDPRu
+        "lt": InputTimestampFhDPLt
     };
 
     /**
@@ -56,7 +53,6 @@ class InputDateFhDP extends InputTextFhDP implements LanguageChangeObserver {
         this.i18n.registerStrings('lt', InputDateFhDPLt);
         this.i18n.registerStrings('pl', InputDateFhDPPl);
         this.i18n.registerStrings('en', InputDateFhDPEn);
-        this.i18n.registerStrings('ru', InputDateFhDPRu);
 
         $.extend(true, (<any>$.fn).datetimepicker.defaults, {
             icons: {

@@ -1,5 +1,5 @@
 import {HTMLFormComponent} from "fh-forms-handler";
-import * as sanitizeHtml from 'sanitize-html';
+import * as sanitizeHtml from 'sanitize-html/dist/sanitize-html';
 
 class HtmlViewExtended extends HTMLFormComponent {
     protected code: string;

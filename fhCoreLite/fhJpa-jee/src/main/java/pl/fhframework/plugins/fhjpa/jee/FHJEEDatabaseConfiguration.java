@@ -12,7 +12,6 @@ import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
-import org.springframework.transaction.jta.JtaTransactionManager;
 import pl.fhframework.aop.services.FhAspectsOrder;
 
 import javax.naming.InitialContext;
@@ -93,8 +92,9 @@ public class FHJEEDatabaseConfiguration {
     @Bean
     @Primary
     @Qualifier("fhTransactionManager")
-    public PlatformTransactionManager fhTransactionManager() {
-        JtaTransactionManager transactionManager = new JtaTransactionManager();
+    public PlatformTransactionManager fhTransactionManager(@Qualifier("fhEntityManagerFactory") EntityManagerFactory emf) {
+        JpaTransactionManager transactionManager = new JpaTransactionManager();
+        transactionManager.setEntityManagerFactory(emf);
         return transactionManager;
     }
 }

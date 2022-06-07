@@ -29,6 +29,4 @@ public interface IEventSource {
     <T> Form<T> getForm();
 
     <T> Form<T> getEventProcessingForm();
-
-    String getId();
 }

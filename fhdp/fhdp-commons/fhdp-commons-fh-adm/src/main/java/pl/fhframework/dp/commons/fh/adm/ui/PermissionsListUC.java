@@ -1,7 +1,6 @@
 package pl.fhframework.dp.commons.fh.adm.ui;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import pl.fhframework.dp.commons.fh.adm.i18n.AdmMessageHelper;
 import pl.fhframework.dp.commons.fh.adm.security.FhAdmSystemFunction;
 import pl.fhframework.dp.commons.fh.adm.service.AdmRoleManagementService;
@@ -37,16 +36,9 @@ public class PermissionsListUC extends FhdpBaseUC implements IInitialUseCase {
     private final AdmRoleManagementService roleManagementService; // for permissions roles management (not roles from security data provider)
     private final AdmMessageHelper messageHelper;
 
-    private AuthorizationManager authorizationManager;
-
-    @Autowired // inject by setter to avoid dependency cycle
-    public void setAuthorizationManager(AuthorizationManager authorizationManager) {
-        this.authorizationManager = authorizationManager;
-    }
-
     @Override
     public void start() {
-        model = new PermissionsListForm.Model(authorizationManager.getAllModules());
+        model = new PermissionsListForm.Model(securityDataProvider.getAllModules());
         refreshRoles();
         showForm(PermissionsListForm.class, model);
     }
@@ -156,7 +148,7 @@ public class PermissionsListUC extends FhdpBaseUC implements IInitialUseCase {
     }
 
     private void afterPermissionsChanged(String messageKey) {
-        authorizationManager.invalidatePermissionCacheForRole(convertToBusinessRole(model.getSelectedRole()));
+        securityDataProvider.invalidatePermissionCacheForRole(convertToBusinessRole(model.getSelectedRole()));
         refreshPermissions();
         if (!StringUtils.isNullOrEmpty(messageKey)) {
             messageHelper.notifyMessage(NotificationEvent.Level.SUCCESS, messageKey);
