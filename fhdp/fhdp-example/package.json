@@ -26,11 +26,11 @@
     "less": "^3.8.1",
     "less-loader": "^4.1.0",
     "mini-css-extract-plugin": "^0.4.2",
-    "node-sass": "4.12.0",
     "obfuscator-loader": "^1.1.2",
     "optimize-css-assets-webpack-plugin": "^5.0.1",
     "postcss-wrapper-loader": "^1.0.1",
-    "sass-loader": "^7.1.0",
+    "sass": "^1.22.10",
+    "sass-loader": "^7.2.0",
     "ts-loader": "6.0.4",
     "tslint": "5.11.0",
     "typescript": "3.0.3",
@@ -43,7 +43,7 @@
     "zlib": "^1.0.5"
   },
   "dependencies": {
-    "fhdp-charts": "^4.10.0-PL-6",
-    "fhdp-fh-starter": "^4.10.0-PL-6"
+    "fhdp-charts": "4.10.4-PL-1-SNAPSHOT-1681822005064",
+    "fhdp-fh-starter": "4.10.4-PL-1-SNAPSHOT-1681822005064"
   }
 }
