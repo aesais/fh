@@ -46,24 +46,42 @@ module.exports = function (cmdEnv) {
                 test: /\.js$/,
                 use: ['babel-loader']
             }, {
-                test: /\.(woff|woff2)(\?v=\d+\.\d+\.\d+)?$/,
-                type: 'asset'
-            }, {
-                test: /\.ttf(\?v=\d+\.\d+\.\d+)?$/,
-                type: 'asset'
-            }, {
-                test: /\.eot(\?v=\d+\.\d+\.\d+)?$/,
-                type: 'asset'
-            }, {
-                test: /\.svg(\?v=\d+\.\d+\.\d+)?$/,
-                type: 'asset'
-            }, {
-                test: /\.jpg$/,
-                type: 'asset'
-            }, {
-                test: /\.png$/,
-                type: 'asset'
-            },{
+               test: /\.(woff|woff2)(\?v=\d+\.\d+\.\d+)?$/,
+               type: 'asset/resource',
+               generator : {
+                   filename : './fonts/[name][ext]',
+               }
+           }, {
+               test: /\.ttf(\?v=\d+\.\d+\.\d+)?$/,
+               type: 'asset/resource',
+               generator : {
+                   filename : './fonts/[name][ext]',
+               }
+           }, {
+               test: /\.eot(\?v=\d+\.\d+\.\d+)?$/,
+               type: 'asset/resource',
+               generator : {
+                   filename : './fonts/[name][ext]',
+               }
+           }, {
+               test: /\.svg(\?v=\d+\.\d+\.\d+)?$/,
+               type: 'asset/resource',
+               generator : {
+                   filename : './img/[name][ext]',
+               }
+           }, {
+               test: /\.jpg$/,
+               type: 'asset/resource',
+               generator : {
+                   filename : './img/[name][ext]',
+               }
+           }, {
+               test: /\.png$/,
+               type: 'asset/resource',
+               generator : {
+                   filename : './img/[name][ext]',
+               }
+           },{
                 test: /jquery-mousewheel/,
                 use: [
                     {
