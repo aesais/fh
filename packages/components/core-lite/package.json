@@ -1,6 +1,6 @@
 {
   "name": "fh-forms-handler",
-  "version": "4.10.5-PL-1-SNAPSHOT-1683791428704",
+  "version": "4.10.5-PL-1-SNAPSHOT-1684399501641",
   "main": "dist/Module.js",
   "types": "dist/Module.d.ts",
   "description": "fh framework core for frontend",
@@ -29,7 +29,7 @@
     "inversify-inject-decorators": "3.1.0",
     "reflect-metadata": "0.1.13",
     "copyfiles": "2.4.1",
-    "@fortawesome/fontawesome-free": "5.15.3",
+    "@fortawesome/fontawesome-free": "6.4.0",
     "js-cookie": "2.2.1",
     "focus-trap": "5.1.0",
     "pako": "2.1.0"
