@@ -448,21 +448,28 @@ public abstract class ObjectDataComparatorBase<CHANGE, DTO> {
     private void compareObjectsCollection(Collection<Object> oldObjCollection,
                                           Collection<Object> newObjCollection,
                                           ObjectDataInfo obInfo) {
+        if (oldObjCollection == null && newObjCollection == null) {
+            return;
+        }
         CollectionPathInfo pi = getPathInfo(obInfo.xPath, obInfo);
         Function<Object,Object> seqIdFunction = pi.getSequenceIdFunction();
 
         Map<Object, Object> oldValues = new HashMap<Object, Object>();
         Map<Object, Object> newValues = new HashMap<Object, Object>();
         Set<Object> keys = new HashSet<Object>();
-        for(Object item : oldObjCollection) {
-            Object iID = seqIdFunction.apply(item);
-            oldValues.put(iID, item);
-            keys.add(iID);
+        if (oldObjCollection != null) {
+            for (Object item : oldObjCollection) {
+                Object iID = seqIdFunction.apply(item);
+                oldValues.put(iID, item);
+                keys.add(iID);
+            }
         }
-        for(Object item : newObjCollection) {
-            Object iID = seqIdFunction.apply(item);
-            newValues.put(iID, item);
-            keys.add(iID);
+        if (newObjCollection != null) {
+            for (Object item : newObjCollection) {
+                Object iID = seqIdFunction.apply(item);
+                newValues.put(iID, item);
+                keys.add(iID);
+            }
         }
 
         Comparator<Object> idComparator = pi.getComparator();
