@@ -8,778 +8,546 @@ import pl.fhframework.dp.commons.base.comparator.annotations.ComparableCollectio
 import pl.fhframework.dp.commons.base.comparator.annotations.ComparableField;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
-
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.Function;
 
 @Slf4j
 public abstract class ObjectDataComparatorBase<CHANGE, DTO> {
 
-	final static String BEAUTIFY_TRUE = "$.common.true";
-	final static String BEAUTIFY_FALSE = "$.common.false";
-	final static String ADDED = "$.compare.added";
-	final static String DELETED = "$.compare.deleted";
-//	final static String BEAUTIFY_DATE = "yyyy-MM-dd";
-//    final static String BEAUTIFY_DATETIME = "yyyy-MM-dd HH:mm";
-	final static DateTimeFormatter dtf = DateTimeFormatter.ofPattern(getDateFormat());
-	final static DateTimeFormatter dtmf = DateTimeFormatter.ofPattern(getDateTimeFormat());
-
-	/**
-	 *
-	 */
-	public static class ObjectDataInfo {
-		public Object before;
-		public Object after;
-		public final String rootName;
-		public String xPath;
-		public ComparableField cf;
-		public ComparableClass cc;
-		public ComparableCollection cl;
-		public boolean recursive = false;
-		public String[] packagesToCompare;
-
-		public boolean firstLevel = false;
-
-		public ObjectDataInfo(String rootName){
-			this.rootName = rootName;
-		}
-
-		public boolean ignoreAdded(){
-			return (cf!=null && Arrays.asList(cf.ignore()).contains(ChangeTypeEnum.ADDED));
-		}
-
-		public boolean ignoreDeleted(){
-			return (cf!=null && Arrays.asList(cf.ignore()).contains(ChangeTypeEnum.DELETED));
-		}
-
-		public boolean ignoreModified(){
-			return (cf!=null && Arrays.asList(cf.ignore()).contains(ChangeTypeEnum.MODIFIED));
-		}
-	}
-	
-	public static abstract class PathInfo {
-		public abstract Object getObjectID(Object object, Long seqNo);
-		/**
-		 * Return null when default can be used
-		 * @return
-		 */
-		public abstract Comparator<Object> getComparator();
-		/**
-		 * 
-		 * Return null when you don't need special ponters
-		 * 
-		 * @param object
-		 * @param counter
-		 * @param xpath
-		 * 
-		 * @return
-		 */
-		public abstract String getPointer(ObjectDataInfo object, int counter, String xpath);
-	}
-	protected Map<String, PathInfo> registeredClasses = new HashMap<String, ObjectDataComparatorBase.PathInfo>();
-
-	public void registerPathInfo(String path, PathInfo classInfo) {
-		registeredClasses.put(path, classInfo);
-	}
-	
-	protected PathInfo getPathInfo(String path) {
-		String spath = path.replaceAll("\\[[0-9]*\\]", "");
-		return registeredClasses.get(spath);
-	}
-	
-
-	public List<CHANGE> compareDeclarationObjects(DTO before, DTO after, boolean recursive, String[] packagesToCompare) {
-		ObjectDataInfo obDataInfo = new ObjectDataInfo("/");
-		obDataInfo.before = before;
-		obDataInfo.after = after;
-		obDataInfo.xPath = "";
-		obDataInfo.recursive = recursive;
-		obDataInfo.packagesToCompare = packagesToCompare;
-
-		// On the highest level compare only annotated fields
-		obDataInfo.firstLevel = true;
-
-		obDataInfo.cc = getAnnotation(ComparableClass.class);
-
-		List<CHANGE> changes = new LinkedList<>();
-		mergeCollections(changes, compareObject(obDataInfo));
-
-		afterMergeCollections(changes);
-//		log.debug("List of changes : ");
-//		for (CHANGE change : changes) {
-//			log.debug("Change on [{}] from [{}] to [{}] ",  change.getPointer(), change.getValueBefore(),
-//					change.getValueAfter() );
-//		}
-
-		return changes;
-
-	}
-
-	protected abstract void afterMergeCollections(List<CHANGE> changes);
-
-	protected abstract ComparableClass getAnnotation(Class<ComparableClass> comparableClassClass);
-
-
-	private Collection<CHANGE> mergeCollections(Collection<CHANGE> oldObj, Collection<CHANGE> newObj) {
-		if (oldObj != null && newObj != null) {
-			oldObj.addAll(newObj);
-			return oldObj;
-		} else
-			return null;
-	}
-
-	public List<CHANGE> compareObject(ObjectDataInfo obInfo) {
-
-		Object newObj = obInfo.after;
-		Object oldObj = obInfo.before;
-
-		String rootName = obInfo.rootName;
-		String xPath = obInfo.xPath;
-		String xPathPrefix = getRootXpathPrefix() + xPath;
-		System.out.println(xPath);
-
-		List<CHANGE> changes = new LinkedList<>();
-
-		if (oldObj == null && newObj == null)
-			return null;
-		else if (oldObj == null) {
-			if (!obInfo.ignoreAdded()){
-				if (newObj instanceof CompareSummaryData){
-					changes.add(newChange(xPathPrefix, ADDED, ((CompareSummaryData)newObj).buildSummary()));
-				} else {
-					registerFields(newObj, changes, xPathPrefix, true);
-				}
-			}
-		} else if (newObj == null) {
-			if (!obInfo.ignoreDeleted()){
-				if (oldObj instanceof CompareSummaryData){
-					changes.add(newChange(xPathPrefix, ((CompareSummaryData)oldObj).buildSummary(), DELETED));
-				} else {
-					registerFields(oldObj, changes, xPathPrefix, false);
-				}
-			}
-		} else {
-			if (newObj.getClass().getAnnotation(ComparableClass.class) == null && !obInfo.recursive) {
-				String msg = "Objects cannot be compared (missing annotation @ComparableClass) for class "+(newObj!=null?newObj.getClass():"null")+"!!";
-				log.warn(msg);
-				throw new IllegalArgumentException(msg);
-
-			}
-
-			log.debug("Objects can be compared (class "+(newObj!=null?newObj.getClass():"null")+")!!");
-
-			Class<? extends Object> clazz = newObj.getClass();
-
-			ArrayList<Field> allFields = new ArrayList<Field>();
-			Class<? extends Object> ccc=clazz;
-			while (ccc!=null){
-				if (ccc.getAnnotation(ComparableClass.class)==null && !obInfo.recursive){
-					ccc=null;
-				}else{
-					allFields.addAll(Arrays.asList(ccc.getDeclaredFields()));
-					ccc = ccc.getSuperclass();
-				}
-			}
-
-			for (Field field : allFields) {
-				field.setAccessible(true);
-				boolean compareAsField = false;
-				boolean compareAsCollection = false;
-				if (obInfo.recursive){
-					Object fieldClass = field.getType();
-					if (fieldClass.equals(List.class)){
-						compareAsCollection = true;
-					} else {
-						compareAsField = true;
-					}
-				}
-				if (field.isAnnotationPresent(ComparableField.class) || (compareAsField && !obInfo.firstLevel)) {
-					try {
-						ObjectDataInfo obInfoField = new ObjectDataInfo(rootName);
-						obInfoField.recursive = obInfo.recursive;
-						obInfoField.packagesToCompare = obInfo.packagesToCompare;
-
-						ComparableField cf = field.getAnnotation(ComparableField.class);
-						obInfoField.cf = cf;
-
-						Class cl = field.getType();
-
-						boolean processAsClass = ! obInfo.recursive;
-						if (obInfo.recursive && obInfo.packagesToCompare != null){
-							processAsClass = Arrays.stream(obInfo.packagesToCompare).anyMatch(e -> cl.getPackage()!= null && cl.getName().startsWith(e));
-						}
-
-						if(cl.isEnum() || field.isEnumConstant()) {
-							processAsClass = false;
-						}
-
-						if (field.getType().isAnnotationPresent(ComparableClass.class) || processAsClass) {
-							log.debug("Fields are of Comparable Class !!");
-
-							ComparableClass cc = field.getType().getAnnotation(ComparableClass.class);
-							obInfoField.cc = cc;
-
-							String cfXPath = (cf==null || StringUtils.isBlank(cf.Xpath()))? (cc==null ? field.getName() :cc.Xpath()):cf.Xpath();
-
-							obInfoField.before = field.get(oldObj);
-							obInfoField.after = field.get(newObj);
-							obInfoField.xPath = xPath + cfXPath+ getXpathSeparator();
-							List<CHANGE> llc= compareObject(obInfoField);
-
-							if(llc!=null){
-								changes.addAll(llc);
-							}
-						} else {
-							log.debug("Comparing field : " + field.getName());
-
-							String path = null;
-							if (cf == null){
-								path = xPathPrefix + "" + field.getName();
-							} else if (cf.rawXpath() == false) {
-								path = xPathPrefix + "" + cf.Xpath();
-							} else {
-								path = xPathPrefix + field.getName();
-							}
-							if (cf != null && !cf.inSchema()) path += " (obj)";
-
-							Object valueAfter = null;
-							Object valueBefore = null;
-
-							String nm =field.getType().getName();
-							if (nm.equals("double")){
-								valueAfter = field.getDouble(newObj);
-								valueBefore = field.getDouble(oldObj);
-							}else if (nm.equals("int")){
-								valueAfter = field.getInt(newObj);
-								valueBefore = field.getInt(oldObj);
-							}else if (nm.equals("boolean")){
-								valueAfter = field.getBoolean(newObj);
-								valueBefore = field.getBoolean(oldObj);
-							}else if (nm.equals("short")){
-								valueAfter = field.getShort(newObj);
-								valueBefore = field.getShort(oldObj);
-							}else if (nm.equals("long")){
-								valueAfter = field.getLong(newObj);
-								valueBefore = field.getLong(oldObj);
-							}else if (nm.equals("byte")){
-								valueAfter = field.getByte(newObj);
-								valueBefore = field.getByte(oldObj);
-							}else if (nm.equals("java.time.LocalDate")){
-								valueAfter = field.get(newObj);
-								valueBefore = field.get(oldObj);
-							}else{
-								valueAfter = field.get(newObj);
-								valueBefore = field.get(oldObj);
-							}
-
-							//dla unikniecia zmian u zrodla
-							Object valueBeforeI = valueBefore;
-							Object valueAfterI = valueAfter;
-
-							String valueBeforeStr = "";
-							if (valueBefore!=null){
-								if (valueBefore instanceof BigDecimal && obInfoField.cf!=null && obInfoField.cf.precision()>-1){
-									valueBeforeI = ((BigDecimal)valueBefore).setScale(obInfoField.cf.precision());
-									valueBeforeStr = ((BigDecimal)valueBeforeI).toPlainString();
-								} else {
-									valueBeforeStr = valueBefore.toString().trim();
-								}
-							}
-							String valueAfterStr = "";
-							if (valueAfter!=null){
-								if (valueAfter instanceof BigDecimal && obInfoField.cf!=null && obInfoField.cf.precision()>-1){
-									valueAfterI = ((BigDecimal)valueAfter).setScale(obInfoField.cf.precision());
-									valueAfterStr = ((BigDecimal)valueAfterI).toPlainString();
-								} else {
-									valueAfterStr = valueAfter.toString().trim();
-								}
-							}
-							//mz:ponizej mozna zrobic enhancement zeby wołać beautify jako argument z jednym SimpleDateFormat dla danego wątku coby troche przyspieszyc
-							if ((valueAfter == null && valueBefore == null) || valueBeforeStr.equals(valueAfterStr))
-								continue;
-							else if (valueAfter == null) {
-								if (!obInfoField.ignoreDeleted()){
-									CHANGE change = newChange(path, beautify(valueBeforeI, field.getName()), "");
-									changes.add(change);
-								}
-
-							} else if (valueBefore == null) {
-									if (!obInfoField.ignoreAdded()){
-										CHANGE change = newChange(path, "", beautify(valueAfterI, field.getName()));
-										changes.add(change);
-									}
-
-							} else if (!valueBefore.equals(valueAfter) /*&& !valueBeforeStr.equals(valueAfterStr)*/) {
-								if (!obInfoField.ignoreModified()){
-                                    // true jeśli equals zwraca false, ale compareTo zwraca 0//MB:ponizsze chyba teraz do pominiecia po zmianach dla *I
-                                    boolean notEqualButSameAfterComparison = false;
-                                    if (valueBefore instanceof BigDecimal && valueAfter instanceof BigDecimal) {
-                                        notEqualButSameAfterComparison = (0 == ((BigDecimal) valueBefore).compareTo((BigDecimal) valueAfter));
-                                    }
-                                    if (valueBefore instanceof Date && valueAfter instanceof Date) {
-                                        notEqualButSameAfterComparison = (0 == ((Date) valueBefore).compareTo((Date) valueAfter));
-                                    }
-                                    if (!notEqualButSameAfterComparison) {
-										CHANGE change = newChange(path, beautify(valueBeforeI, field.getName()), beautify(valueAfterI, field.getName()));
-                                        changes.add(change);
-                                    }
-								}
-							}
-						}
-					} catch (IllegalAccessException iae) {
-						log.error("Can't access value of field : " + field.getName());
-					}
-				} else if (field.isAnnotationPresent(ComparableCollection.class) || (compareAsCollection && !obInfo.firstLevel)) {
-					try {
-
-						ObjectDataInfo obInfoColl = new ObjectDataInfo(rootName);
-						obInfoColl.recursive = obInfo.recursive;
-						obInfoColl.packagesToCompare = obInfo.packagesToCompare;
-
-						log.debug("Comparing collection : " + field.getName());
-						ComparableCollection coll = field.getAnnotation(ComparableCollection.class);
-						//String path = xPathPrefix + coll.Xpath();
-
-						Collection<Object> newValue = (Collection<Object>) field.get(newObj);
-						Collection<Object> oldValue = (Collection<Object>) field.get(oldObj);
-						obInfoColl.before = oldValue;
-						obInfoColl.after = newValue;
-						obInfoColl.xPath = xPath + (coll==null ? field.getName() : coll.Xpath());
-						obInfoColl.cl = coll;
-
-						mergeCollections(changes, compareObjectsCollection(oldValue, newValue, obInfoColl/*path*/));
-
-					} catch (IllegalAccessException iae) {
-						log.error("Can't access value of field : " + field.getName());
-					}
-				}
-			}
-		}
-		return changes;
-	}
-
-	protected void registerFields(Object obj, List<CHANGE> changes, String xPathPrefix, boolean added) {
-		Field[] fields = obj.getClass().getDeclaredFields();
-		for(Field field: fields) {
-			try {
-				if(field.getName().equals("serialVersionUID")) continue;
-				field.setAccessible(true);
-				if(field.get(obj) != null) {
-					Object value = field.get(obj);
-					String className = value.getClass().getName();
-					if(value.toString().startsWith(className + "@")) {
-						registerFields(value, changes, xPathPrefix + field.getName() + getXpathSeparator(), added);
-					} else if (value instanceof List) {
-						int counter = 1;
-						for(Object el: (List)value) {
-							String xpathPrefix = xPathPrefix + field.getName() + "[" + counter++ + "]" + getXpathSeparator();
-							registerFields(el, changes, xpathPrefix , added);
-						}
-					} else {
-						if(added) {
-							changes.add(newChange(xPathPrefix + field.getName(), ADDED, beautify(field.get(obj), field.getName())));
-						} else {
-							changes.add(newChange(xPathPrefix + field.getName(), beautify(field.get(obj), field.getName()), DELETED));
-						}
-					}
-				}
-			} catch (IllegalAccessException e) {
-				log.error("Can't access value of field : " + field.getName());
-			}
-		}
-	}
-
-	protected abstract String getXpathSeparator();
-
-	protected abstract String getRootXpathPrefix();
-
-	protected abstract CHANGE newChange(String xPath, String operation, String summary);
-
-	private static Class<?> getMethodReturnClass(Method m){
-		java.lang.reflect.Type returnType = m.getGenericReturnType();
-		if (returnType instanceof Class<?>) {
-		    return (Class<?>)returnType;
-		} /*else if(returnType instanceof ParameterizedType) {
-		    return getClass(((ParameterizedType)returnType).getRawType());
-		}*/
-		return null;
-	}
-
-	private List<CHANGE> compareObjectsCollection(Collection<Object> oldObjCollection,
-												  Collection<Object> newObjCollection, ObjectDataInfo obInfo) {
-
-		String rootName = obInfo.rootName;
-		String xPath = obInfo.xPath;
-		String xPathPrefix = rootName + xPath;
-
-		List<CHANGE> changes = new LinkedList<>();
-
-		boolean useIterationCompare = true;
-
-		boolean oldIsEmpty = oldObjCollection == null || oldObjCollection.isEmpty();
-		boolean newIsEmpty = newObjCollection == null || newObjCollection.isEmpty();
-		Collection<Object> checkObjCollection = oldIsEmpty ? newObjCollection : oldObjCollection;
-
-		if (!oldIsEmpty && !newIsEmpty) {
-			Object t = checkObjCollection.iterator().next();
-		}
-		
-		//nowa funkcjonalność
-		PathInfo pi = getPathInfo(xPath);
-		if(pi!=null) {
-			Map<Object, Object> oldValues = new HashMap<Object, Object>();
-			Map<Object, Object> newValues = new HashMap<Object, Object>();
-			List<Object> keys = new ArrayList<Object>();
-			Long pos = 1L;
-			for(Object item : oldObjCollection) {
-				Object iID = pi.getObjectID(item, pos);
-				oldValues.put(iID, item);
-				keys.add(iID);
-				pos++;
-			}
-			pos = 1L;
-			for(Object item : newObjCollection) {
-				Object iID = pi.getObjectID(item, pos);
-				newValues.put(iID, item);
-				if(!keys.contains(iID)) {
-					keys.add(iID);
-				}
-				pos++;
-			}
-			
-			Comparator<Object> idComparator = new Comparator<Object>() {
-				
-				@Override
-				public int compare(Object firstId, Object secondId) {
-					int retValue = 0;
-					if (firstId != null && secondId != null){
-						if(firstId instanceof Integer && secondId instanceof Integer) {
-							Integer v1 = (Integer) firstId;
-							Integer v2 = (Integer) secondId;
-							retValue = v1.compareTo(v2);
-						} else if (firstId instanceof String && secondId instanceof String) {
-							String v1 = (String) firstId;
-							String v2 = (String) secondId;
-							retValue = v1.compareTo(v2);							
-						} else if (firstId instanceof Long && secondId instanceof Long) {
-							Long v1 = (Long) firstId;
-							Long v2 = (Long) secondId;
-							retValue = v1.compareTo(v2);	
-						}
-					} else if(firstId == null && secondId != null){
-						retValue = 1;
-					} else if(firstId != null){
-						retValue = -1;
-					} else {
-						retValue = -1;//0 eliminuje z listy
-					}
-					return retValue;
-				}
-			};			
-						
-			Iterator<Object> idIter = getIteratorForCompareObjectsCollection(keys, idComparator);
-			int counter = 0;
-			while (idIter.hasNext()) {
-				counter++;
-				Object currentId = idIter.next();
-
-				ObjectDataInfo newObjectDataInfo = new ObjectDataInfo(rootName);
-				newObjectDataInfo.recursive = obInfo.recursive;
-				newObjectDataInfo.packagesToCompare = obInfo.packagesToCompare;
-				newObjectDataInfo.before = oldValues.get(currentId);
-				newObjectDataInfo.after = newValues.get(currentId);
-				String pointer = pi.getPointer(newObjectDataInfo, counter, xPath);
-				if(pointer==null) {
-					pointer = String.valueOf(counter);
-				}
-				newObjectDataInfo.xPath = xPath + "[" + pointer + "]" + getXpathSeparator();
-
-				mergeCollections(changes, compareObject(newObjectDataInfo));
-			}			
-			
-			return changes;
-		}
-		
-
-		Comparator<Object> comparator = new Comparator<Object>() {
-
-			public int compare(Object firstObj, Object secondObj) {
-				int retValue = 0;
-
-				try {
-					Method method1 = null;
-					Method method2 = null;
-
-					try {
-						method1 = firstObj.getClass().getMethod("getNumber", Integer.class);
-						method2 = secondObj.getClass().getMethod("getNumber", Integer.class);
-
-					} catch (NoSuchMethodException nsme) {
-						method1 = null;
-						method2 = null;
-					}
-//					if (method1 == null) {
-//						try {
-//							method1 = firstObj.getClass().getMethod("getSequenceNumber");
-//							method2 = secondObj.getClass().getMethod("getSequenceNumber");
-//
-//						} catch (NoSuchMethodException nsme) {
-//							method1 = null;
-//							method2 = null;
-//						}
-//					}
-//                    if (method1 == null) {
-//                        try {
-//                            method1 = firstObj.getClass().getMethod("getSequenceNo");
-//                            method2 = secondObj.getClass().getMethod("getSequenceNo");
-//
-//                        } catch (NoSuchMethodException nsme) {
-//                            method1 = null;
-//                            method2 = null;
-//                        }
-//                    }
-					if (method1 == null) {
-						try {
-							method1 = firstObj.getClass().getMethod("goodsItemNumber");
-							method2 = secondObj.getClass().getMethod("goodsItemNumber");
-
-						} catch (NoSuchMethodException nsme) {
-							method1 = null;
-							method2 = null;
-						}
-					}
-					if (method1 == null) {
-						try {
-							method1 = firstObj.getClass().getMethod("getId");
-							method2 = secondObj.getClass().getMethod("getId");
-						} catch (NoSuchMethodException nsme) {
-							method1 = null;
-							method2 = null;
-						}
-						if (method1 == null){
-                        	return 1;
-						}
-                        Class<?> cl = getMethodReturnClass(method1);
-
-						if (Long.class.equals(cl)){
-							Long firstId = (Long) method1.invoke(firstObj);
-							Long secondId = (Long) method2.invoke(secondObj);
-
-							if (firstId != null && secondId != null){
-								retValue = firstId.compareTo(secondId);
-							} else if(firstId == null && secondId != null){
-								retValue = 1;
-							} else if(firstId != null){
-								retValue = -1;
-							} else {
-								retValue = -1;//0 eliminuje z listy
-							}
-
-						} else if (BigDecimal.class.equals(cl)) {
-							BigDecimal firstId = (BigDecimal) method1.invoke(firstObj);
-							BigDecimal secondId = (BigDecimal) method2.invoke(secondObj);
-
-							if (firstId != null && secondId != null){
-								retValue = firstId.compareTo(secondId);
-							} else if(firstId == null && secondId != null){
-								retValue = 1;
-							} else if(firstId != null){
-								retValue = -1;
-							} else {
-								retValue = -1;//0 eliminuje z listy
-							}
-
-						} else {
-							throw new Exception("[compareObjectsCollection] Unhandled getId returnType:"+cl.getName());
-						}
-
-					} else {
-						Integer firstId = (Integer) method1.invoke(firstObj);
-						Integer secondId = (Integer) method2.invoke(secondObj);
-						if (firstId != null && secondId != null){
-							retValue = firstId.compareTo(secondId);
-						} else if(firstId == null && secondId != null){
-							retValue = 1;
-						} else if(firstId != null){
-							retValue = -1;
-						}
-					}
-
-				} catch (Exception e) {
-					log.error("[compareObject] Exception, firstObjectClass: "+firstObj.getClass().getName()+", Error : " + e.getMessage(), e);
-					//log.debug("Full stack trace : ", e);
-				}
-				return retValue;
-			}
-		};
-
-		Iterator<Object> oldIter = getIteratorForCompareObjectsCollection(oldObjCollection, comparator);
-		Iterator<Object> newIter = getIteratorForCompareObjectsCollection(newObjCollection, comparator);
-
-		Object oldObj = null;
-		Object newObj = null;
-
-		if (useIterationCompare) {
-
-			int counter = 0;
-			while (oldIter.hasNext() || newIter.hasNext()) {
-				counter++;
-				if (oldIter.hasNext())
-					oldObj = oldIter.next();
-				else
-					oldObj = null;
-
-				if (newIter.hasNext())
-					newObj = newIter.next();
-				else
-					newObj = null;
-
-				ObjectDataInfo newObjectDataInfo = new ObjectDataInfo(rootName);
-				newObjectDataInfo.recursive = obInfo.recursive;
-				newObjectDataInfo.packagesToCompare = obInfo.packagesToCompare;
-				newObjectDataInfo.before = oldObj;
-				newObjectDataInfo.after = newObj;
-				newObjectDataInfo.xPath = xPath + "[" + counter + "]" + getXpathSeparator();
-
-				mergeCollections(changes, compareObject(newObjectDataInfo));
-			}
-		} else {
-			// przy okazji mamy zagwarantowane, że obydwie kolekcje są nie nulami z badania useIterationCompare
-			int counter = 0;
-			int counterExist = 0;
-			while (oldIter.hasNext()){
-				counter++;
-				oldObj = oldIter.next();
-				if (!newObjCollection.contains(oldObj)){ // było a nie ma
-
-					ObjectDataInfo newObjectDataInfo = new ObjectDataInfo(rootName);
-					newObjectDataInfo.recursive = obInfo.recursive;
-					newObjectDataInfo.packagesToCompare = obInfo.packagesToCompare;
-					newObjectDataInfo.before = oldObj;
-					newObjectDataInfo.after = null; // usunięcie
-					newObjectDataInfo.xPath = xPath + "[" + counter + "]" + getXpathSeparator();
-					mergeCollections(changes, compareObject(newObjectDataInfo));
-				} else {
-					counterExist++;
-				}
-			}
-			while (newIter.hasNext()){
-				newObj = newIter.next();
-				if (!oldObjCollection.contains(newObj)){ // nie było, a jest
-					counterExist++;
-
-					ObjectDataInfo newObjectDataInfo = new ObjectDataInfo(rootName);
-					newObjectDataInfo.recursive = obInfo.recursive;
-					newObjectDataInfo.packagesToCompare = obInfo.packagesToCompare;
-					newObjectDataInfo.before = null;
-					newObjectDataInfo.after = newObj; // dodanie
-					newObjectDataInfo.xPath = xPath + "[" + counterExist + "]" + getXpathSeparator();
-					mergeCollections(changes, compareObject(newObjectDataInfo));
-				}
-			}
-		}
-		return changes;
-	}
-
-	private Iterator<Object> getIteratorForCompareObjectsCollection(Collection<Object> collection, Comparator<Object> comparator) {
-
-		int valuesWithNullCounter = 0;
-
-		if (collection != null) {
-
-			for (Object t : collection) {
-
-				try {
-					Method getIdMethod = t.getClass().getMethod("getId");
-
-					Object idValue = getIdMethod.invoke(t);
-
-					if (idValue == null) {
-						valuesWithNullCounter++;
-					}
-
-				} catch (Exception e) {
-					continue;
-				}
-			}
-		}
-
-		if (collection != null && valuesWithNullCounter == collection.size()) { // wszystkie id'ki maja null'e, wiec nie mozemy uzyc treeSet, bo comparator nam nie zadziala
-			return collection.iterator();
-
-		} else {
-			TreeSet<Object> treeSet = new TreeSet<>(comparator);
-
-			if(collection != null) {
-				treeSet.addAll(collection); //mz: tu lecial NPE
-			}
-
-			return treeSet.iterator();
-		}
-	}
-
-	protected String beautify(Object o, SimpleDateFormat sdf, String fieldName) {
-		if (o == null) {
-			return null;
-		}
-		if (o instanceof Boolean) {
-			Boolean b = (Boolean) o;
-			if (b != null && b.booleanValue() == true) {
-				return BEAUTIFY_TRUE;
-			} else {
-				return BEAUTIFY_FALSE;
-			}
-			//}else if(o instanceof DateTime){
-			//    if(sdf==null){
-			//        return (new SimpleDateFormat(BEAUTIFY_DATETIME)).format((java.util.Date) o);
-			//    }else{
-			//        return sdf.format((java.util.Date) o);
-			//    }
-		} else if (o instanceof LocalDate) {
-			if (sdf == null) {
-				return (((LocalDate) o).format(dtf));
-			} else {
-				return sdf.format((Date) o);
-			}
-
-		} else if (o instanceof LocalDateTime) {
-			if (sdf == null) {
-				return (((LocalDateTime) o).format(dtmf));
-			} else {
-				return sdf.format((Date) o);
-			}
-
-		} else if (o instanceof Enum) {
-			o = "enum." + o.getClass().getTypeName() + "." + o.toString();
-		}
-		return o.toString();
-	}
-
-	protected static String getDateFormat() {
-		return "dd.MM.yyyy";
-	}
-
-	protected static String getDateTimeFormat() {
-		return "dd.MM.yyyy HH:mm:ss";
-	}
-
-	private String beautify(Object o, String fieldName){
-		return beautify(o,null, fieldName);
-	}
-
-	protected String camelCase(String xpath) {
-		char[] xpathArray = xpath.toCharArray();
-		xpathArray[0] = Character.toUpperCase(xpathArray[0]);
-		for(int i = 1; i < xpathArray.length; i++)
-		{
-			if(xpathArray[i-1] == '.')
-				xpathArray[i] = Character.toUpperCase(xpathArray[i]);
-		}
-		return new String(xpathArray);
-	}
+    final static String BEAUTIFY_TRUE = "$.common.true";
+    final static String BEAUTIFY_FALSE = "$.common.false";
+    final static String ADDED = "$.compare.added";
+    final static String DELETED = "$.compare.deleted";
+    final static DateTimeFormatter dtf = DateTimeFormatter.ofPattern(getDateFormat());
+    final static DateTimeFormatter dtmf = DateTimeFormatter.ofPattern(getDateTimeFormat());
+
+    List<CHANGE> changes = null;
+    public List<CHANGE> getChanges(){
+        return changes;
+    }
+
+    protected QualifiesForCompare qualifiesForCompare = null;
+
+    /**
+     *
+     */
+    public static class ObjectDataInfo {
+        public Object before;
+        public Object after;
+        public final String rootName;
+        public String xPath;
+
+        public Field field;
+
+        /** There is @CompareAnnotatedOnly - causing all fields to have annotations to be compared */
+        public boolean annotatedOnly = false;
+
+        public ObjectDataInfo(String rootName){
+            this.rootName = rootName;
+        }
+
+        public boolean ignoreAdded(){
+            if (field == null){
+                return false;
+            }
+            ComparableField cf = field.getAnnotation(ComparableField.class);
+            return (cf!=null && Arrays.asList(cf.ignore()).contains(ChangeTypeEnum.ADDED));
+        }
+
+        public boolean ignoreDeleted(){
+            if (field == null){
+                return false;
+            }
+            ComparableField cf = field.getAnnotation(ComparableField.class);
+            return (cf!=null && Arrays.asList(cf.ignore()).contains(ChangeTypeEnum.DELETED));
+        }
+
+        public boolean ignoreModified(){
+            if (field == null){
+                return false;
+            }
+            ComparableField cf = field.getAnnotation(ComparableField.class);
+            return (cf!=null && Arrays.asList(cf.ignore()).contains(ChangeTypeEnum.MODIFIED));
+        }
+    }
+
+    /**
+     * Class to provide method to match objects in collections.
+     * Usually it is enough to provide getSequenceIdFunction implementation
+     */
+    public static class CollectionPathInfo {
+        /**
+         * For some collection get method to get object in collection based on object
+         * If null value is returned then natural order in collection will be used (but might not make sense)
+         * @return
+         */
+        public Function<Object,Object> getSequenceIdFunction(){
+            return o -> (Integer)o.hashCode();
+        }
+        /**
+         * Return null when default can be used (default is just comparing Comparables fromn the function above)
+         * @return
+         */
+        public Comparator<Object> getComparator(){
+            return null;
+        }
+        /**
+         * Standard collection pointer
+         * @param object
+         * @param counter
+         *
+         * @return
+         */
+        public String getPointer(ObjectDataInfo object, int counter){
+            return ""+counter;
+        }
+    }
+    protected Map<String, CollectionPathInfo> registeredCollectionClasses = new HashMap<String, CollectionPathInfo>();
+
+    protected CollectionPathInfo createCollectionPathInfo(){
+        return new CollectionPathInfo();
+    }
+
+    protected void afterCompareFixChanges(){}
+
+    protected CollectionPathInfo getPathInfo(String path, ObjectDataInfo obInfo) {
+        String spath = path.replaceAll("\\[[0-9]*\\]", "");
+        CollectionPathInfo pi = registeredCollectionClasses.get(spath);
+        if (pi == null){
+            pi = createCollectionPathInfo();
+            registeredCollectionClasses.put(spath, pi);
+        }
+        return pi;
+    }
+
+    public enum FieldTypeEnum{
+        FIELD,
+        CLASS,
+        COLLECTION
+    }
+    public static class QualifiesForCompare {
+        private boolean recursive;
+        public QualifiesForCompare(boolean recursive){
+            this.recursive = recursive;
+        }
+
+        protected boolean fieldQualifies(String fieldName, String className, String parentPath){
+            return true;
+        }
+        protected boolean fieldQualifiesAsClass(String fieldName, String className, String parentPath){
+            return true;
+        }
+
+        /**
+         * Check if field in base object should be compared
+         * @param field
+         * @return
+         */
+        public FieldTypeEnum qualifies(ObjectDataInfo obInfo, Field field){
+            Class fieldClass = field.getType();
+            if (!fieldQualifies(field.getName(), fieldClass.getName(), obInfo.xPath)){
+                return null;
+            }
+            if (field.isAnnotationPresent(ComparableField.class)) {
+                if (fieldClass.isPrimitive()) {
+                    return FieldTypeEnum.FIELD;
+                }
+                if (recursive){
+                    if (fieldQualifiesAsClass(field.getName(), fieldClass.getName(), obInfo.xPath)){
+                        return FieldTypeEnum.CLASS;
+                    } else {
+                        return FieldTypeEnum.FIELD;
+                    }
+                } else {
+                    return FieldTypeEnum.FIELD;
+                }
+            }
+            if (fieldClass.isAnnotationPresent(ComparableClass.class)){
+                return FieldTypeEnum.CLASS;
+            }
+            if (field.isAnnotationPresent(ComparableCollection.class)){
+                return FieldTypeEnum.COLLECTION;
+            }
+            if (obInfo.annotatedOnly){
+                return null;
+            }
+            if (Collection.class.isAssignableFrom(fieldClass)){
+                return FieldTypeEnum.COLLECTION;
+            }
+            if(fieldClass.isEnum() || field.isEnumConstant()) {
+                return FieldTypeEnum.FIELD;
+            }
+            // in recursive mode we compare every field - if it is our package then we compare as class
+            if (fieldQualifiesAsClass(field.getName(), fieldClass.getName(), obInfo.xPath)){
+                return FieldTypeEnum.CLASS;
+            } else {
+                return FieldTypeEnum.FIELD;
+            }
+        }
+    }
+
+    public List<CHANGE> compareAndGetChanges(DTO before, DTO after) {
+        compareDeclarationObjects(before, after);
+        return getChanges();
+    }
+
+    public void compareDeclarationObjects(DTO before, DTO after) {
+
+        changes = new LinkedList<>();
+        ObjectDataInfo obDataInfo = new ObjectDataInfo("/");
+        obDataInfo.before = before;
+        obDataInfo.after = after;
+        obDataInfo.xPath = "";
+        obDataInfo.annotatedOnly = true; // only in main element
+
+        compareObject(obDataInfo);
+        afterCompareFixChanges();
+    }
+
+    public void compareObject(ObjectDataInfo obInfo) {
+
+        Object newObj = obInfo.after;
+        Object oldObj = obInfo.before;
+
+        String rootName = obInfo.rootName;
+        String xPath = obInfo.xPath;
+        String xPathPrefix = getXpathSeparator() + xPath;
+
+        if (oldObj == null && newObj == null) {
+            return;
+        }
+        if (oldObj == null) {
+            if (!obInfo.ignoreAdded()){
+                if (newObj instanceof CompareSummaryData){
+                    changes.add(newChange(xPathPrefix, ADDED, ((CompareSummaryData)newObj).buildSummary()));
+                } else {
+                    registerFields(newObj, xPathPrefix, true, obInfo);
+                }
+            }
+            return;
+        }
+        if (newObj == null) {
+            if (!obInfo.ignoreDeleted()){
+                if (oldObj instanceof CompareSummaryData){
+                    changes.add(newChange(xPathPrefix, ((CompareSummaryData)oldObj).buildSummary(), DELETED));
+                } else {
+                    registerFields(oldObj, xPathPrefix, false, obInfo);
+                }
+            }
+            return;
+        }
+        log.debug("Objects "+ obInfo.xPath+"/"+(obInfo.field==null?"":obInfo.field.getName())+" will be compared (class "+newObj.getClass()+")");
+
+        Class<? extends Object> clazz = newObj.getClass();
+
+        ArrayList<Field> allFields = new ArrayList<Field>();
+        Class<? extends Object> ccc=clazz;
+        while (ccc!=null){
+            if (ccc.getAnnotation(ComparableClass.class)!=null || qualifiesForCompare.recursive){
+                allFields.addAll(Arrays.asList(ccc.getDeclaredFields()));
+            }
+            ccc = ccc.getSuperclass();
+        }
+
+        for (Field field : allFields) {
+            if (Modifier.isStatic(field.getModifiers())) {
+                continue;
+            }
+            field.setAccessible(true);
+            ObjectDataInfo obInfoField = new ObjectDataInfo(rootName);
+
+            ComparableField cf = field.getAnnotation(ComparableField.class);
+            ComparableClass cc = field.getType().getAnnotation(ComparableClass.class);
+            String cfXPath = (cf==null || StringUtils.isBlank(cf.Xpath()))? (cc==null ? field.getName() :cc.Xpath()):cf.Xpath();
+
+            FieldTypeEnum qualifiesField = qualifiesForCompare.qualifies(obInfo, field);
+
+            if (qualifiesField == FieldTypeEnum.CLASS) {
+                log.debug("Field "+field.getName()+" located: "+xPath+" is of Comparable Class");
+                try {
+                    obInfoField.before = field.get(oldObj);
+                    obInfoField.after = field.get(newObj);
+                } catch (IllegalAccessException e) {
+                    log.error("Can't access value of field : " + field.getName(),e);
+                    return;
+                }
+
+                obInfoField.xPath = xPath + cfXPath + getXpathSeparator();
+                compareObject(obInfoField);
+            } else if (qualifiesField == FieldTypeEnum.FIELD) {
+                try {
+                        log.debug("Comparing field : " + field.getName());
+                        String path = null;
+                        if (cf == null){
+                            path = xPathPrefix + "" + field.getName();
+                        } else if (cf.rawXpath() == false) {
+                            path = xPathPrefix + "" + cf.Xpath();
+                        } else {
+                            path = xPathPrefix + field.getName();
+                        }
+                        if (cf != null && !cf.inSchema()){
+                            path += " (obj)";
+                        }
+
+                        Object valueAfter = null;
+                        Object valueBefore = null;
+
+                        String nm =field.getType().getName();
+                        if (nm.equals("double")){
+                            valueAfter = field.getDouble(newObj);
+                            valueBefore = field.getDouble(oldObj);
+                        }else if (nm.equals("int")){
+                            valueAfter = field.getInt(newObj);
+                            valueBefore = field.getInt(oldObj);
+                        }else if (nm.equals("boolean")){
+                            valueAfter = field.getBoolean(newObj);
+                            valueBefore = field.getBoolean(oldObj);
+                        }else if (nm.equals("short")){
+                            valueAfter = field.getShort(newObj);
+                            valueBefore = field.getShort(oldObj);
+                        }else if (nm.equals("long")){
+                            valueAfter = field.getLong(newObj);
+                            valueBefore = field.getLong(oldObj);
+                        }else if (nm.equals("byte")){
+                            valueAfter = field.getByte(newObj);
+                            valueBefore = field.getByte(oldObj);
+                        }else if (nm.equals("java.time.LocalDate")){
+                            valueAfter = field.get(newObj);
+                            valueBefore = field.get(oldObj);
+                        }else{
+                            valueAfter = field.get(newObj);
+                            valueBefore = field.get(oldObj);
+                        }
+
+                        Object valueBeforeI = valueBefore;
+                        Object valueAfterI = valueAfter;
+
+                        String valueBeforeStr = "";
+                        if (valueBefore!=null){
+                            if (valueBefore instanceof BigDecimal && cf!=null && cf.precision()>-1){
+                                valueBeforeI = ((BigDecimal)valueBefore).setScale(cf.precision());
+                                valueBeforeStr = ((BigDecimal)valueBeforeI).toPlainString();
+                            } else {
+                                valueBeforeStr = valueBefore.toString().trim();
+                            }
+                        }
+                        String valueAfterStr = "";
+                        if (valueAfter!=null){
+                            if (valueAfter instanceof BigDecimal && cf!=null && cf.precision()>-1){
+                                valueAfterI = ((BigDecimal)valueAfter).setScale(cf.precision());
+                                valueAfterStr = ((BigDecimal)valueAfterI).toPlainString();
+                            } else {
+                                valueAfterStr = valueAfter.toString().trim();
+                            }
+                        }
+                        if ((valueAfter == null && valueBefore == null) || valueBeforeStr.equals(valueAfterStr))
+                            continue;
+                        else if (valueAfter == null) {
+                            if (!obInfoField.ignoreDeleted()){
+                                CHANGE change = newChange(path, beautify(valueBeforeI, field.getName()), "");
+                                changes.add(change);
+                            }
+
+                        } else if (valueBefore == null) {
+                            if (!obInfoField.ignoreAdded()){
+                                CHANGE change = newChange(path, "", beautify(valueAfterI, field.getName()));
+                                changes.add(change);
+                            }
+
+                        } else if (!valueBefore.equals(valueAfter)) {
+                            if (!obInfoField.ignoreModified()){
+                                boolean notEqualButSameAfterComparison = false;
+                                if (valueBefore instanceof BigDecimal && valueAfter instanceof BigDecimal) {
+                                    notEqualButSameAfterComparison = (0 == ((BigDecimal) valueBefore).compareTo((BigDecimal) valueAfter));
+                                }
+                                if (valueBefore instanceof Date && valueAfter instanceof Date) {
+                                    notEqualButSameAfterComparison = (0 == ((Date) valueBefore).compareTo((Date) valueAfter));
+                                }
+                                if (!notEqualButSameAfterComparison) {
+                                    CHANGE change = newChange(path, beautify(valueBeforeI, field.getName()), beautify(valueAfterI, field.getName()));
+                                    changes.add(change);
+                                }
+                            }
+                        }
+                } catch (IllegalAccessException iae) {
+                    log.error("Can't access value of field : " + field.getName());
+                }
+            } else if (qualifiesField == FieldTypeEnum.COLLECTION) {
+                try {
+                    log.debug("Comparing collection : " + field.getName());
+                    Collection<Object> newValue = (Collection<Object>) field.get(newObj);
+                    Collection<Object> oldValue = (Collection<Object>) field.get(oldObj);
+                    obInfo.before = oldValue;
+                    obInfo.after = newValue;
+                    ComparableCollection coll = field.getAnnotation(ComparableCollection.class);
+                    obInfo.xPath = xPath + (coll==null ? field.getName() : coll.Xpath());
+                    compareObjectsCollection(oldValue, newValue, obInfo);
+                } catch (IllegalAccessException iae) {
+                    log.error("Can't access value of field : " + field.getName());
+                }
+            }
+        }
+    }
+
+    protected void registerFields(Object obj, String xPathPrefix, boolean added, ObjectDataInfo obInfo) {
+        Field[] fields = obj.getClass().getDeclaredFields();
+        for(Field field: fields) {
+            try {
+                if (Modifier.isStatic(field.getModifiers())) {
+                    continue;
+                }
+                if (qualifiesForCompare.qualifies(obInfo, field) == null){
+                    continue;
+                }
+                field.setAccessible(true);
+                if(field.get(obj) != null) {
+                    Object value = field.get(obj);
+                    String className = value.getClass().getName();
+                    if(value.toString().startsWith(className + "@")) {
+                        registerFields(value, xPathPrefix + field.getName() + getXpathSeparator(), added, obInfo);
+                    } else if (value instanceof List) {
+                        int counter = 1;
+                        for(Object el: (List)value) {
+                            String xpathPrefix = xPathPrefix + field.getName() + "[" + counter++ + "]" + getXpathSeparator();
+                            registerFields(el, xpathPrefix , added, obInfo);
+                        }
+                    } else {
+                        if(added) {
+                            changes.add(newChange(xPathPrefix + field.getName(), ADDED, beautify(field.get(obj), field.getName())));
+                        } else {
+                            changes.add(newChange(xPathPrefix + field.getName(), beautify(field.get(obj), field.getName()), DELETED));
+                        }
+                    }
+                }
+            } catch (IllegalAccessException e) {
+                log.error("Can't access value of field : " + field.getName());
+            }
+        }
+    }
+
+    protected abstract String getXpathSeparator();
+
+    protected abstract CHANGE newChange(String xPath, String operation, String summary);
+
+    private void compareObjectsCollection(Collection<Object> oldObjCollection,
+                                          Collection<Object> newObjCollection,
+                                          ObjectDataInfo obInfo) {
+        CollectionPathInfo pi = getPathInfo(obInfo.xPath, obInfo);
+        Function<Object,Object> seqIdFunction = pi.getSequenceIdFunction();
+
+        Map<Object, Object> oldValues = new HashMap<Object, Object>();
+        Map<Object, Object> newValues = new HashMap<Object, Object>();
+        Set<Object> keys = new HashSet<Object>();
+        for(Object item : oldObjCollection) {
+            Object iID = seqIdFunction.apply(item);
+            oldValues.put(iID, item);
+            keys.add(iID);
+        }
+        for(Object item : newObjCollection) {
+            Object iID = seqIdFunction.apply(item);
+            newValues.put(iID, item);
+            keys.add(iID);
+        }
+
+        Comparator<Object> idComparator = pi.getComparator();
+        if (idComparator == null){
+            idComparator = (firstId, secondId) -> {
+                if (firstId != null && secondId != null){
+                    if(firstId instanceof Integer && secondId instanceof Integer) {
+                        return ((Integer) firstId).compareTo((Integer) secondId);
+                    } else if (firstId instanceof String && secondId instanceof String) {
+                        return ((String) firstId).compareTo((String) secondId);
+                    } else if (firstId instanceof Long && secondId instanceof Long) {
+                        return ((Long) firstId).compareTo((Long) secondId);
+                    }
+                } else if (firstId == null && secondId != null){
+                    return 1;
+                } else if (firstId != null){
+                    return -1;
+                }
+                return -1;//0 eliminates from the list
+            };
+        }
+
+        Object[] keysArray = keys.toArray();
+        Arrays.sort(keysArray, idComparator);
+        int counter = 0;
+        for (Object currentId : keysArray) {
+            counter++;
+            ObjectDataInfo newObjectDataInfo = new ObjectDataInfo(obInfo.rootName);
+            newObjectDataInfo.before = oldValues.get(currentId);
+            newObjectDataInfo.after = newValues.get(currentId);
+            String pointer = pi.getPointer(newObjectDataInfo, counter);
+            if(pointer==null) {
+                pointer = String.valueOf(counter);
+            }
+            newObjectDataInfo.xPath = obInfo.xPath + "[" + pointer + "]" + getXpathSeparator();
+            compareObject(newObjectDataInfo);
+        }
+    }
+
+    protected String beautify(Object o, SimpleDateFormat sdf, String fieldName) {
+        if (o == null) {
+            return null;
+        }
+        if (o instanceof Boolean) {
+            Boolean b = (Boolean) o;
+            if (b != null && b.booleanValue() == true) {
+                return BEAUTIFY_TRUE;
+            } else {
+                return BEAUTIFY_FALSE;
+            }
+            //}else if(o instanceof DateTime){
+            //    if(sdf==null){
+            //        return (new SimpleDateFormat(BEAUTIFY_DATETIME)).format((java.util.Date) o);
+            //    }else{
+            //        return sdf.format((java.util.Date) o);
+            //    }
+        } else if (o instanceof LocalDate) {
+            if (sdf == null) {
+                return (((LocalDate) o).format(dtf));
+            } else {
+                return sdf.format((Date) o);
+            }
+
+        } else if (o instanceof LocalDateTime) {
+            if (sdf == null) {
+                return (((LocalDateTime) o).format(dtmf));
+            } else {
+                return sdf.format((Date) o);
+            }
+
+        } else if (o instanceof Enum) {
+            o = "enum." + o.getClass().getTypeName() + "." + o.toString();
+        }
+        return o.toString();
+    }
+
+    protected static String getDateFormat() {
+        return "dd.MM.yyyy";
+    }
+
+    protected static String getDateTimeFormat() {
+        return "dd.MM.yyyy HH:mm:ss";
+    }
+
+    private String beautify(Object o, String fieldName){
+        return beautify(o,null, fieldName);
+    }
 }
