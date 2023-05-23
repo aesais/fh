@@ -488,6 +488,16 @@ public class DictionaryComboFhDP extends ComboFhDP implements IGroupingComponent
             columns = dataProvider.getColumnDefinitions();
             elementChange.addChange(ATTR_COLUMNS, columns);
         }
+        if (getLastValueModelBinding() != null) {
+            BindingResult bindingResult = getLastValueModelBinding().getBindingResult();
+            String newRaw = convertToRaw(bindingResult);
+            if(Optional.ofNullable(getIsTableMode()).orElse(false) && !displayOnlyCode) {
+                newRaw = this.dataProvider.getDisplayValue(getValueFromProvider(newRaw));
+            }
+
+            setLastValue(newRaw);
+            elementChange.addChange(ATTR_LAST_VALUE, getLastValue());
+        }
         if(currentLastValue != null) {
             Object lastValue = elementChange.getChangedAttributes().get(ATTR_LAST_VALUE);
             if(lastValue.equals(currentLastValue)) {
