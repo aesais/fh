@@ -1,4 +1,4 @@
-package pl.fhframework.dp.commons.utils.conversion;
+package pl.fhframework.dp.commons.utils.conversion.model;
 
 import lombok.Getter;
 import lombok.Setter;
