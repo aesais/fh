@@ -18,7 +18,7 @@ public class SubstantiveParametersTagDtoService
     implements ISubstantiveParametersTagDtoService {
 
   @Autowired
-  SubstantiveParametersTagESRepository substantiveParametersTagESRepository;
+  protected SubstantiveParametersTagESRepository substantiveParametersTagESRepository;
 
   public SubstantiveParametersTagDtoService() {
     super(SubstantiveParametersTagDto.class, SubstantiveParametersTagDto.class, SubstantiveParametersTagDto.class);
