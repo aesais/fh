@@ -298,11 +298,16 @@ public  abstract class BaseDocumentHandlingUC<MODEL extends BaseDocumentHandling
     @Action(validate = false)
     public void openPinup() throws InvalidAlgorithmParameterException, NoSuchPaddingException,
             IllegalBlockSizeException, NoSuchAlgorithmException, InvalidKeySpecException,
-            BadPaddingException, InvalidKeyException, UnsupportedEncodingException {
+            BadPaddingException, InvalidKeyException {
         String id = AESCypher.encrypt(model.getPinupCypherPassword(), model.getDocId().toString());
         String url = model.getPinupUrl()
             + "?id=" + id
             + "&lng=" + getUserSession().getLanguage().toLanguageTag();
+
+        String theme = FhUtils.getCookieByKey("theme");
+        if(null != theme) {
+            url += "&theme=" + theme;
+        }
         eventRegistry.fireCustomActionEvent("openPinup", url);
     }
 
