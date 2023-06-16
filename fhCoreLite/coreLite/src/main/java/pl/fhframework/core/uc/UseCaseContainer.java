@@ -160,6 +160,7 @@ public class UseCaseContainer implements Serializable {
 
     private final Map<String, UseCaseContext> systemContainerForUseCase = new HashMap<>();
 
+    @Getter
     private UseCaseUrl currentUrl;
 
     private final UseCaseUrlParser useCaseUrlParser = new UseCaseUrlParser();
