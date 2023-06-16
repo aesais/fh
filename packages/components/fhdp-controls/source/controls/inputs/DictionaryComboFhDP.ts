@@ -8,6 +8,12 @@ import { DictionaryComboFhDPPopperTable } from './DictionaryComboFhDPPopperTable
 
 export type PaginationPlacement = "TOP" | "BOTTOM";
 
+export type RenderPopupProps = {
+    hookElementId: string;
+    parent: any;
+    position: 'left' | 'right';
+}
+
 class DictionaryComboFhDP extends ComboFhDP implements LanguageChangeObserver {
     private instance : any;
     private divTooltipId: any;
@@ -33,6 +39,9 @@ class DictionaryComboFhDP extends ComboFhDP implements LanguageChangeObserver {
 
     public guuid: string;
     private paginationPlacement: PaginationPlacement;
+
+    protected lastValueHtmlElement: any;
+    private isLastValueTooltip: boolean = false;
 
     constructor(componentObj: any, parent: HTMLFormComponent) {
         super(componentObj, parent);
@@ -102,6 +111,17 @@ class DictionaryComboFhDP extends ComboFhDP implements LanguageChangeObserver {
                 }
             })
         }
+
+        if(this.lastValueHtmlElement != null) {
+            $($("div.search-icon", this.lastValueHtmlElement)[0]).addClass('fc-editable');
+            $($("div.search-icon", this.lastValueHtmlElement)[0]).on("click", function(){
+                if(self.accessibility === "VIEW"){
+                    self.isSearch = true;
+                    self.crateTooltip($("div.search-icon", self.lastValueHtmlElement)[0], true);
+                }
+            })
+        }
+
         this.input.addEventListener('keypress', (ev) => {
             if (ev.key === "Enter") {
                 this.changesQueue.queueAttributeChange('searchRequested', true);
@@ -143,10 +163,13 @@ class DictionaryComboFhDP extends ComboFhDP implements LanguageChangeObserver {
             }
         }
 
-        if(this.htmlElement.querySelector("span.input-old-value") != null) {
+        if(!!this.lastValueHtmlElement) {
+            this.lastValueHtmlElement.querySelector("div.search-icon").addEventListener('click', this.onClickEvent.bind(this));
+        } else if(this.htmlElement.querySelector("span.input-old-value") != null) {
             this.htmlElement.querySelector("span.input-old-value").classList.add('fc-editable');
             this.htmlElement.querySelector("span.input-old-value").addEventListener('click', this.onClickEvent.bind(this));
         }
+
         if(this.htmlElement.querySelector("div.search-icon") != null) {
             this.htmlElement.querySelector("div.search-icon").addEventListener('click', this.onClickSearchIconEvent.bind(this));
         }
@@ -158,6 +181,68 @@ class DictionaryComboFhDP extends ComboFhDP implements LanguageChangeObserver {
             this.fireEvent('setGuuid', JSON.stringify({id: this.guuid}));
         }
 
+    }
+
+    protected createLastValueElement() {
+        if(!this.isTableMode) {
+            super.createLastValueElement();
+            return;
+        }
+
+        if(this.componentObj.lastValue) {
+            let group = document.createElement('div');
+            group.id = `FhDP-dictionary-combo-${+new Date()}-lastValue`;
+            group.classList.add('input-group-append');
+
+            let groupSpan = document.createElement('span');
+            ['fc', 'form-control', 'fc-disabled', 'disabled', 'input-old-value'].forEach(function (cssClass) {
+                groupSpan.classList.add(cssClass);
+            });
+
+            if(this.hideCrossed == "true"){
+                groupSpan.classList.add('input-old-value-remove-line');
+            }
+            if(this.rawValue == this.lastValue){
+                groupSpan.classList.add('hide-old-value');
+            }
+            if (this.lastValueParser) {
+                groupSpan.innerText = this.lastValueParser(this.lastValue);
+            } else {
+                groupSpan.innerText = this.lastValue;
+            }
+            group.appendChild(groupSpan);
+
+            let groupSearch = document.createElement('div');
+            groupSearch.classList.add('input-group-prepend');
+            groupSearch.classList.add('search-icon');
+            groupSearch.addEventListener('click', this.onClickEvent.bind(this));
+
+            let groupSpanSearch = document.createElement('span');
+            groupSpanSearch.classList.add('input-group-text');
+            groupSearch.appendChild(groupSpanSearch);
+
+            this.htmlElement.classList.add('hasInputIcon');
+            let icon = document.createElement('i');
+            let classes = this.componentObj.icon.split(' ');
+            icon.classList.add(classes[0]);
+            if (classes[1]) {
+                icon.classList.add(classes[1]);
+            }
+            groupSpanSearch.appendChild(icon);
+
+            if (this.componentObj.iconAlignment === 'BEFORE') {
+                group.insertBefore(groupSearch, groupSpan);
+            } else if (this.componentObj.iconAlignment === 'AFTER') {
+                groupSearch.classList.remove('input-group-prepend');
+                groupSearch.classList.add('input-group-append');
+                group.appendChild(groupSearch);
+            } else {
+                group.insertBefore(groupSearch, groupSpan);
+            }
+
+            this.lastValueHtmlElement = group;
+            this.inputGroupElement.parentElement.appendChild(group);
+        }
     }
 
     validated(result: boolean) {
@@ -287,7 +372,24 @@ class DictionaryComboFhDP extends ComboFhDP implements LanguageChangeObserver {
         ev.preventDefault();
     }
 
+    protected getPopupProps(): RenderPopupProps {
+        if(!!this.lastValueHtmlElement) {
+            return {
+                hookElementId: this.lastValueHtmlElement.id,
+                parent: this.lastValueHtmlElement,
+                position: 'left'
+            }
+        }
+        return {
+            hookElementId: this.getInputGroupElement().id,
+            parent: this.getInputGroupElement(),
+            position: this.isSearch ? 'left' : 'right'
+        }
+    }
+
     async renderPopup() {
+        const { hookElementId, parent, position } = this.getPopupProps();
+
         const handlePopupClose = (force?: boolean) => {
             if ((!this.dirty && !this.clickInPopup) || force) {
                 this.popupOpen = false;
@@ -300,13 +402,13 @@ class DictionaryComboFhDP extends ComboFhDP implements LanguageChangeObserver {
             columns: this.columns,
             rows: this.rows,
             readOnly: this.accessibility === "VIEW",
-            hookElementId: this.getInputGroupElement().id,
+            hookElementId,
             isOpen: this.popupOpen,
             currentPage: this.page,
             pagesCount: this.pagesCount,
-            parent: this.getInputGroupElement(),
+            parent,
             backgroundColor: this.popupColor,
-            position: this.isSearch ? 'left' : 'right',
+            position,
             paginationPlacement: this.paginationPlacement,
             fireChangePopupEvent: (attr: {name: string, arg: any}[], event?: string) => {
                 if (['nextPage', 'prevPage'].indexOf(event) > -1) {
@@ -339,21 +441,23 @@ class DictionaryComboFhDP extends ComboFhDP implements LanguageChangeObserver {
         this.clickInPopup = false;
     }
 
-    crateTooltip(element){
-        let allTooltips = document.getElementsByClassName("dc-element");
+    protected getOldValueHtmlElement(): HTMLElement {
+        return this.isTableMode ? this.lastValueHtmlElement : this.getInputGroupElement();
+    }
 
-        if(allTooltips.length >0){
-            for(var i=0; i< allTooltips.length;i++){
-                allTooltips[i]
-                if (!allTooltips[i].classList.contains("hidden-popper") && allTooltips[i].id != this.divTooltipId.toString()){
-                    allTooltips[i].classList.add("hidden-popper");
-                }
+    crateTooltip(element, isOldValue: boolean = false) {
+        if(isOldValue) {
+            const fBase = () => {
+                this.isSearch = false;
+                this.fireEvent('onClickLastValue', "search");
             }
+            this.handleCrateTooltip(element, fBase);
+            return;
         }
-        this.popupOpen = true;
-        if (element && this.accessibility === "VIEW") {
+
+        const fBase = () => {
             const isSearch = $(element).is($($("div.search-icon", this.getInputGroupElement())[0]))
-            const isOldValue = $(element).is($($("span.input-old-value", this.getInputGroupElement())[0]))
+            const isOldValue = $(element).is($($("span.input-old-value", this.getOldValueHtmlElement())[0]))
 
             if (isSearch) {
                 this.isSearch = true;
@@ -363,6 +467,24 @@ class DictionaryComboFhDP extends ComboFhDP implements LanguageChangeObserver {
                 this.isSearch = false;
                 this.fireEvent('onClickLastValue', "search");
             }
+        }
+        this.handleCrateTooltip(element, fBase);
+    }
+
+    protected handleCrateTooltip(element, fBase: () => void){
+        let allTooltips = document.getElementsByClassName("dc-element");
+        if(allTooltips.length >0){
+            for(var i=0; i< allTooltips.length;i++){
+                allTooltips[i]
+                if (!allTooltips[i].classList.contains("hidden-popper") && allTooltips[i].id != this.divTooltipId.toString()){
+                    allTooltips[i].classList.add("hidden-popper");
+                }
+            }
+        }
+        this.popupOpen = true;
+
+        if (element && this.accessibility === "VIEW") {
+            fBase();
         }
         this.renderPopup();
     }
@@ -480,8 +602,10 @@ class DictionaryComboFhDP extends ComboFhDP implements LanguageChangeObserver {
     };
 
     onClickEvent(event) {
+        event.stopPropagation();
+        this.isLastValueTooltip = true;
         this.popupOpen = true;
-        this.isSearch = false;
+        this.isSearch = true;
         this.changesQueue.queueAttributeChange('searchRequested', true);
         if(this.accessibility !== "VIEW") {
             if (this._formId === 'FormPreview') {
@@ -490,7 +614,12 @@ class DictionaryComboFhDP extends ComboFhDP implements LanguageChangeObserver {
                 this.fireEventWithLock('onClickLastValue', "search");
             }
         }
-        this.crateTooltip($("div.input-group-append > span.input-old-value", this.htmlElement)[0]);
+
+        if(this.isTableMode) {
+            this.crateTooltip($("div.search-icon", this.lastValueHtmlElement)[0], true);
+        } else {
+            this.crateTooltip($("div.input-group-append > span.input-old-value", this.htmlElement)[0], true);
+        }
         event.target.blur();
     }
 
@@ -498,6 +627,7 @@ class DictionaryComboFhDP extends ComboFhDP implements LanguageChangeObserver {
         event.stopPropagation();
         this.popupOpen = true;
         this.isSearch = true;
+        this.isLastValueTooltip = false;
         if(this.accessibility !== "VIEW") {
             if (this._formId === 'FormPreview') {
                 this.fireEvent('onClickSearchIcon', "preview");
