@@ -27,6 +27,7 @@ public class ComboFhDP extends Combo {
     public static final String ATTR_IS_TABLE_MODE = "isTableMode";
 
     @Getter
+    @Setter
     private String lastValue;
     @Getter String hideCrossed;
     @Getter

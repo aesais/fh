@@ -2,6 +2,8 @@ package pl.fhframework.dp.commons.utils.conversion;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import pl.fhframework.dp.commons.utils.conversion.model.MockObject;
+import pl.fhframework.dp.commons.utils.conversion.model.NestedObject;
 
 import java.util.Arrays;
 

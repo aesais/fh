@@ -184,7 +184,7 @@ public class DynamicClassCompiler {
             javaFiles.forEach(singleFile -> compilerArgs.add(singleFile.toAbsolutePath().toString()));
 
             List<String> failMessages = new LinkedList<>();
-            Main.bareMain(compilerArgs.toArray(new String[compilerArgs.size()]), false, failMessages, failMessages, null, null);
+            Main.bareMain(compilerArgs.toArray(new String[compilerArgs.size()]), false, failMessages, failMessages, null, null, null);
             if (failMessages.size() > 0) {
                 String errResult = String.join("\n", failMessages);
                 FhLogger.error("Errors while compiling files {}:\n{}\n", fileListString, errResult);

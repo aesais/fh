@@ -4,13 +4,13 @@
     <parent>
         <groupId>pl.fhframework</groupId>
         <artifactId>fh-compile-bom</artifactId>
-        <version>4.10.5.PL.0</version>
+        <version>4.10.5.PL.1</version>
         <relativePath>../bom-project-lite/fh-compile-bom</relativePath>
     </parent>
     <groupId>pl.fhframework.dp</groupId>
     <artifactId>fhdp</artifactId>
     <packaging>pom</packaging>
-    <version>4.10.5.PL.0</version>
+    <version>4.10.5.PL.1</version>
 
     <name>fhdp</name>
 
@@ -25,11 +25,11 @@
 <!--        <springboot.version>2.6.4</springboot.version>-->
 <!--        <hibernate.version>5.3.20.Final</hibernate.version>-->
 <!--        <geotools.version>20.2</geotools.version>-->
-        <camunda.version>7.14.0</camunda.version>
+        <camunda.version>7.19.0</camunda.version>
 <!--        <spring.data.elasticsearch.version>4.1.15</spring.data.elasticsearch.version>-->
 <!--        <spring.data.jpa.version>2.4.3</spring.data.jpa.version>-->
 <!--        <elasticsearch.version>7.12.1</elasticsearch.version>-->
-        <fasterxml.version>2.11.3</fasterxml.version>
+        <fasterxml.version>2.13.5</fasterxml.version>
 
 <!--        <spring.security.version>5.4.2</spring.security.version>-->
 <!--        <jackson.version>2.11.4</jackson.version>-->
