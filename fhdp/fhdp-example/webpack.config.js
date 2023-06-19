@@ -54,40 +54,22 @@ module.exports = function (env) {
             ]
             }, {
                 test: /\.(woff|woff2)(\?v=\d+\.\d+\.\d+)?$/,
-                type: 'asset/resource',
-                generator : {
-                    filename : './fonts/[name][ext]',
-                }
+                type: 'asset'
             }, {
                 test: /\.ttf(\?v=\d+\.\d+\.\d+)?$/,
-                type: 'asset/resource',
-                generator : {
-                    filename : './fonts/[name][ext]',
-                }
+                type: 'asset'
             }, {
                 test: /\.eot(\?v=\d+\.\d+\.\d+)?$/,
-                type: 'asset/resource',
-                generator : {
-                    filename : './fonts/[name][ext]',
-                }
+                type: 'asset'
             }, {
                 test: /\.svg(\?v=\d+\.\d+\.\d+)?$/,
-                type: 'asset/resource',
-                generator : {
-                    filename : './img/[name][ext]',
-                }
+                type: 'asset'
             }, {
                 test: /\.jpg$/,
-                type: 'asset/resource',
-                generator : {
-                    filename : './img/[name][ext]',
-                }
+                type: 'asset'
             }, {
                 test: /\.png$/,
-                type: 'asset/resource',
-                generator : {
-                    filename : './img/[name][ext]',
-                }
+                type: 'asset'
             }, {
                 test: /jquery-mousewheel/,
                 use: [

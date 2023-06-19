@@ -5,7 +5,6 @@ import com.mongodb.ServerAddress;
 import com.mongodb.client.MongoClient;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -32,12 +31,8 @@ public class MongoConfig extends AbstractMongoClientConfiguration {
     @Value("${mongo.autoindex:false}")
     private Boolean autoIndex;
 
-    @Value("${mongo.client.enabled:true}")
-    private Boolean mongoEnabled;
-
     
     @Bean
-    @ConditionalOnProperty(prefix = "mongo.client", name = "enabled", havingValue = "true", matchIfMissing = true)
     public MongoClient mongoClient() {
         return super.mongoClient();
     }
@@ -51,17 +46,15 @@ public class MongoConfig extends AbstractMongoClientConfiguration {
 
     @Override
     protected void configureClientSettings(MongoClientSettings.Builder builder) {
-        if (mongoEnabled) {
-            String[] hosts = hostAndPort.split(Pattern.quote(","));
-            builder
-                    .applyToClusterSettings(settings -> {
-                        settings.hosts(serversList(hosts));
-                    })
-                    .applyToConnectionPoolSettings(poolSettings -> {
-                        poolSettings.minSize(minSize)
-                                .maxSize(maxSize);
-                    });
-        }
+        String[] hosts = hostAndPort.split(Pattern.quote(","));
+        builder
+                .applyToClusterSettings(settings  -> {
+                    settings.hosts(serversList(hosts));
+                })
+                .applyToConnectionPoolSettings(poolSettings -> {
+                    poolSettings.minSize(minSize)
+                            .maxSize(maxSize);
+                });
     }
 
     private List<ServerAddress> serversList(String[] hosts) {
