@@ -197,7 +197,6 @@ public class AppNavBarUC extends FhdpBaseUC implements INavbar, ISystemUseCase {
                     newTheme = "theme--dark";
                     break;
             }
-            FhUtils.setCookieByKey("theme", newTheme);
             String toReplace = themeToReplace + "," + newTheme;
             eventRegistry.fireCustomActionEvent("replaceBodyStyleClass", toReplace);
         }
