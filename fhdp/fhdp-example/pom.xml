@@ -5,7 +5,7 @@
     <parent>
         <groupId>pl.fhframework</groupId>
         <artifactId>fh-boot-bom</artifactId>
-        <version>4.10.5.PL-SNAPSHOT</version>
+        <version>4.10.5.PL.SB279-SNAPSHOT</version>
         <relativePath>../../bom-project-lite/fh-boot-bom</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -77,6 +77,16 @@
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.infinispan</groupId>
+            <artifactId>infinispan-core</artifactId>
+            <version>13.0.15.Final</version>
+        </dependency>
+        <dependency>
+            <groupId>org.infinispan</groupId>
+            <artifactId>infinispan-commons</artifactId>
+            <version>13.0.15.Final</version>
         </dependency>
     </dependencies>
 

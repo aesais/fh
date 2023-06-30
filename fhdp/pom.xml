@@ -4,13 +4,13 @@
     <parent>
         <groupId>pl.fhframework</groupId>
         <artifactId>fh-compile-bom</artifactId>
-        <version>4.10.5.PL-SNAPSHOT</version>
+        <version>4.10.5.PL.SB279-SNAPSHOT</version>
         <relativePath>../bom-project-lite/fh-compile-bom</relativePath>
     </parent>
     <groupId>pl.fhframework.dp</groupId>
     <artifactId>fhdp</artifactId>
     <packaging>pom</packaging>
-    <version>4.10.5.PL-SNAPSHOT</version>
+    <version>4.10.5.PL.SB279-SNAPSHOT</version>
 
     <name>fhdp</name>
 
@@ -21,12 +21,12 @@
     <properties>
 <!--        <sfl4j.version>1.7.30</sfl4j.version>-->
 <!--        <infinispan.version>13.0.10.Final</infinispan.version>-->
-        <infinispan.version>12.1.11.Final</infinispan.version>
+        <infinispan.version>13.0.15.Final</infinispan.version>
 <!--        <spring.version>5.3.3</spring.version>-->
-<!--        <springboot.version>2.6.4</springboot.version>-->
+        <springboot.version>2.7.9</springboot.version>
 <!--        <hibernate.version>5.3.20.Final</hibernate.version>-->
 <!--        <geotools.version>20.2</geotools.version>-->
-        <camunda.version>7.14.0</camunda.version>
+        <camunda.version>7.19.0</camunda.version>
 <!--        <spring.data.elasticsearch.version>4.1.15</spring.data.elasticsearch.version>-->
 <!--        <spring.data.jpa.version>2.4.3</spring.data.jpa.version>-->
 <!--        <elasticsearch.version>7.12.1</elasticsearch.version>-->
