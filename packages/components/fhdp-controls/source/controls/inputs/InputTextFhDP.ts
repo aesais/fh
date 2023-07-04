@@ -255,7 +255,7 @@ class InputTextFhDP extends HTMLFormComponent {
             if(this.hideCrossed == "true"){
                 groupSpan.classList.add('input-old-value-remove-line');
             }
-            if(this.rawValue == this.lastValue){
+            if(this.isTheSameLastValue()){
                 groupSpan.classList.add('hide-old-value');
             }
             if (this.lastValueParser) {
@@ -520,7 +520,7 @@ class InputTextFhDP extends HTMLFormComponent {
                         break;
                     case 'hideCrossed':
                         this.hideCrossed = newValue;
-                        let theSameValue = this.rawValue == this.lastValue;
+                        let theSameValue = this.isTheSameLastValue();
                         if(this.lastValue===undefined && !!this.newValueText) {
                             theSameValue = this.rawValue === '';
                         }
@@ -531,12 +531,16 @@ class InputTextFhDP extends HTMLFormComponent {
         }
     };
 
+    protected isTheSameLastValue(): boolean {
+        return this.rawValue == this.lastValue;
+    }
+
     updateModel() {
         this.valueChanged = true;
         this.oldValue = this.rawValue;
         this.rawValue = this.input.value;
         console.log('w updateModel');
-        let theSameValue = this.rawValue == this.lastValue;
+        let theSameValue = this.isTheSameLastValue();
         if(this.lastValue===undefined && !!this.newValueText) {
             theSameValue = this.rawValue === '';
         }
