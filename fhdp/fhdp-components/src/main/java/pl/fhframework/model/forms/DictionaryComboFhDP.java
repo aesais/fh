@@ -55,6 +55,7 @@ public class DictionaryComboFhDP extends ComboFhDP implements IGroupingComponent
     public static final String ATTR_POPUP_COLOR = "popupColor";
     private static final String ATTR_ROWS = "rows";
     private static final String ATTR_COLUMNS = "columns";
+    private static final String ATTR_CODE_VALUE = "codeValue";
     private static final String ATTR_PAGE = "page";
     private static final String ATTR_PAGES_COUNT = "pagesCount";
     private static final String VALUE_FOR_CHANGED_BINDING_ATTR = "valueFromChangedBinding";
@@ -94,6 +95,9 @@ public class DictionaryComboFhDP extends ComboFhDP implements IGroupingComponent
 
     @Getter
     private List<NameValue> columns;
+
+    @Getter
+    private String codeValue;
 
     @Getter
     private String title;
@@ -233,6 +237,7 @@ public class DictionaryComboFhDP extends ComboFhDP implements IGroupingComponent
                             rawValue = String.valueOf(currentValue);
                         } else {
                             filterText = String.valueOf(currentValue);
+                            codeValue = String.valueOf(currentValue);
                             selectedItem = getValueFromProvider(filterText);
                             if (selectedItem != null) {
                                 rawValue = dataProvider.getDisplayValue(selectedItem);
@@ -434,6 +439,7 @@ public class DictionaryComboFhDP extends ComboFhDP implements IGroupingComponent
                         if(value != null) {
                             filterText = String.valueOf(value);
                             selectedItem = getValueFromProvider(filterText);
+                            codeValue = String.valueOf(value);
                             if(selectedItem != null) {
                                 rawValue = dataProvider.getDisplayValue(selectedItem);
                             } else {
@@ -443,9 +449,11 @@ public class DictionaryComboFhDP extends ComboFhDP implements IGroupingComponent
                             filterText = null;
                             selectedItem = null;
                             rawValue = null;
+                            codeValue = null;
                         }
                     }
                     System.out.println("processValueBinding. New rawValue: " + ((rawValue == null)?"real null":rawValue));
+                    elementChanges.addChange(ATTR_CODE_VALUE, (codeValue == null)?"":codeValue);
                     elementChanges.addChange(VALUE_FOR_CHANGED_BINDING_ATTR, (rawValue == null)?"":rawValue);
                     System.out.println("After processValueBinding. dirty: " + dirty);
                     return true;
@@ -521,6 +529,7 @@ public class DictionaryComboFhDP extends ComboFhDP implements IGroupingComponent
             if(newValue == null) {
                 dirty = true;
                 rawValue = null;
+                codeValue = null;
                 filterText = null;
                 valueSelected = true;
             } else {
@@ -535,6 +544,7 @@ public class DictionaryComboFhDP extends ComboFhDP implements IGroupingComponent
                     dirty = true;
                     rawValue = newValue;
                     System.out.println("updateModel... changed rawValue: " + rawValue);
+                    codeValue = filterText;
                     filterText = rawValue;
                     boolean singleSearch = this.rawValue!=null && (!dirty || !getAvailability().equals(AccessibilityEnum.EDIT));
                     search(singleSearch, true);
