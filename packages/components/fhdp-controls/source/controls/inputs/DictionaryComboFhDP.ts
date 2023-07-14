@@ -42,9 +42,11 @@ class DictionaryComboFhDP extends ComboFhDP implements LanguageChangeObserver {
 
     protected lastValueHtmlElement: any;
     private isLastValueTooltip: boolean = false;
+    private codeValue: string;
 
     constructor(componentObj: any, parent: HTMLFormComponent) {
         super(componentObj, parent);
+        this.codeValue = componentObj.codeValue;
         this.instance = null;
         this.divTooltipId = null;
         this.divTooltip = null;
@@ -176,11 +178,14 @@ class DictionaryComboFhDP extends ComboFhDP implements LanguageChangeObserver {
 
         if (this.rawValue === undefined || this.rawValue === 'null' || this.rawValue === null || this.rawValue === '') {
             this.input.value = '';
+
+            if(!!this.isTableMode) {
+                this.inputGroupElement.classList.add('hide-old-value');
+            }
         }
         if(this.accessibility == 'EDIT') {
             this.fireEvent('setGuuid', JSON.stringify({id: this.guuid}));
         }
-
     }
 
     protected createLastValueElement() {
@@ -203,7 +208,7 @@ class DictionaryComboFhDP extends ComboFhDP implements LanguageChangeObserver {
                 groupSpan.classList.add('input-old-value-remove-line');
             }
             if(this.rawValue == this.lastValue){
-                groupSpan.classList.add('hide-old-value');
+                group.classList.add('hide-old-value');
             }
             if (this.lastValueParser) {
                 groupSpan.innerText = this.lastValueParser(this.lastValue);
@@ -242,6 +247,21 @@ class DictionaryComboFhDP extends ComboFhDP implements LanguageChangeObserver {
 
             this.lastValueHtmlElement = group;
             this.inputGroupElement.parentElement.appendChild(group);
+        }
+    }
+
+    protected toogleLastValueElement(theSameValue) {
+        if (!this.isTableMode) {
+            super.toogleLastValueElement(theSameValue);
+            return;
+        }
+
+        if(this.lastValueHtmlElement) {
+            if(theSameValue){
+                this.lastValueHtmlElement.classList.add('hide-old-value');
+            } else {
+                this.lastValueHtmlElement.classList.remove('hide-old-value');
+            }
         }
     }
 
@@ -500,7 +520,7 @@ class DictionaryComboFhDP extends ComboFhDP implements LanguageChangeObserver {
             this.divTooltip.classList.add('hidden-popper');
             this.instance = null;
         }
-        
+
         this.i18n.unsubscribe(this);
         super.destroy(removeFromParent);
     }
@@ -528,7 +548,15 @@ class DictionaryComboFhDP extends ComboFhDP implements LanguageChangeObserver {
                         this.columns = newValue;
                         shouldRender = true;
                         break;
+                    case "codeValue":
+                        this.codeValue = newValue;
+                        break;
                     case 'valueFromChangedBinding':
+                        if (this.isTableMode) {
+                            this.handleUpdateRawValueTableMode(newValue);
+                            break;
+                        }
+
                         if (newValue === 'null' || newValue === '') {
                             this.rawValue = null;
                             this.input.value = '';
@@ -539,8 +567,8 @@ class DictionaryComboFhDP extends ComboFhDP implements LanguageChangeObserver {
                             this.input.value = newValue || '';
                             this.unmarkDirty();
                             this.valueFromChangedBinding = newValue || '';
-                            this.toogleLastValueElement(this.rawValue == this.lastValue);
                         }
+                        this.toogleLastValueElement(this.isTheSameLastValue());
                         break;
                     case 'shouldCloseTooltip':
                         this.shouldCloseTooltip = newValue;
@@ -588,10 +616,28 @@ class DictionaryComboFhDP extends ComboFhDP implements LanguageChangeObserver {
 
     }
 
+    private handleUpdateRawValueTableMode(newValue: string): void {
+        this.rawValue = newValue;
+        this.input.textContent = newValue || "";
+        this.unmarkDirty();
+        this.valueFromChangedBinding = newValue;
+
+        if(newValue === 'null' || newValue === '') {
+            this.inputGroupElement.classList.add('hide-old-value');
+        } else {
+            this.inputGroupElement.classList.remove('hide-old-value');
+        }
+
+        this.toogleLastValueElement(this.rawValue == this.lastValue);
+    }
+
+    protected isTheSameLastValue(): boolean {
+        return this.codeValue == this.lastValue;
+    }
+
     updateModel() {
        super.updateModel();
-        let theSameValue = this.rawValue == this.lastValue;
-        this.toogleLastValueElement(theSameValue);
+       this.toogleLastValueElement(this.isTheSameLastValue());
     }
 
     extractChangedAttributes() {

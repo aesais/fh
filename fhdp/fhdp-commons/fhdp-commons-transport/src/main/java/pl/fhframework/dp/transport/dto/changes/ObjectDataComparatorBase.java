@@ -30,10 +30,10 @@ import java.util.function.Function;
 @Slf4j
 public abstract class ObjectDataComparatorBase<CHANGE, DTO> {
 
-    final static String BEAUTIFY_TRUE = "$.common.true";
-    final static String BEAUTIFY_FALSE = "$.common.false";
-    final static String ADDED = "$.compare.added";
-    final static String DELETED = "$.compare.deleted";
+    protected final static String BEAUTIFY_TRUE = "$.common.true";
+    protected final static String BEAUTIFY_FALSE = "$.common.false";
+    protected final static String ADDED = "$.compare.added";
+    protected final static String DELETED = "$.compare.deleted";
     final static DateTimeFormatter dtf = DateTimeFormatter.ofPattern(getDateFormat());
     final static DateTimeFormatter dtmf = DateTimeFormatter.ofPattern(getDateTimeFormat());
 
