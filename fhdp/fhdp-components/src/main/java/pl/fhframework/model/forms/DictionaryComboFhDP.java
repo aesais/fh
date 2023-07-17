@@ -234,6 +234,7 @@ public class DictionaryComboFhDP extends ComboFhDP implements IGroupingComponent
                         if (displayOnlyCode) {
                             selectedItem = currentValue;
                             filterText = String.valueOf(currentValue);
+                            codeValue = String.valueOf(currentValue);
                             rawValue = String.valueOf(currentValue);
                         } else {
                             filterText = String.valueOf(currentValue);
