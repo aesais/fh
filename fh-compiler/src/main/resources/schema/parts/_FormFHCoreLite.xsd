@@ -1825,6 +1825,7 @@
         <xs:attribute type="ValidationMessages_Levels" name="level" use="required"/>
         <xs:attribute type="xs:string" name="navigation" default="true"/>
         <xs:attribute type="xs:string" name="strictLevel" default="false"/>
+        <xs:attribute type="xs:string" name="compositeForm" default="false"/>
     </xs:complexType>
 
     <xs:complexType name="WidgetType">
