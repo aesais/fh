@@ -65,6 +65,12 @@ public class ValidateMessages extends FormElement implements IComponentsReferrer
     @DocumentedComponentAttribute(value = "Defines if field navigation should be handled", defaultValue = "true")
     private boolean navigation = true;
 
+    @Getter
+    @Setter
+    @XMLProperty(defaultValue = "false")
+    @DocumentedComponentAttribute(value = "Defines if field navigation should be handled", defaultValue = "false")
+    private boolean compositeForm = false;
+
     @JsonIgnore
     private boolean showAttributeAsLabel;
 
@@ -264,10 +270,17 @@ public class ValidateMessages extends FormElement implements IComponentsReferrer
         if (formElement == null) {
             return false;
         }
-        if (componentIds.contains(formElement.getId())) {
+        if (isChildOfComponent(formElement.getId())) {
             return true;
         } else {
             return isChildOfComponent((FormElement) formElement.getGroupingParentComponent());
         }
+    }
+
+    private boolean isChildOfComponent(String formElementId) {
+        if(compositeForm) {
+            return componentIds.stream().anyMatch(el -> null != formElementId && formElementId.startsWith(el));
+        }
+        return componentIds.contains(formElementId);
     }
 }
