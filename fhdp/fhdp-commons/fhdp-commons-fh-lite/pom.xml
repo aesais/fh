@@ -30,6 +30,11 @@
         </dependency>
         <dependency>
             <groupId>pl.fhframework.dp</groupId>
+            <artifactId>fhdp-commons-prints-rest</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>pl.fhframework.dp</groupId>
             <artifactId>fhdp-commons-rest</artifactId>
             <version>${project.version}</version>
         </dependency>

@@ -1,4 +1,4 @@
-package pl.fhframework.dp.commons.fh.print;
+package pl.fhframework.dp.commons.prints.rest;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;

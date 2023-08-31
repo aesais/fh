@@ -44,6 +44,8 @@
                         <xs:element type="XMLViewerFhDPType" name="XMLViewerFhDP"/>
                         <xs:element type="InputNumberFhDPType" name="InputNumberFhDP"/>
                     </xs:choice>
+                    <xs:attribute type="xs:string" name="inlineStyle"/>
+                    <xs:attribute type="xs:string" name="wrapperStyle"/>
                 </xs:extension>
             </xs:complexContent>
         </xs:complexType>
@@ -160,6 +162,7 @@
                         <xs:element type="RowType" name="Row"/>
                         <xs:element type="InputNumberFhDPType" name="InputNumberFhDP"/>
                     </xs:choice>
+                    <xs:attribute type="xs:string" name="styleClasses"/>
                 </xs:extension>
             </xs:complexContent>
         </xs:complexType>
@@ -190,6 +193,7 @@
                         <xs:element type="RowType" name="Row"/>
                         <xs:element type="InputNumberFhDPType" name="InputNumberFhDP"/>
                     </xs:choice>
+                    <xs:attribute type="xs:string" name="styleClasses"/>
                 </xs:extension>
             </xs:complexContent>
         </xs:complexType>
@@ -397,6 +401,11 @@
         <xs:attribute type="xs:string" name="filterText"/>
         <xs:attribute type="xs:string" name="provider"/>
         <xs:attribute type="TimeoutType" name="onInputTimeout"/>
+        <xs:attribute type="paginationPlacementType" name="paginationPlacement"/>
+        <xs:attribute type="xs:boolean" name="displayOnlyCode" default="true"/>
+        <xs:attribute type="xs:boolean" name="isTableMode"/>
+        <xs:attribute type="xs:string" name="newValueText"/>
+        <xs:attribute type="xs:string" name="isLastValueEnabled"/>
         <xs:attribute type="xs:string" name="displayFunction">
             <xs:annotation>
                 <xs:documentation>Name of model object (java.util.function.BiPredicate) which will be used to format
@@ -482,6 +491,8 @@
         <xs:attribute type="LabelPositionType" name="labelPosition"/>
         <xs:attribute type="InputSizeType" name="inputSize"/>
         <xs:attribute type="LabelSizeType" name="labelSize"/>
+        <xs:attribute type="xs:string" name="newValueText"/>
+        <xs:attribute type="xs:string" name="isLastValueEnabled"/>
     </xs:complexType>
 
     <xs:element name="InputTextFhDP" type="InputTextFhDPType"/>
@@ -508,6 +519,7 @@
         <xs:attribute type="TextAlignType" name="textAlign"/>
         <xs:attribute type="xs:string" name="validationRule"/>
         <xs:attribute type="xs:positiveInteger" name="rowsCount"/>
+        <xs:attribute type="xs:boolean" name="rowsCountAuto"/>
         <xs:attribute type="xs:string" name="value"/>
         <xs:attribute type="xs:string" name="lastValue"/>
         <xs:attribute type="xs:string" name="hideCrossed"/>
@@ -526,6 +538,11 @@
         <xs:attribute type="xs:string" name="requiredRegexMessage"/>
         <xs:attribute type="xs:string" name="labelId"/>
         <xs:attribute type="xs:string" name="width" use="required" default="md-3"/>
+        <xs:attribute type="xs:boolean" name="isCharacterCounter"/>
+        <xs:attribute type="xs:string" name="textBeforeCharacterCounter"/>
+        <xs:attribute type="xs:string" name="characterCounterStyleClasses"/>
+        <xs:attribute type="xs:string" name="newValueText"/>
+        <xs:attribute type="xs:string" name="isLastValueEnabled"/>
     </xs:complexType>
 
     <xs:element name="InputTimeFhDP" type="InputTimeFhDPType"/>
@@ -700,6 +717,8 @@
         <!-- TODO TimerFhDP attrs-->
         <xs:attribute type="xs:integer" name="timeout"/>
         <xs:attribute type="xs:string" name="onInterval"/>
+        <xs:attribute type="xs:string" name="id"/>
+        <xs:attribute type="xs:string" name="availability"/>
     </xs:complexType>
 
     <xs:element name="TreeElementFhDP" type="TreeElementFhDPType"/>
@@ -768,5 +787,14 @@
         <xs:attribute type="LabelSizeType" name="labelSize"/>
         <xs:attribute type="xs:string" name="maxFractionDigits"/>
         <xs:attribute type="xs:string" name="maxIntigerDigits"/>
+        <xs:attribute type="xs:string" name="newValueText"/>
+        <xs:attribute type="xs:string" name="isLastValueEnabled"/>
     </xs:complexType>
+
+    <xs:simpleType name="paginationPlacementType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="TOP"/>
+            <xs:enumeration value="BOTTOM"/>
+        </xs:restriction>
+    </xs:simpleType>
 </xs:schema>

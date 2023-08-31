@@ -30,6 +30,7 @@
         <module>fhdp-commons-poi</module>
         <module>fhdp-commons-prints</module>
         <module>fhdp-commons-prints-fonts</module>
+        <module>fhdp-commons-prints-rest</module>
         <module>fhdp-commons-els</module>
     </modules>
 

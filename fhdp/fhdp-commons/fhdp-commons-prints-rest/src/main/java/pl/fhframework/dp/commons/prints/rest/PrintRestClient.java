@@ -1,11 +1,10 @@
-package pl.fhframework.dp.commons.fh.print;
+package pl.fhframework.dp.commons.prints.rest;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.util.UriComponentsBuilder;
-import pl.fhframework.dp.transport.drs.repository.*;
 import pl.fhframework.dp.transport.prints.PrintRequestType;
 import pl.fhframework.dp.transport.prints.PrintResponseType;
 
