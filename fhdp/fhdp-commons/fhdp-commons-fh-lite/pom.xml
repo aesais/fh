@@ -3,7 +3,7 @@
     <parent>
         <artifactId>fhdp-commons</artifactId>
         <groupId>pl.fhframework.dp</groupId>
-        <version>4.10.6.PL.2</version>
+        <version>4.10.6.PL.3</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -26,6 +26,11 @@
         <dependency>
             <groupId>pl.fhframework.dp</groupId>
             <artifactId>fhdp-commons-transport</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>pl.fhframework.dp</groupId>
+            <artifactId>fhdp-commons-prints-rest</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>

@@ -3,7 +3,7 @@
     <parent>
         <artifactId>fhdp</artifactId>
         <groupId>pl.fhframework.dp</groupId>
-        <version>4.10.6.PL.2</version>
+        <version>4.10.6.PL.3</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -30,6 +30,7 @@
         <module>fhdp-commons-poi</module>
         <module>fhdp-commons-prints</module>
         <module>fhdp-commons-prints-fonts</module>
+        <module>fhdp-commons-prints-rest</module>
         <module>fhdp-commons-els</module>
     </modules>
 
