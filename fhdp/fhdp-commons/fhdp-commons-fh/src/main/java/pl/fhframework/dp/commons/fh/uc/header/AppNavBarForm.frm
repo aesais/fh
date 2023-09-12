@@ -3,7 +3,8 @@
         <Invisible when="translationLT==false">lithuanianLang</Invisible>
         <Invisible when="translationPL==false">polishLang</Invisible>
         <Invisible when="translationEN==false">englishLang</Invisible>
-<!--        <Invisible when="translationNO==false">noLang</Invisible>-->
+        <Invisible when="translationNO==false">noLang</Invisible>
+        <Invisible when="translationViewKey==false">languageDropdownViewKey</Invisible>
         <Invisible when="-language eq 'pl'">polishLang</Invisible>
         <Invisible when="-language eq 'en'">englishLang</Invisible>
         <Invisible when="-language eq 'lt'">lithuanianLang</Invisible>
@@ -23,23 +24,26 @@
             <DropdownItem value="{$.fhdp.menu.ui.navbar.buttons.lithuanian}" icon="fas fa-globe-europe" id="lithuanianLang" onClick="setLanguageLithuanian" />
             <DropdownItem value="{$.fhdp.menu.ui.navbar.buttons.polish}" icon="fas fa-globe-europe" id="polishLang" onClick="setLanguagePolish" />
             <DropdownItem value="{$.menu.ui.navbar.buttons.no_lang}" icon="fas fa-globe-europe" id="noLang" onClick="setLanguageNo" />
-            <DropdownItem value="View Key" icon="fas fa-globe-europe" onClick="setViewkey" />
+            <DropdownItem value="View Key" icon="fas fa-globe-europe" id="languageDropdownViewKey" onClick="setViewkey" />
         </Dropdown>
-        <Button width="md-2" label="[icon='fas fa-sliders-h']" hintTrigger="HOVER"
+        <Button width="md-2" label="[icon='fas fa-sliders-h']"
                 onClick="displayAppSider" styleClasses="tray-button button"
-                id="settingsSider" hint="{$.fhdp.menu.ui.navbar.settings}"/>
-        <Button width="md-2" label="[icon='fas fa-cog']" hintTrigger="HOVER"
+                hintTrigger="HOVER" hintPlacement="BOTTOM" hint="{$.fhdp.menu.ui.navbar.settings}"
+                id="settingsSider"/>
+        <Button width="md-2" label="[icon='fas fa-cog']"
+                hintTrigger="HOVER" hintPlacement="BOTTOM" hint="{$.fhdp.menu.ui.navbar.operations}"
                 onClick="displayOperationSider" styleClasses="tray-button button"
-                id="operationSider" hint="{$.fhdp.menu.ui.navbar.operations}"/>
-        <Button width="md-2" label="[icon='fas fa-question-circle']" hintTrigger="HOVER"
+                id="operationSider"/>
+        <Button width="md-2" label="[icon='fas fa-question-circle']"
+                hintTrigger="HOVER" hintPlacement="BOTTOM" hint="{$.fhdp.menu.ui.navbar.help}"
                 onClick="displayHelpPageSider"  styleClasses="tray-button button"
-                id="helpSider"  hint="{$.fhdp.menu.ui.navbar.help}"/>
+                id="helpSider"/>
         <Button width="md-2" label="[icon='far fa-clock']"
-                hint="{counter}" hintTrigger="HOVER"
+                hintTrigger="HOVER" hintPlacement="BOTTOM" hint="{counter}"
                 styleClasses="tray-button button"
                 id="sessionClock"/>
-        <Button id="diLogout" width="md-2" hintTrigger="HOVER"
-                hint="{$.fhdp.menu.ui.navbar.buttons.logout}"
+        <Button id="diLogout" width="md-2"
+                hintTrigger="HOVER" hintPlacement="BOTTOM" hint="{$.fhdp.menu.ui.navbar.buttons.logout}"
                 styleClasses="tray-button button"
                 onClick="logout" label="[icon='fa fa-power-off']"/>
     </Row>
