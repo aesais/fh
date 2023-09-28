@@ -68,6 +68,9 @@ public class AppNavBarUC extends FhdpBaseUC implements INavbar, ISystemUseCase {
     @Value("${translation.no:true}")
     private boolean translationNO;
 
+    @Value("${translation.viewKey:true}")
+    private boolean translationViewKey;
+
     @Value("${fhdp.languageDropdown:true}")
     private boolean languageDropdown;
 
@@ -107,6 +110,7 @@ public class AppNavBarUC extends FhdpBaseUC implements INavbar, ISystemUseCase {
         this.model.setTranslationEN(translationEN);
         this.model.setTranslationLT(translationLT);
         this.model.setTranslationNO(translationNO);
+        this.model.setTranslationViewKey(translationViewKey);
 
         this.model.setHelpSider(helpSider);
         this.model.setOperationSider(operationSider);
