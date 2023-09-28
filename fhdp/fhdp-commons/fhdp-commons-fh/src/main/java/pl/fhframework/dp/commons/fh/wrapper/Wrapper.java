@@ -102,6 +102,10 @@ public class Wrapper<T> implements Serializable {
 
         String newProp = this.extractProperty(prop, element);
 
+        if (!isLastValueEnabled) {
+            return newProp;
+        }
+
         if (oldElement != null) {
             String oldProp = this.extractProperty(prop, oldElement);
 
@@ -127,13 +131,9 @@ public class Wrapper<T> implements Serializable {
             }
 
         } else {
-            if (isLastValueEnabled) {
-                // jeżeli jesteśmy podczas korekty oraz oldElement = null, oznacza to że jest to nowy wiersz
-                // należy dodać [Dodano] do każdego z pól
-                return createAddMessage(newProp);
-            } else {
-                return newProp;
-            }
+            // jeżeli jesteśmy podczas korekty oraz oldElement = null, oznacza to że jest to nowy wiersz
+            // należy dodać [Dodano] do każdego z pól
+            return createAddMessage(newProp);
         }
     }
 
