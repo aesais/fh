@@ -547,11 +547,11 @@ public abstract class ObjectDataComparatorBase<CHANGE, DTO> {
     }
 
     protected static String getDateFormat() {
-        return "dd.MM.yyyy";
+        return "yyyy-MM-dd";
     }
 
     protected static String getDateTimeFormat() {
-        return "dd.MM.yyyy HH:mm:ss";
+        return "dd-MM-yyyy HH:mm:ss";
     }
 
     private String beautify(Object o, String fieldName){

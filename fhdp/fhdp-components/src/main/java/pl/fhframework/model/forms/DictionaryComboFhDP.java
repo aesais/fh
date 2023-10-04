@@ -508,9 +508,12 @@ public class DictionaryComboFhDP extends ComboFhDP implements IGroupingComponent
             elementChange.addChange(ATTR_LAST_VALUE, getLastValue());
         }
         if(currentLastValue != null) {
-            Object lastValue = elementChange.getChangedAttributes().get(ATTR_LAST_VALUE);
-            if(lastValue.equals(currentLastValue)) {
+            Object lastValueAttr = elementChange.getChangedAttributes().get(ATTR_LAST_VALUE);
+            Object lastValue = this.getLastValueModelBinding().getBindingResult().getValue();
+            if(null != lastValueAttr && null != lastValue && lastValue.equals(currentLastValue)) {
                 elementChange.getChangedAttributes().remove(ATTR_LAST_VALUE);
+            } else {
+                this.currentLastValue = lastValue;
             }
         }
         return elementChange;

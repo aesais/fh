@@ -41,6 +41,8 @@ class DictionaryComboFhDP extends ComboFhDP implements LanguageChangeObserver {
     private paginationPlacement: PaginationPlacement;
 
     protected lastValueHtmlElement: any;
+    protected lastValueGroupSpanElement: any;
+    protected lastValueGroupSearchElement: any;
     private isLastValueTooltip: boolean = false;
     private codeValue: string;
 
@@ -194,7 +196,18 @@ class DictionaryComboFhDP extends ComboFhDP implements LanguageChangeObserver {
             return;
         }
 
+        let lastValueText;
         if(this.componentObj.lastValue) {
+            if (this.lastValueParser) {
+                lastValueText = this.lastValueParser(this.lastValue);
+            } else {
+                lastValueText = this.lastValue;
+            }
+        } else if(this.componentObj.newValueText && this.componentObj.lastValue===undefined) {
+            lastValueText = this.newValueText;
+        }
+
+        if(lastValueText) {
             let group = document.createElement('div');
             group.id = `FhDP-dictionary-combo-${+new Date()}-lastValue`;
             group.classList.add('input-group-append');
@@ -207,15 +220,13 @@ class DictionaryComboFhDP extends ComboFhDP implements LanguageChangeObserver {
             if(this.hideCrossed == "true"){
                 groupSpan.classList.add('input-old-value-remove-line');
             }
-            if(this.rawValue == this.lastValue){
+            if(this.componentObj.lastValue && this.rawValue == this.lastValue){
                 group.classList.add('hide-old-value');
             }
-            if (this.lastValueParser) {
-                groupSpan.innerText = this.lastValueParser(this.lastValue);
-            } else {
-                groupSpan.innerText = this.lastValue;
-            }
+
+            groupSpan.innerText = lastValueText;
             group.appendChild(groupSpan);
+            this.lastValueGroupSpanElement = groupSpan;
 
             let groupSearch = document.createElement('div');
             groupSearch.classList.add('input-group-prepend');
@@ -245,7 +256,13 @@ class DictionaryComboFhDP extends ComboFhDP implements LanguageChangeObserver {
                 group.insertBefore(groupSearch, groupSpan);
             }
 
+            if(!this.componentObj.lastValue) {
+                this.lastValueGroupSpanElement.classList.remove('input-old-value');
+                groupSearch.classList.add('d-none');
+            }
+
             this.lastValueHtmlElement = group;
+            this.lastValueGroupSearchElement = groupSearch;
             this.inputGroupElement.parentElement.appendChild(group);
         }
     }
@@ -550,6 +567,22 @@ class DictionaryComboFhDP extends ComboFhDP implements LanguageChangeObserver {
                         break;
                     case "codeValue":
                         this.codeValue = newValue;
+                        break;
+                    case "lastValue":
+                        this.lastValue = newValue;
+                        if(this.isTableMode && null != this.lastValueGroupSpanElement) {
+                            if(this.componentObj.newValueText && (newValue == null || newValue.length == 0)) {
+                                this.lastValueGroupSpanElement.innerText = this.newValueText;
+                                this.lastValueGroupSpanElement.classList.remove('input-old-value');
+                                this.lastValueGroupSearchElement.classList.add('d-none');
+                            } else {
+                                this.lastValueGroupSpanElement.innerText = this.lastValueParser ? this.lastValueParser(this.lastValue) : this.lastValue;
+                                this.lastValueGroupSpanElement.classList.add('input-old-value');
+                                this.lastValueGroupSearchElement.classList.remove('d-none');
+                            }
+
+                            this.toogleLastValueElement(this.rawValue == this.lastValue);
+                        }
                         break;
                     case 'valueFromChangedBinding':
                         if (this.isTableMode) {

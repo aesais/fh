@@ -54,11 +54,15 @@ public class Wrapper<T> implements Serializable {
         return wrapDisabled(prop, false);
     }
 
-    private String extractProperty(String prop) {
+    public String extractProperty(String prop) {
         return this.extractProperty(prop, this.element);
     }
 
-    private String extractProperty(String prop, T container) {
+    public String extractProperty(String prop, T container) {
+        if(null == container) {
+            return "";
+        }
+
         String result = "";
         try {
             if (PropertyUtils.isReadable(container, prop)) {
@@ -115,7 +119,7 @@ public class Wrapper<T> implements Serializable {
                 }
             } else {
                 // obsługa dla "[Dodano]
-                if (!oldProp.equals(newProp) && oldProp.equals("")) {
+                if (!oldProp.equals(newProp) && (oldProp.equals("") || oldProp.equals("$.compare.added"))) {
                     // jeżeli poprzednia wartość isnieje, ale jest pusta to
                     // oznacza to, że mamy do czynienia z sytuacją dodania nowej wartości
                     return createAddMessage(newProp);
