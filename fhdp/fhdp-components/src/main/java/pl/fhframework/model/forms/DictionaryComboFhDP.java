@@ -243,7 +243,7 @@ public class DictionaryComboFhDP extends ComboFhDP implements IGroupingComponent
                             if (selectedItem != null) {
                                 rawValue = dataProvider.getDisplayValue(selectedItem);
                             } else {
-                                rawValue = null;
+                                rawValue = filterText;
                             }
                         }
                     } else {
@@ -255,7 +255,7 @@ public class DictionaryComboFhDP extends ComboFhDP implements IGroupingComponent
                 }
             }
             if(getLastValueModelBinding() != null && getLastValueModelBinding().getBindingResult() != null) {
-                currentLastValue = getLastValueModelBinding().getBindingResult().getValue();
+//                currentLastValue = getLastValueModelBinding().getBindingResult().getValue();
             }
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -501,13 +501,15 @@ public class DictionaryComboFhDP extends ComboFhDP implements IGroupingComponent
             BindingResult bindingResult = getLastValueModelBinding().getBindingResult();
             String newRaw = convertToRaw(bindingResult);
             if(Optional.ofNullable(getIsTableMode()).orElse(false) && !displayOnlyCode) {
-                newRaw = this.dataProvider.getDisplayValue(getValueFromProvider(newRaw));
+                String valueWithDesc = this.dataProvider.getDisplayValue(getValueFromProvider(newRaw));
+                if(!StringUtils.isNullOrEmpty(valueWithDesc)) {
+                    newRaw = valueWithDesc;
+                }
             }
-
             setLastValue(newRaw);
             elementChange.addChange(ATTR_LAST_VALUE, getLastValue());
         }
-        if(currentLastValue != null) {
+        if(this.getLastValue() != null) {
             Object lastValueAttr = elementChange.getChangedAttributes().get(ATTR_LAST_VALUE);
             Object lastValue = this.getLastValueModelBinding().getBindingResult().getValue();
             if(null != lastValueAttr && null != lastValue && lastValue.equals(currentLastValue)) {
