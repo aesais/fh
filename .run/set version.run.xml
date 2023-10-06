@@ -11,7 +11,7 @@
           <option name="goals">
             <list>
               <option value="versions:set" />
-              <option value="-DnewVersion=4.10.6.PL.4" />
+              <option value="-DnewVersion=4.10.6.PL.5" />
               <option value="-DgenerateBackupPoms=false" />
               <option value="-DprocessAllModules=true" />
             </list>
