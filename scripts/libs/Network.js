@@ -1,6 +1,7 @@
 const https = require('https');
 const http = require('http');
 const fs = require('fs');
+const path = require('path');
 
 const _prepareFullAddress = (address, params) => {
   if (params) {
@@ -57,7 +58,7 @@ const post = async ({address, params, headers, body, protocol = 'https'}) => {
 
 const download = (address, dest, name, protocol = 'https') => {
   const connection = protocol === 'https' ? https : http;
-  const file = fs.createWriteStream(`${dest}/${name}`);
+  const file = fs.createWriteStream(`${dest}`+path.sep+`${name}`);
   const req = () => new Promise((resolve, reject) => {
     connection.get(address, (resp) => {
       let cur = 0;

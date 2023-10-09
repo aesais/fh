@@ -4,7 +4,7 @@ const network = require('./Network');
 const path = require('path')
 
 const REGISTRY_PATH = process.env.REGISTRY_PATH || 'https://registry.npmjs.org';
-const LOCAL_REGISTRY_PATH = process.env.LOCAL_REGISTRY_PATH || `${require('os').homedir()}/.node_registry`;
+const LOCAL_REGISTRY_PATH = process.env.LOCAL_REGISTRY_PATH || `${require('os').homedir()}${path.sep}.node_registry`;
 
 const _isFH = (name) => {
   const fhModules = require('../data/packages_list.json');

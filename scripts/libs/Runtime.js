@@ -73,8 +73,8 @@ Supported params:
 
 const _switchLerna = (disable) => {
     console.log('cwd', process.cwd());
-    const disabledPath = '../packages/disabled-package.json';
-    const enabledPath = '../packages/package.json';
+    const disabledPath = '..'+pth.sep+'packages'+pth.sep+'disabled-package.json';
+    const enabledPath = '..'+pth.sep+'packages'+pth.sep+'package.json';
     const isDisabled = fs.existsSync(disabledPath);
     console.log(isDisabled, disable)
     if (isDisabled && !disable) {
@@ -116,7 +116,7 @@ class Runtime {
         const FH_DIRS = packages_list.dirs;
         const FH_PACKAGES = packages_list.pkgs;
         const snapId = +new Date();
-        let address = 'https://registry.npmjs.org/';
+        let address = process.env.REGISTRY_PATH || 'https://registry.npmjs.org';
         if (params.has('address')) {
           if (utils.validURL(params.get('address'))) {
             address = params.get('address');
@@ -230,7 +230,7 @@ class Runtime {
   }
 
   async switchToLocal(params) {
-    const pkgs = await utils.getPackages('../', params.has('verbose'));
+    const pkgs = await utils.getPackages('..'+pth.sep, params.has('verbose'));
     for (const pkg of pkgs) {
       console.log(`Switching ${pkg} to local registry...`);
       await registry.useLocalRegistry(pkg, params.get('priority'));
