@@ -263,10 +263,11 @@ class Runtime {
   async updateToNewestVersion(params) {
     const pkgs = await utils.getPackages('../', params.has('verbose'));
     console.log('\n');
-    if (!['next', 'latest'].includes(params.get('priority')) || params.get('priority') === undefined) {
-      console.log(`--priority is wrong! Possible values are [next, latest]`);
-      return;
-    }
+    // turn off verification - any version can be used
+    //if (!['next', 'latest'].includes(params.get('priority')) || params.get('priority') === undefined) {
+    //  console.log(`--priority is wrong! Possible values are [next, latest]`);
+    //  return;
+    //}
     for (const pkg of pkgs) {
       console.log(`Switching ${pkg} to remote registry...`);
       await registry.updateToNewestVersion(pkg, params.get('priority'));
