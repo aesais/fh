@@ -32,6 +32,7 @@ import * as pack from './package.json';
 import {MSReportsView} from './source/controls/MSReportsView';
 import {InputTimeFhDP} from './source/controls/inputs/InputTimeFhDP';
 import {TimerFhDP} from './source/controls/TimerFhDP';
+import {SelectOneMenuFhDP} from './source/controls/inputs/SelectOneMenuFhDP';
 
 class FhDPControls extends FhModule {
 
@@ -246,6 +247,13 @@ class FhDPControls extends FhModule {
                     };
                 });
         
+        FhContainer.bind<(componentObj: any, parent: any) => SelectOneMenuFhDP>("SelectOneMenuFhDP")
+                .toFactory<SelectOneMenuFhDP>(() => {
+                    return (componentObj: any, parent: any) => {
+                        return new SelectOneMenuFhDP(componentObj, parent);
+                    };
+                });
+                
         FhContainer.rebind<BaseEvent>('Events.NotificationEvent').to(NotificationEventFhDP).inRequestScope();
 
         console.log(`FhDP-controlls version: ${pack.version}`)
@@ -254,4 +262,4 @@ class FhDPControls extends FhModule {
 
 export {FhDPControls, EmbeddedView, PanelFhDP, PanelHeaderFhDP, ComboFhDP, DictionaryComboFhDP, InputDateFhDP,
     InputNumberFhDP, InputTextFhDP, InputTimestampFhDP, SelectComboMenuFhDP, TabContainerFhDP, CheckBoxFhDP,
-    InputTimeFhDP, MSReportsView, TimerFhDP}
+    InputTimeFhDP, MSReportsView, TimerFhDP, SelectOneMenuFhDP}
