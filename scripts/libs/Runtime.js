@@ -71,10 +71,10 @@ Supported params:
 
 }
 
-const _switchLerna = (disable) => {
-    console.log('cwd', process.cwd());
-    const disabledPath = '..'+pth.sep+'packages'+pth.sep+'disabled-package.json';
-    const enabledPath = '..'+pth.sep+'packages'+pth.sep+'package.json';
+const _switchLerna = (MAIN_PATH, disable) => {
+    console.log('cwd', MAIN_PATH);
+    const disabledPath = MAIN_PATH + pth.sep + '..' + pth.sep+'packages' + pth.sep + 'disabled-package.json';
+    const enabledPath =  MAIN_PATH + pth.sep + '..' + pth.sep+'packages' + pth.sep + 'package.json';
     const isDisabled = fs.existsSync(disabledPath);
     console.log(isDisabled, disable)
     if (isDisabled && !disable) {
@@ -110,9 +110,9 @@ class Runtime {
 
 
   deploy(params) {
-    _switchLerna(true);
+    const MAIN_PATH = process.cwd();
+    _switchLerna(MAIN_PATH, true);
     try {
-        const MAIN_PATH = process.cwd();
         const FH_DIRS = packages_list.dirs;
         const FH_PACKAGES = packages_list.pkgs;
         const snapId = +new Date();
@@ -225,7 +225,7 @@ class Runtime {
     } catch (e) {
         console.error(e);
     } finally {
-        _switchLerna(false);
+        _switchLerna(MAIN_PATH, false);
     }
   }
 
