@@ -12,37 +12,35 @@ import pl.fhframework.model.forms.optimized.ColumnOptimized;
 
 import static pl.fhframework.annotations.DesignerXMLProperty.PropertyFunctionalArea.CONTENT;
 
-@TemplateControl(tagName = "fh-combo-fhdp")
+@DocumentedComponent(category = DocumentedComponent.Category.INPUTS_AND_VALIDATION, documentationExample = true, value = "Component responsible for displaying list of values, " +
+        "with possibility of selecting only one value.", icon = "fa fa-caret-square-down")
 @DesignerControl(defaultWidth = 3)
-@DocumentedComponent(category = DocumentedComponent.Category.INPUTS_AND_VALIDATION, value = "Enables users to quickly find and select from a pre-populated list of values as they type, leveraging searching and filtering.",
-        icon = "fa fa-outdent")
-@Control(parents = {PanelGroup.class, Group.class, Column.class, ColumnOptimized.class, Tab.class, Row.class, Form.class, Repeater.class},
-        invalidParents = {Table.class},
-        canBeDesigned = true)
-public class ComboFhDP extends Combo {
+@Control(parents = {PanelGroup.class, Column.class, ColumnOptimized.class, Tab.class, Row.class, Form.class, Group.class, Repeater.class}, invalidParents = {Table.class}, canBeDesigned = true)
+public class SelectOneMenuFhDP extends SelectOneMenu {
+
     public static final String ATTR_LAST_VALUE = "lastValue";
     public static final String ATTR_HIDE_CROSSED = "hideCrossed";
     public static final String ATTR_NEW_VALUE_TEXT = "newValueText";
     public static final String ATTR_IS_LAST_VALUE_ENABLED = "isLastValueEnabled";
-    public static final String ATTR_IS_TABLE_MODE = "isTableMode";
 
     @Getter
-    @Setter
     private String lastValue;
-    @Getter String hideCrossed;
+
+    @Getter
+    private String hideCrossed;
+
     @Getter
     private String newValueText;
+
     @Getter
     private Boolean isLastValueEnabled;
-    @Getter
-    private Boolean isTableMode;
 
     @JsonIgnore
     @Getter
     @Setter
     @XMLProperty(required = true, value = ATTR_LAST_VALUE) //Powiązanie bindingu z property
     @DesignerXMLProperty(commonUse = true, previewValueProvider = BindingExpressionDesignerPreviewProvider.class, functionalArea = CONTENT)
-    @DocumentedComponentAttribute(boundable = true, value = "Last value")
+    @DocumentedComponentAttribute(boundable = true, value = "Component source. Relative path to md file.")
     private ModelBinding lastValueModelBinding;
 
     @JsonIgnore
@@ -52,14 +50,6 @@ public class ComboFhDP extends Combo {
     @DesignerXMLProperty(commonUse = true, previewValueProvider = BindingExpressionDesignerPreviewProvider.class, functionalArea = CONTENT)
     @DocumentedComponentAttribute(boundable = true, value = "Display only code, there will be no method invoke from provider.")
     private ModelBinding<Boolean> isLastValueEnabledModelBinding;
-
-    @JsonIgnore
-    @Getter
-    @Setter
-    @XMLProperty(required = true, value = ATTR_IS_TABLE_MODE)
-    @DesignerXMLProperty(commonUse = true, previewValueProvider = BindingExpressionDesignerPreviewProvider.class, functionalArea = CONTENT)
-    @DocumentedComponentAttribute(boundable = true, value = "Use textarea instead of input. Text wrapping for table.")
-    private ModelBinding<Boolean> isTableModeModelBinding;
 
     @JsonIgnore
     @Getter
@@ -74,16 +64,19 @@ public class ComboFhDP extends Combo {
     @Setter
     @XMLProperty(required = true, value = ATTR_HIDE_CROSSED) //Powiązanie bindingu z property
     @DesignerXMLProperty(commonUse = true, previewValueProvider = BindingExpressionDesignerPreviewProvider.class, functionalArea = CONTENT)
-    @DocumentedComponentAttribute(boundable = true, value = "For hide crossed out")
+    @DocumentedComponentAttribute(boundable = true, value = "Component source. Relative path to md file.")
     private ModelBinding hideCrossedModelBinding;
 
-    public ComboFhDP(Form form) {
+    public SelectOneMenuFhDP(Form form) {
         super(form);
     }
 
     @Override
-    public void init(){
+    public void init() {
         super.init();
+        /**
+         * Podczas inicjalizacji komponentu realizujemy binding wartości z modelu danych.
+         */
         if (newValueText != null) {
             BindingResult bidingResult = newValueTextModelBinding.getBindingResult();
             if (bidingResult != null) {
@@ -108,14 +101,6 @@ public class ComboFhDP extends Combo {
                 }
             }
         }
-        if (isTableMode != null) {
-            BindingResult bidingResult = isTableModeModelBinding.getBindingResult();
-            if (bidingResult != null) {
-                if (bidingResult.getValue() != null) {
-                    this.isTableMode = convertValue(bidingResult.getValue(), Boolean.class);
-                }
-            }
-        }
         if(hideCrossed != null){
             BindingResult bindingResult = hideCrossedModelBinding.getBindingResult();
             if(bindingResult != null){
@@ -124,10 +109,8 @@ public class ComboFhDP extends Combo {
                 }
             }
         }
+
     }
-
-
-
     @Override
     public ElementChanges updateView() {
         ElementChanges elementChange = super.updateView();
@@ -135,37 +118,25 @@ public class ComboFhDP extends Combo {
         if(newValueTextModelBinding != null) {
             BindingResult bindingResult = newValueTextModelBinding.getBindingResult();
             this.newValueText = convertValue(bindingResult.getValue(), String.class);
-            elementChange.addChange(ATTR_NEW_VALUE_TEXT, this.newValueText);
         }
         if(isLastValueEnabledModelBinding != null) {
             BindingResult bindingResult = isLastValueEnabledModelBinding.getBindingResult();
             this.isLastValueEnabled = convertValue(bindingResult.getValue(), Boolean.class);
         }
-        if(isTableModeModelBinding != null) {
-            BindingResult bindingResult = isTableModeModelBinding.getBindingResult();
-            this.isTableMode = convertValue(bindingResult.getValue(), Boolean.class);
+        if (lastValueModelBinding != null) {
+            BindingResult bindingResult = lastValueModelBinding.getBindingResult();
+            String newRaw = convertToRaw(bindingResult);
+            this.lastValue = newRaw;
+            elementChange.addChange(ATTR_LAST_VALUE, this.lastValue);
         }
-        updateViewLastValueBinding(elementChange);
+
         if (hideCrossedModelBinding != null) {
             BindingResult bindingResult = hideCrossedModelBinding.getBindingResult();
-
             String newRaw = convertToRaw(bindingResult);
             this.hideCrossed = newRaw;
             elementChange.addChange(ATTR_HIDE_CROSSED, this.hideCrossed);
 
         }
-
         return elementChange;
-    }
-
-    protected void updateViewLastValueBinding(ElementChanges elementChange) {
-        if (lastValueModelBinding == null) {
-            return;
-        }
-        BindingResult bindingResult = lastValueModelBinding.getBindingResult();
-
-        String newRaw = convertToRaw(bindingResult);
-        this.lastValue = newRaw;
-        elementChange.addChange(ATTR_LAST_VALUE, this.lastValue);
     }
 }

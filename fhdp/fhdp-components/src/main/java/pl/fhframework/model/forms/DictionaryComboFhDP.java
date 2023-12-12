@@ -254,9 +254,6 @@ public class DictionaryComboFhDP extends ComboFhDP implements IGroupingComponent
 
                 }
             }
-            if(getLastValueModelBinding() != null && getLastValueModelBinding().getBindingResult() != null) {
-//                currentLastValue = getLastValueModelBinding().getBindingResult().getValue();
-            }
         } catch (Exception ex) {
             ex.printStackTrace();
             FhLogger.warn("DictionaryCombo: Provider not found.", ex);
@@ -497,30 +494,38 @@ public class DictionaryComboFhDP extends ComboFhDP implements IGroupingComponent
             columns = dataProvider.getColumnDefinitions();
             elementChange.addChange(ATTR_COLUMNS, columns);
         }
-        if (getLastValueModelBinding() != null) {
-            BindingResult bindingResult = getLastValueModelBinding().getBindingResult();
-            String newRaw = convertToRaw(bindingResult);
-            if(Optional.ofNullable(getIsTableMode()).orElse(false) && !displayOnlyCode) {
-                String valueWithDesc = this.dataProvider.getDisplayValue(getValueFromProvider(newRaw));
-                if(!StringUtils.isNullOrEmpty(valueWithDesc)) {
-                    newRaw = valueWithDesc;
-                }
-            }
-            setLastValue(newRaw);
-            elementChange.addChange(ATTR_LAST_VALUE, getLastValue());
-        }
-        if(this.getLastValue() != null) {
-            Object lastValueAttr = elementChange.getChangedAttributes().get(ATTR_LAST_VALUE);
-            Object lastValue = this.getLastValueModelBinding().getBindingResult().getValue();
-            if(null != lastValueAttr && null != lastValue && lastValue.equals(currentLastValue)) {
-                elementChange.getChangedAttributes().remove(ATTR_LAST_VALUE);
-            } else {
-                this.currentLastValue = lastValue;
-            }
-        }
         return elementChange;
     }
 
+    @Override
+    protected void updateViewLastValueBinding(ElementChanges elementChange) {
+        if (getLastValueModelBinding() == null) {
+            return;
+        }
+
+        BindingResult bindingResult = getLastValueModelBinding().getBindingResult();
+        String newRaw = convertToRaw(bindingResult);
+        if(areValuesTheSame(newRaw, this.currentLastValue)) {
+            return;
+        }
+        currentLastValue = newRaw;
+
+        if(Optional.ofNullable(getIsTableMode()).orElse(false) && !displayOnlyCode) {
+            if(areValuesTheSame(newRaw, currentValue)) {
+                newRaw = this.rawValue;
+            } else {
+                if(!StringUtils.isNullOrEmpty(newRaw)) {
+                    String valueWithDesc = this.dataProvider.getDisplayValue(getValueFromProvider(newRaw));
+                    if(!StringUtils.isNullOrEmpty(valueWithDesc)) {
+                        newRaw = valueWithDesc;
+                    }
+                }
+            }
+        }
+
+        setLastValue(newRaw);
+        elementChange.addChange(ATTR_LAST_VALUE, getLastValue());
+    }
 
     @Override
     public void updateModel(ValueChange valueChange){
@@ -566,11 +571,15 @@ public class DictionaryComboFhDP extends ComboFhDP implements IGroupingComponent
                 selectedItem = getValueFromProvider(filterText);
                 result = dataProvider.getCode(selectedItem);
 
+                if(selectedItem != null || StringUtils.isNullOrEmpty(filterText)) {
+                    codeValue = filterText;
+                }
+
                 //Validate
                 ValidateInput input = new ValidateInput();
                 input.setId(this.getGuuid());
                 input.setCode(filterText);
-                dictionaryComboValidate(input);
+                dictionaryComboValidate(input, selectedItem);
 
                 dirty = false;
             } else {
@@ -747,6 +756,10 @@ public class DictionaryComboFhDP extends ComboFhDP implements IGroupingComponent
 
     private void dictionaryComboValidate(ValidateInput input) {
         Object inputValue = getValueFromProvider(input.getCode());
+        dictionaryComboValidate(input, inputValue);
+    }
+
+    private void dictionaryComboValidate(ValidateInput input, Object inputValue) {
         ValidateResult result = new ValidateResult();
         result.setId(input.getId());
         if(inputValue != null || StringUtils.isNullOrEmpty(input.getCode())) {
