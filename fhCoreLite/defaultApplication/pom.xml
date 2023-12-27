@@ -90,6 +90,9 @@
                         <goals>
                             <goal>yarn</goal>
                         </goals>
+                        <configuration>
+                            <yarnInheritsProxyConfigFromMaven>false</yarnInheritsProxyConfigFromMaven>
+                        </configuration>
                     </execution>
                     <execution>
                         <id>yarn lerna run build</id>
