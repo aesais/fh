@@ -13,6 +13,8 @@ import pl.fhframework.dp.commons.utils.conversion.model.ComplexObject;
 import pl.fhframework.dp.commons.utils.conversion.model.MockObject;
 
 import java.time.LocalDateTime;
+import java.util.Arrays;
+import java.util.Collections;
 
 @RunWith(SpringRunner.class)
 @ContextConfiguration(classes = {TestConfig.class})
@@ -100,5 +102,33 @@ public class BeanClearUtilTest {
         Assert.assertEquals(verificationDocumentObject.getDocumentType(), ComplexObject.DocumentType.ONE);
         Assert.assertNotNull(verificationDocumentObject.getDocumentProp());
         Assert.assertEquals(verificationDocumentObject.getDocumentProp().getPropType(), ComplexObject.DocumentPropType.PROP_A);
+    }
+
+    @Test
+    public void clearObjectWithIgnoringFields() throws IllegalAccessException {
+        // SETUP
+        ComplexObject complexObject = new ComplexObject();
+
+        ComplexObject.DocumentObject documentObject = new ComplexObject.DocumentObject();
+        complexObject.getDocumentObjectList().add(documentObject);
+        complexObject.getDocumentObjectList().add(new ComplexObject.DocumentObject());
+        ComplexObject.DocumentObject documentObject2 = new ComplexObject.DocumentObject();
+        complexObject.getDocumentObjectList().add(documentObject2);
+        documentObject.setDocumentType(ComplexObject.DocumentType.ONE);
+        documentObject2.setDocumentType(ComplexObject.DocumentType.TWO);
+
+        ComplexObject.DocumentProp documentProp = new ComplexObject.DocumentProp();
+        documentObject.setDocumentProp(documentProp);
+        documentProp.setPropType(ComplexObject.DocumentPropType.PROP_A);
+
+        // EXECUTE
+        BeanClearUtil.clearObject(complexObject, Collections.singletonList("propType"));
+
+        // ASSERT
+        Assert.assertNotNull(complexObject);
+        Assert.assertEquals(complexObject.getDocumentObjectList().size(), 2);
+        ComplexObject.DocumentObject verificationDocumentObject = complexObject.getDocumentObjectList().get(0);
+        Assert.assertEquals(verificationDocumentObject.getDocumentType(), ComplexObject.DocumentType.ONE);
+        Assert.assertNull(verificationDocumentObject.getDocumentProp());
     }
 }

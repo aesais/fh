@@ -1,6 +1,6 @@
 {
   "name": "fh-application",
-  "version": "4.10.5-PL-1-SNAPSHOT-1684922275053",
+  "version": "4.10.5-PL-5-SNAPSHOT-1703687531668",
   "main": "Module.ts",
   "private": true,
   "scripts": {
@@ -47,9 +47,9 @@
     "webpack-bundle-size-analyzer": "3.1.0"
   },
   "dependencies": {
-    "fh-forms-handler": "4.10.5-PL-1-SNAPSHOT-1684922275053",
-    "fh-basic-controls": "4.10.5-PL-1-SNAPSHOT-1684922275053",
-    "fh-charts-controls": "4.10.5-PL-1-SNAPSHOT-1684922275053",
-    "fhdp-controls": "4.10.5-PL-1-SNAPSHOT-1684922275053"
+    "fh-forms-handler": "4.10.5-PL-5-SNAPSHOT-1703687531668",
+    "fh-basic-controls": "4.10.5-PL-5-SNAPSHOT-1703687531668",
+    "fh-charts-controls": "4.10.5-PL-5-SNAPSHOT-1703687531668",
+    "fhdp-controls": "4.10.5-PL-5-SNAPSHOT-1703687531668"
   }
 }

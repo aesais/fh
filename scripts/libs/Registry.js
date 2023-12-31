@@ -3,8 +3,10 @@ const utils = require('./Utils');
 const network = require('./Network');
 const path = require('path')
 
-const REGISTRY_PATH = process.env.REGISTRY_PATH || 'https://registry.npmjs.org';
-const LOCAL_REGISTRY_PATH = process.env.LOCAL_REGISTRY_PATH || `${require('os').homedir()}/.node_registry`;
+const enRegP = process.env.REGISTRY_PATH;
+const REGISTRY_PATH = enRegP ?
+    (enRegP.endsWith('/') ? enRegP.substring(0,enRegP.length-1) : enRegP) : 'https://registry.npmjs.org';
+const LOCAL_REGISTRY_PATH = process.env.LOCAL_REGISTRY_PATH || `${require('os').homedir()}${path.sep}.node_registry`;
 
 const _isFH = (name) => {
   const fhModules = require('../data/packages_list.json');
@@ -222,7 +224,16 @@ const updateToNewestVersion = async (packagePath, fallback = 'next') => {
         if (!!remoteData.versions[newV]) {
           pkg.dependencies[name] = newV;
         } else {
-          console.log(`There is no version @${fallback} for lib ${name}`)
+          let fnd = false;
+          for (let remoteVer of Object.keys(remoteData['versions'])){
+            if (fallback == remoteVer){
+              fnd = true;
+              pkg.dependencies[name] = remoteVer;
+            }
+          }
+          if (!fnd) {
+            console.log(`There is no version @${fallback} for lib ${name}`)
+          }
         }
       }
     }

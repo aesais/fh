@@ -214,6 +214,8 @@
         <xs:attribute type="hintTypeType" name="hintType"/>
         <xs:attribute type="xs:string" name="availability"/>
         <xs:attribute type="xs:string" name="htmlAccessibilityRole"/>
+        <xs:attribute type="xs:string" name="inlineStyle"/>
+        <xs:attribute type="xs:string" name="wrapperStyle"/>
     </xs:attributeGroup>
 
     <xs:attributeGroup name="RepeatableTypeGroup">
@@ -291,6 +293,7 @@
         <xs:attributeGroup ref="ButtonTypeAttributeGroup"/>
         <xs:attributeGroup ref="ConfirmationDialogSupport"/>
         <xs:attribute type="xs:string" name="ariaLabel"/>
+        <xs:attribute type="xs:string" name="value"/>
     </xs:complexType>
 
     <xs:attributeGroup name="ButtonTypeAttributeGroup">
@@ -390,6 +393,7 @@
         <xs:attribute type="xs:string" name="iterationRef"/>
         <xs:attribute type="xs:string" name="label"/>
         <xs:attribute type="xs:string" name="value"/>
+        <xs:attribute type="xs:string" name="formatter"/>
     </xs:complexType>
 
     <xs:complexType name="ColumnPagedType" mixed="true">
@@ -423,6 +427,7 @@
         <xs:attribute type="xs:string" name="sortBy"/>
         <xs:attribute type="xs:string" name="label"/>
         <xs:attribute type="xs:string" name="value"/>
+        <xs:attribute type="xs:string" name="formatter"/>
     </xs:complexType>
 
     <xs:complexType name="ColumnLazyType" mixed="true">
@@ -1825,6 +1830,7 @@
         <xs:attribute type="ValidationMessages_Levels" name="level" use="required"/>
         <xs:attribute type="xs:string" name="navigation" default="true"/>
         <xs:attribute type="xs:string" name="strictLevel" default="false"/>
+        <xs:attribute type="xs:string" name="compositeForm" default="false"/>
     </xs:complexType>
 
     <xs:complexType name="WidgetType">

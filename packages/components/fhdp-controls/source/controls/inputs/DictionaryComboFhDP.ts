@@ -41,10 +41,14 @@ class DictionaryComboFhDP extends ComboFhDP implements LanguageChangeObserver {
     private paginationPlacement: PaginationPlacement;
 
     protected lastValueHtmlElement: any;
+    protected lastValueGroupSpanElement: any;
+    protected lastValueGroupSearchElement: any;
     private isLastValueTooltip: boolean = false;
+    private codeValue: string;
 
     constructor(componentObj: any, parent: HTMLFormComponent) {
         super(componentObj, parent);
+        this.codeValue = componentObj.codeValue;
         this.instance = null;
         this.divTooltipId = null;
         this.divTooltip = null;
@@ -105,7 +109,7 @@ class DictionaryComboFhDP extends ComboFhDP implements LanguageChangeObserver {
         if(iconSearch != null){
             $($("div.search-icon", inputGroup)[0]).addClass('fc-editable');
             $($("div.search-icon", inputGroup)[0]).on("click", function(){
-                if(self.accessibility === "VIEW"){//w trybie VIEW nie działa onClickSearchIcon
+                if(self.accessibility === "VIEW" && !!self.codeValue){//w trybie VIEW nie działa onClickSearchIcon
                     self.isSearch = true;
                     self.crateTooltip($("div.search-icon", self.getInputGroupElement())[0]);
                 }
@@ -176,11 +180,14 @@ class DictionaryComboFhDP extends ComboFhDP implements LanguageChangeObserver {
 
         if (this.rawValue === undefined || this.rawValue === 'null' || this.rawValue === null || this.rawValue === '') {
             this.input.value = '';
+
+            if(!!this.isTableMode) {
+                this.inputGroupElement.classList.add('hide-old-value');
+            }
         }
         if(this.accessibility == 'EDIT') {
             this.fireEvent('setGuuid', JSON.stringify({id: this.guuid}));
         }
-
     }
 
     protected createLastValueElement() {
@@ -189,7 +196,18 @@ class DictionaryComboFhDP extends ComboFhDP implements LanguageChangeObserver {
             return;
         }
 
+        let lastValueText;
         if(this.componentObj.lastValue) {
+            if (this.lastValueParser) {
+                lastValueText = this.lastValueParser(this.lastValue);
+            } else {
+                lastValueText = this.lastValue;
+            }
+        } else if(this.componentObj.newValueText && this.componentObj.lastValue===undefined) {
+            lastValueText = this.newValueText;
+        }
+
+        if(lastValueText) {
             let group = document.createElement('div');
             group.id = `FhDP-dictionary-combo-${+new Date()}-lastValue`;
             group.classList.add('input-group-append');
@@ -202,15 +220,13 @@ class DictionaryComboFhDP extends ComboFhDP implements LanguageChangeObserver {
             if(this.hideCrossed == "true"){
                 groupSpan.classList.add('input-old-value-remove-line');
             }
-            if(this.rawValue == this.lastValue){
-                groupSpan.classList.add('hide-old-value');
+            if(this.componentObj.lastValue && this.rawValue == this.lastValue){
+                group.classList.add('hide-old-value');
             }
-            if (this.lastValueParser) {
-                groupSpan.innerText = this.lastValueParser(this.lastValue);
-            } else {
-                groupSpan.innerText = this.lastValue;
-            }
+
+            groupSpan.innerText = lastValueText;
             group.appendChild(groupSpan);
+            this.lastValueGroupSpanElement = groupSpan;
 
             let groupSearch = document.createElement('div');
             groupSearch.classList.add('input-group-prepend');
@@ -240,8 +256,29 @@ class DictionaryComboFhDP extends ComboFhDP implements LanguageChangeObserver {
                 group.insertBefore(groupSearch, groupSpan);
             }
 
+            if(!this.componentObj.lastValue) {
+                this.lastValueGroupSpanElement.classList.remove('input-old-value');
+                groupSearch.classList.add('d-none');
+            }
+
             this.lastValueHtmlElement = group;
+            this.lastValueGroupSearchElement = groupSearch;
             this.inputGroupElement.parentElement.appendChild(group);
+        }
+    }
+
+    protected toogleLastValueElement(theSameValue) {
+        if (!this.isTableMode) {
+            super.toogleLastValueElement(theSameValue);
+            return;
+        }
+
+        if(this.lastValueHtmlElement) {
+            if(theSameValue){
+                this.lastValueHtmlElement.classList.add('hide-old-value');
+            } else {
+                this.lastValueHtmlElement.classList.remove('hide-old-value');
+            }
         }
     }
 
@@ -500,7 +537,7 @@ class DictionaryComboFhDP extends ComboFhDP implements LanguageChangeObserver {
             this.divTooltip.classList.add('hidden-popper');
             this.instance = null;
         }
-        
+
         this.i18n.unsubscribe(this);
         super.destroy(removeFromParent);
     }
@@ -528,7 +565,31 @@ class DictionaryComboFhDP extends ComboFhDP implements LanguageChangeObserver {
                         this.columns = newValue;
                         shouldRender = true;
                         break;
+                    case "codeValue":
+                        this.codeValue = newValue;
+                        break;
+                    case "lastValue":
+                        this.lastValue = newValue;
+                        if(this.isTableMode && null != this.lastValueGroupSpanElement) {
+                            if(this.componentObj.newValueText && (newValue == null || newValue.length == 0)) {
+                                this.lastValueGroupSpanElement.innerText = this.newValueText;
+                                this.lastValueGroupSpanElement.classList.remove('input-old-value');
+                                this.lastValueGroupSearchElement.classList.add('d-none');
+                            } else {
+                                this.lastValueGroupSpanElement.innerText = this.lastValueParser ? this.lastValueParser(this.lastValue) : this.lastValue;
+                                this.lastValueGroupSpanElement.classList.add('input-old-value');
+                                this.lastValueGroupSearchElement.classList.remove('d-none');
+                            }
+
+                            this.toogleLastValueElement(this.rawValue == this.lastValue);
+                        }
+                        break;
                     case 'valueFromChangedBinding':
+                        if (this.isTableMode) {
+                            this.handleUpdateRawValueTableMode(newValue);
+                            break;
+                        }
+
                         if (newValue === 'null' || newValue === '') {
                             this.rawValue = null;
                             this.input.value = '';
@@ -539,8 +600,8 @@ class DictionaryComboFhDP extends ComboFhDP implements LanguageChangeObserver {
                             this.input.value = newValue || '';
                             this.unmarkDirty();
                             this.valueFromChangedBinding = newValue || '';
-                            this.toogleLastValueElement(this.rawValue == this.lastValue);
                         }
+                        this.toogleLastValueElement(this.isTheSameLastValue());
                         break;
                     case 'shouldCloseTooltip':
                         this.shouldCloseTooltip = newValue;
@@ -588,10 +649,28 @@ class DictionaryComboFhDP extends ComboFhDP implements LanguageChangeObserver {
 
     }
 
+    private handleUpdateRawValueTableMode(newValue: string): void {
+        this.rawValue = newValue;
+        this.input.textContent = newValue || "";
+        this.unmarkDirty();
+        this.valueFromChangedBinding = newValue;
+
+        if(newValue === 'null' || newValue === '') {
+            this.inputGroupElement.classList.add('hide-old-value');
+        } else {
+            this.inputGroupElement.classList.remove('hide-old-value');
+        }
+
+        this.toogleLastValueElement(this.rawValue == this.lastValue);
+    }
+
+    protected isTheSameLastValue(): boolean {
+        return this.codeValue == this.lastValue;
+    }
+
     updateModel() {
        super.updateModel();
-        let theSameValue = this.rawValue == this.lastValue;
-        this.toogleLastValueElement(theSameValue);
+       this.toogleLastValueElement(this.isTheSameLastValue());
     }
 
     extractChangedAttributes() {
@@ -624,16 +703,18 @@ class DictionaryComboFhDP extends ComboFhDP implements LanguageChangeObserver {
     }
 
     onClickSearchIconEvent(event) {
+        if(this.accessibility === "VIEW") {
+            return;
+        }
+
         event.stopPropagation();
         this.popupOpen = true;
         this.isSearch = true;
         this.isLastValueTooltip = false;
-        if(this.accessibility !== "VIEW") {
-            if (this._formId === 'FormPreview') {
-                this.fireEvent('onClickSearchIcon', "preview");
-            } else {
-                this.fireEvent('onClickSearchIcon', "search");
-            }
+        if (this._formId === 'FormPreview') {
+            this.fireEvent('onClickSearchIcon', "preview");
+        } else {
+            this.fireEvent('onClickSearchIcon', "search");
         }
         this.crateTooltip($("div.search-icon", this.getInputGroupElement())[0]);
         event.target.blur();

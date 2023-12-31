@@ -145,13 +145,7 @@ public class ComboFhDP extends Combo {
             BindingResult bindingResult = isTableModeModelBinding.getBindingResult();
             this.isTableMode = convertValue(bindingResult.getValue(), Boolean.class);
         }
-        if (lastValueModelBinding != null) {
-            BindingResult bindingResult = lastValueModelBinding.getBindingResult();
-
-            String newRaw = convertToRaw(bindingResult);
-            this.lastValue = newRaw;
-            elementChange.addChange(ATTR_LAST_VALUE, this.lastValue);
-        }
+        updateViewLastValueBinding(elementChange);
         if (hideCrossedModelBinding != null) {
             BindingResult bindingResult = hideCrossedModelBinding.getBindingResult();
 
@@ -162,5 +156,16 @@ public class ComboFhDP extends Combo {
         }
 
         return elementChange;
+    }
+
+    protected void updateViewLastValueBinding(ElementChanges elementChange) {
+        if (lastValueModelBinding == null) {
+            return;
+        }
+        BindingResult bindingResult = lastValueModelBinding.getBindingResult();
+
+        String newRaw = convertToRaw(bindingResult);
+        this.lastValue = newRaw;
+        elementChange.addChange(ATTR_LAST_VALUE, this.lastValue);
     }
 }

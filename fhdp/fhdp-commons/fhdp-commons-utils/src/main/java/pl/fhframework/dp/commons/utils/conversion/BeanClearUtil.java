@@ -15,12 +15,16 @@ import java.util.*;
 @Slf4j
 public class BeanClearUtil {
 
+    public static void clearObject(Object object) throws IllegalAccessException {
+        clearObject(object, new ArrayList<>());
+    }
+
     /**
      * Nested object is expected, java primitive as well as collections and java objects are not supported
      *
      * @param object
      */
-    public static void clearObject(Object object) throws IllegalAccessException {
+    public static void clearObject(Object object, List<String> ignoreFieldsByName) throws IllegalAccessException {
         /**
          * The nested object is handled only, primitive and simple object types are not supported
          */
@@ -30,7 +34,7 @@ public class BeanClearUtil {
             throw new Error("Object type is not supported");
         }
 
-        clear(object);
+        clear(object, ignoreFieldsByName);
     }
 
     /**
@@ -40,7 +44,7 @@ public class BeanClearUtil {
      * @return
      * @throws IllegalAccessException
      */
-    private static boolean clear(Object object) throws IllegalAccessException {
+    private static boolean clear(Object object, List<String> ignoreFieldsByName) throws IllegalAccessException {
         /**
          * Notifies a caller that the current field/parent can be cleared
          */
@@ -49,13 +53,13 @@ public class BeanClearUtil {
         Field[] fields = object.getClass().getDeclaredFields();
         for (Field field : fields) {
             field.setAccessible(true);
+            Object value = field.get(object);
+            if (ignoreFieldsByName.contains(field.getName())) continue;
             if (field.getType().isArray()) continue;
             if (field.getType().isEnum()
                     || field.getType().equals(LocalDateTime.class)
                     || field.getType().equals(LocalDate.class)
                     || field.getType().equals(BigDecimal.class)) {
-
-                Object value = field.get(object);
                 if (value != null) {
                     isEmpty = false;
                 }
@@ -75,7 +79,7 @@ public class BeanClearUtil {
                     isEmpty = false;
                 }
             } else {
-                if (!handleObject(field.get(object))) {
+                if (!handleObject(field.get(object), ignoreFieldsByName)) {
                     isEmpty = false;
                 } else {
                     if (!isFinal(field)) {
@@ -97,7 +101,7 @@ public class BeanClearUtil {
      * @param object
      * @return
      */
-    private static boolean handleObject(Object object) throws IllegalAccessException {
+    private static boolean handleObject(Object object, List<String> ignoreFieldsByName) throws IllegalAccessException {
         /**
          * In case of nested objects with empty properties, it is possible that the received object can be null
          */
@@ -111,7 +115,7 @@ public class BeanClearUtil {
 
         if (isArray(object)) {
             ArrayList array = (ArrayList) object;
-            if (!handleArray(array)) {
+            if (!handleArray(array, ignoreFieldsByName)) {
                 /**
                  * At least one property of the array, is not null, so the array cannot be null too
                  */
@@ -119,14 +123,14 @@ public class BeanClearUtil {
             }
         } else if (isMap(object)) {
             HashMap map = (HashMap) object;
-            if (!handleMap(map)) {
+            if (!handleMap(map, ignoreFieldsByName)) {
                 /**
                  * At least one property of the map, is not null, so the map cannot be null too
                  */
                 isEmpty = false;
             }
         } else {
-            if (!clear(object)) {
+            if (!clear(object, ignoreFieldsByName)) {
                 /**
                  * At least one property of the object, is not null, so the object cannot be null too
                  */
@@ -211,8 +215,9 @@ public class BeanClearUtil {
      * @param array
      * @throws IllegalAccessException
      */
-    private static boolean handleArray(ArrayList array) throws IllegalAccessException {
+    private static boolean handleArray(ArrayList array, List<String> ignoreFieldsByName) throws IllegalAccessException {
         boolean isEmpty = true;
+        List<Object> objectsToRemove = new ArrayList<>();
         for (int i = 0; i < array.size(); i++) {
             Object arrayElement = array.get(i);
             if (arrayElement != null && isSimpleObjectType(arrayElement)) {
@@ -221,16 +226,17 @@ public class BeanClearUtil {
                  */
                 isEmpty = false;
             } else {
-                if (!handleObject(arrayElement)) {
+                if (!handleObject(arrayElement, ignoreFieldsByName)) {
                     /**
                      * At least one property of the array, is not null, so the array cannot be null too
                      */
                     isEmpty = false;
                 } else {
-                    arrayElement = null;
+                    objectsToRemove.add(arrayElement);
                 }
             }
         }
+        array.removeAll(objectsToRemove);
         return isEmpty;
     }
 
@@ -241,7 +247,7 @@ public class BeanClearUtil {
      * @return
      * @throws IllegalAccessException
      */
-    private static boolean handleMap(HashMap map) throws IllegalAccessException {
+    private static boolean handleMap(HashMap map, List<String> ignoreFieldsByName) throws IllegalAccessException {
         boolean isEmpty = true;
         Iterator iterator = map.entrySet().iterator();
         while (iterator.hasNext()) {
@@ -253,7 +259,7 @@ public class BeanClearUtil {
                  */
                 isEmpty = false;
             } else {
-                if (!handleObject(mapElementEntry)) {
+                if (!handleObject(mapElementEntry, ignoreFieldsByName)) {
                     /**
                      * At least one property of the map, is not null, so the map cannot be null too
                      */

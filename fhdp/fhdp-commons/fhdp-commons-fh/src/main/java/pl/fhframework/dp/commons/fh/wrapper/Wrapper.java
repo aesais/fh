@@ -54,11 +54,15 @@ public class Wrapper<T> implements Serializable {
         return wrapDisabled(prop, false);
     }
 
-    private String extractProperty(String prop) {
+    public String extractProperty(String prop) {
         return this.extractProperty(prop, this.element);
     }
 
-    private String extractProperty(String prop, T container) {
+    public String extractProperty(String prop, T container) {
+        if(null == container) {
+            return "";
+        }
+
         String result = "";
         try {
             if (PropertyUtils.isReadable(container, prop)) {
@@ -102,38 +106,33 @@ public class Wrapper<T> implements Serializable {
 
         String newProp = this.extractProperty(prop, element);
 
+        if (!isLastValueEnabled) {
+            return newProp;
+        }
+
         if (oldElement != null) {
             String oldProp = this.extractProperty(prop, oldElement);
 
             if (oldProp.equals(newProp)) {
-                if (classes.length() > 0) {
-                    return "[className='" + classes + "']" + newProp + "[/className]";
-                }
+                return "[className='" + classes + "']" + newProp + "[/className]";
             } else {
                 // obsługa dla "[Dodano]
-                if (!oldProp.equals(newProp) && oldProp.equals("")) {
+                if (oldProp.equals("") || oldProp.equals("$.compare.added")) {
                     // jeżeli poprzednia wartość isnieje, ale jest pusta to
                     // oznacza to, że mamy do czynienia z sytuacją dodania nowej wartości
                     return createAddMessage(newProp);
                 } else {
-                    return "[className='" + classes + "']" + newProp + "[/className]" + "[br/][className='old-value," + classes + "']" + oldProp + "[/className]";
+                    String oldValueText = "[className='old-value," + classes + "']" + oldProp + "[/className]";
+                    if(newProp.isEmpty()) {
+                        return oldValueText;
+                    }
+                    return "[className='" + classes + "']" + newProp + "[/className]" + "[br/]" + oldValueText;
                 }
             }
-
-            if (oldProp.equals(newProp)) {
-                return newProp;
-            } else {
-                return "[className='" + classes + "']" + newProp + "[/className]" + "[br/][className='old-value," + classes + "']" + oldProp + "[/className]";
-            }
-
         } else {
-            if (isLastValueEnabled) {
-                // jeżeli jesteśmy podczas korekty oraz oldElement = null, oznacza to że jest to nowy wiersz
-                // należy dodać [Dodano] do każdego z pól
-                return createAddMessage(newProp);
-            } else {
-                return newProp;
-            }
+            // jeżeli jesteśmy podczas korekty oraz oldElement = null, oznacza to że jest to nowy wiersz
+            // należy dodać [Dodano] do każdego z pól
+            return createAddMessage(newProp);
         }
     }
 

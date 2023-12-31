@@ -6,10 +6,6 @@ interface Props {
     content: string;
 }
 
-function toLowerCase(name: string){
-  return name.toLowerCase();
-}
-
 const parseErrorMessage = (message: string) => {
   const [msg, line, column, character] = message.split('\n');
   return {
@@ -74,9 +70,7 @@ export const XMLViewerFhDPR: React.FC<Props> = (props: Props) => {
                 .replace(/&gt;/g, ">").trim();
             },
           ],
-          tagNameProcessors: [toLowerCase],
-          attrNameProcessors: [toLowerCase],
-          strict: false
+          strict: true
         }).parseString(
             content,
             (err: Error, result: any) => {

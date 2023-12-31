@@ -206,6 +206,13 @@ public class FacadeRestClient {
                 }
             }
             //TODO: i18n
+            if (log.isTraceEnabled()) {
+                try{
+                    throw new IllegalStateException();
+                } catch (IllegalStateException e) {
+                    log.warn("Received error from core: "+response.getMessage(), e);
+                }
+            }
             eventRegistry.fireNotificationEvent(NotificationEvent.Level.ERROR, response.getMessage());
 //            eventRegistry.fireNotificationEvent(NotificationEvent.Level.ERROR, response.getMessageKey());
             return whenValid.get();

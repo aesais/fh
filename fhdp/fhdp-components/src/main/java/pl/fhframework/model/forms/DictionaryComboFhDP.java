@@ -55,6 +55,7 @@ public class DictionaryComboFhDP extends ComboFhDP implements IGroupingComponent
     public static final String ATTR_POPUP_COLOR = "popupColor";
     private static final String ATTR_ROWS = "rows";
     private static final String ATTR_COLUMNS = "columns";
+    private static final String ATTR_CODE_VALUE = "codeValue";
     private static final String ATTR_PAGE = "page";
     private static final String ATTR_PAGES_COUNT = "pagesCount";
     private static final String VALUE_FOR_CHANGED_BINDING_ATTR = "valueFromChangedBinding";
@@ -94,6 +95,9 @@ public class DictionaryComboFhDP extends ComboFhDP implements IGroupingComponent
 
     @Getter
     private List<NameValue> columns;
+
+    @Getter
+    private String codeValue;
 
     @Getter
     private String title;
@@ -230,14 +234,16 @@ public class DictionaryComboFhDP extends ComboFhDP implements IGroupingComponent
                         if (displayOnlyCode) {
                             selectedItem = currentValue;
                             filterText = String.valueOf(currentValue);
+                            codeValue = String.valueOf(currentValue);
                             rawValue = String.valueOf(currentValue);
                         } else {
                             filterText = String.valueOf(currentValue);
+                            codeValue = String.valueOf(currentValue);
                             selectedItem = getValueFromProvider(filterText);
                             if (selectedItem != null) {
                                 rawValue = dataProvider.getDisplayValue(selectedItem);
                             } else {
-                                rawValue = null;
+                                rawValue = filterText;
                             }
                         }
                     } else {
@@ -247,9 +253,6 @@ public class DictionaryComboFhDP extends ComboFhDP implements IGroupingComponent
                     }
 
                 }
-            }
-            if(getLastValueModelBinding() != null && getLastValueModelBinding().getBindingResult() != null) {
-                currentLastValue = getLastValueModelBinding().getBindingResult().getValue();
             }
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -434,6 +437,7 @@ public class DictionaryComboFhDP extends ComboFhDP implements IGroupingComponent
                         if(value != null) {
                             filterText = String.valueOf(value);
                             selectedItem = getValueFromProvider(filterText);
+                            codeValue = String.valueOf(value);
                             if(selectedItem != null) {
                                 rawValue = dataProvider.getDisplayValue(selectedItem);
                             } else {
@@ -443,9 +447,11 @@ public class DictionaryComboFhDP extends ComboFhDP implements IGroupingComponent
                             filterText = null;
                             selectedItem = null;
                             rawValue = null;
+                            codeValue = null;
                         }
                     }
                     System.out.println("processValueBinding. New rawValue: " + ((rawValue == null)?"real null":rawValue));
+                    elementChanges.addChange(ATTR_CODE_VALUE, (codeValue == null)?"":codeValue);
                     elementChanges.addChange(VALUE_FOR_CHANGED_BINDING_ATTR, (rawValue == null)?"":rawValue);
                     System.out.println("After processValueBinding. dirty: " + dirty);
                     return true;
@@ -488,25 +494,38 @@ public class DictionaryComboFhDP extends ComboFhDP implements IGroupingComponent
             columns = dataProvider.getColumnDefinitions();
             elementChange.addChange(ATTR_COLUMNS, columns);
         }
-        if (getLastValueModelBinding() != null) {
-            BindingResult bindingResult = getLastValueModelBinding().getBindingResult();
-            String newRaw = convertToRaw(bindingResult);
-            if(Optional.ofNullable(getIsTableMode()).orElse(false) && !displayOnlyCode) {
-                newRaw = this.dataProvider.getDisplayValue(getValueFromProvider(newRaw));
-            }
-
-            setLastValue(newRaw);
-            elementChange.addChange(ATTR_LAST_VALUE, getLastValue());
-        }
-        if(currentLastValue != null) {
-            Object lastValue = elementChange.getChangedAttributes().get(ATTR_LAST_VALUE);
-            if(lastValue.equals(currentLastValue)) {
-                elementChange.getChangedAttributes().remove(ATTR_LAST_VALUE);
-            }
-        }
         return elementChange;
     }
 
+    @Override
+    protected void updateViewLastValueBinding(ElementChanges elementChange) {
+        if (getLastValueModelBinding() == null) {
+            return;
+        }
+
+        BindingResult bindingResult = getLastValueModelBinding().getBindingResult();
+        String newRaw = convertToRaw(bindingResult);
+        if(areValuesTheSame(newRaw, this.currentLastValue)) {
+            return;
+        }
+        currentLastValue = newRaw;
+
+        if(Optional.ofNullable(getIsTableMode()).orElse(false) && !displayOnlyCode) {
+            if(areValuesTheSame(newRaw, currentValue)) {
+                newRaw = this.rawValue;
+            } else {
+                if(!StringUtils.isNullOrEmpty(newRaw)) {
+                    String valueWithDesc = this.dataProvider.getDisplayValue(getValueFromProvider(newRaw));
+                    if(!StringUtils.isNullOrEmpty(valueWithDesc)) {
+                        newRaw = valueWithDesc;
+                    }
+                }
+            }
+        }
+
+        setLastValue(newRaw);
+        elementChange.addChange(ATTR_LAST_VALUE, getLastValue());
+    }
 
     @Override
     public void updateModel(ValueChange valueChange){
@@ -521,6 +540,7 @@ public class DictionaryComboFhDP extends ComboFhDP implements IGroupingComponent
             if(newValue == null) {
                 dirty = true;
                 rawValue = null;
+                codeValue = null;
                 filterText = null;
                 valueSelected = true;
             } else {
@@ -535,6 +555,7 @@ public class DictionaryComboFhDP extends ComboFhDP implements IGroupingComponent
                     dirty = true;
                     rawValue = newValue;
                     System.out.println("updateModel... changed rawValue: " + rawValue);
+                    codeValue = filterText;
                     filterText = rawValue;
                     boolean singleSearch = this.rawValue!=null && (!dirty || !getAvailability().equals(AccessibilityEnum.EDIT));
                     search(singleSearch, true);
@@ -550,11 +571,15 @@ public class DictionaryComboFhDP extends ComboFhDP implements IGroupingComponent
                 selectedItem = getValueFromProvider(filterText);
                 result = dataProvider.getCode(selectedItem);
 
+                if(selectedItem != null || StringUtils.isNullOrEmpty(filterText)) {
+                    codeValue = filterText;
+                }
+
                 //Validate
                 ValidateInput input = new ValidateInput();
                 input.setId(this.getGuuid());
                 input.setCode(filterText);
-                dictionaryComboValidate(input);
+                dictionaryComboValidate(input, selectedItem);
 
                 dirty = false;
             } else {
@@ -731,6 +756,10 @@ public class DictionaryComboFhDP extends ComboFhDP implements IGroupingComponent
 
     private void dictionaryComboValidate(ValidateInput input) {
         Object inputValue = getValueFromProvider(input.getCode());
+        dictionaryComboValidate(input, inputValue);
+    }
+
+    private void dictionaryComboValidate(ValidateInput input, Object inputValue) {
         ValidateResult result = new ValidateResult();
         result.setId(input.getId());
         if(inputValue != null || StringUtils.isNullOrEmpty(input.getCode())) {

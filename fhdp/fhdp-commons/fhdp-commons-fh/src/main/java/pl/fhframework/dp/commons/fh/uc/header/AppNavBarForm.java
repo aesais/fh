@@ -51,6 +51,7 @@ public class AppNavBarForm extends Form<AppNavBarForm.Model> {
         private boolean translationPL;
         private boolean translationLT;
         private boolean translationNO;
+        private boolean translationViewKey;
 
         private boolean languageDropdown;
         private boolean appSider;

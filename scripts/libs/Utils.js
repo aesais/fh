@@ -66,8 +66,8 @@ const _getFiles = async (dir, matchPatternFn, ignorePatternFn, verbose) => {
 const getPackages = async (relativePath, verbose) => {
   console.log('Scanning packages');
   const currentPath = process.cwd();
-  const searchPath = `${currentPath}/${relativePath}`
-  matchPattern = (pth) => pth.endsWith('/package.json');
+  const searchPath = `${currentPath}`+path.sep+`${relativePath}`
+  matchPattern = (pth) => pth.endsWith(path.sep+'package.json');
   ignorePattern = (pth) => pth.endsWith('node_modules') || pth.endsWith('node');
   const files = await _getFiles(searchPath, matchPattern, ignorePattern, verbose);
   return files;

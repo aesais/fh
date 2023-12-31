@@ -10,6 +10,7 @@ class TreeElementFhDP extends TreeElement {
   private currentElement: boolean;
   private isCustomHighlight: boolean;
   private customHighlightColor: string;
+  private selectedNewItem: boolean;
 
   constructor(componentObj: any, parent: HTMLFormComponent) {
     super(componentObj, parent);
@@ -21,6 +22,7 @@ class TreeElementFhDP extends TreeElement {
     this.labelOverride = componentObj.label;
     this.isCustomHighlight = componentObj.isHighlight;
     this.customHighlightColor = componentObj.highlightColor;
+    this.selectedNewItem = this.componentObj.selectedNewItem ?? true;
     TreeElementHelper.getInstance().registerElement(this);
   }
 
@@ -88,8 +90,12 @@ class TreeElementFhDP extends TreeElement {
 
   update(change) {
     super.update(change);
-    
-    if (change.addedComponents) {
+
+    if(typeof change.changedAttributes?.selectedNewItem == "boolean") {
+      this.selectedNewItem = change.changedAttributes.selectedNewItem;
+    }
+
+    if (change.addedComponents && this.selectedNewItem) {
       const firstNewEl = change.addedComponents[Object.keys(change.addedComponents)[0]];
       if (firstNewEl && firstNewEl[0]) {
         const newElId = firstNewEl[0].id;

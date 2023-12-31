@@ -71,10 +71,10 @@ Supported params:
 
 }
 
-const _switchLerna = (disable) => {
-    console.log('cwd', process.cwd());
-    const disabledPath = '../packages/disabled-package.json';
-    const enabledPath = '../packages/package.json';
+const _switchLerna = (MAIN_PATH, disable) => {
+    console.log('cwd', MAIN_PATH);
+    const disabledPath = MAIN_PATH + pth.sep + '..' + pth.sep+'packages' + pth.sep + 'disabled-package.json';
+    const enabledPath =  MAIN_PATH + pth.sep + '..' + pth.sep+'packages' + pth.sep + 'package.json';
     const isDisabled = fs.existsSync(disabledPath);
     console.log(isDisabled, disable)
     if (isDisabled && !disable) {
@@ -110,13 +110,13 @@ class Runtime {
 
 
   deploy(params) {
-    _switchLerna(true);
+    const MAIN_PATH = process.cwd();
+    _switchLerna(MAIN_PATH, true);
     try {
-        const MAIN_PATH = process.cwd();
         const FH_DIRS = packages_list.dirs;
         const FH_PACKAGES = packages_list.pkgs;
         const snapId = +new Date();
-        let address = 'https://registry.npmjs.org/';
+        let address = process.env.REGISTRY_PATH || 'https://registry.npmjs.org';
         if (params.has('address')) {
           if (utils.validURL(params.get('address'))) {
             address = params.get('address');
@@ -225,12 +225,12 @@ class Runtime {
     } catch (e) {
         console.error(e);
     } finally {
-        _switchLerna(false);
+        _switchLerna(MAIN_PATH, false);
     }
   }
 
   async switchToLocal(params) {
-    const pkgs = await utils.getPackages('../', params.has('verbose'));
+    const pkgs = await utils.getPackages('..'+pth.sep, params.has('verbose'));
     for (const pkg of pkgs) {
       console.log(`Switching ${pkg} to local registry...`);
       await registry.useLocalRegistry(pkg, params.get('priority'));
@@ -263,10 +263,11 @@ class Runtime {
   async updateToNewestVersion(params) {
     const pkgs = await utils.getPackages('../', params.has('verbose'));
     console.log('\n');
-    if (!['next', 'latest'].includes(params.get('priority')) || params.get('priority') === undefined) {
-      console.log(`--priority is wrong! Possible values are [next, latest]`);
-      return;
-    }
+    // turn off verification - any version can be used
+    //if (!['next', 'latest'].includes(params.get('priority')) || params.get('priority') === undefined) {
+    //  console.log(`--priority is wrong! Possible values are [next, latest]`);
+    //  return;
+    //}
     for (const pkg of pkgs) {
       console.log(`Switching ${pkg} to remote registry...`);
       await registry.updateToNewestVersion(pkg, params.get('priority'));
