@@ -1,15 +1,16 @@
 package pl.fhframework.dp.commons.fh.utils.rest.facade;
 
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.util.UriComponentsBuilder;
-import pl.fhframework.dp.commons.rest.*;
-import pl.fhframework.dp.transport.dto.commons.*;
 import pl.fhframework.SessionManager;
 import pl.fhframework.core.util.StringUtils;
+import pl.fhframework.dp.commons.rest.*;
+import pl.fhframework.dp.transport.dto.commons.*;
 import pl.fhframework.event.EventRegistry;
 import pl.fhframework.event.dto.NotificationEvent;
 
@@ -26,6 +27,7 @@ import java.util.function.Supplier;
  * @created 26/03/2020
  */
 @Service
+@Slf4j
 public class FacadeRestClient {
 
     @Value("${rest.facade.url:}")
@@ -196,7 +198,21 @@ public class FacadeRestClient {
         if (response.isValid()) {
             return whenValid.get();
         } else {
+            if (log.isTraceEnabled()) {
+                try{
+                    throw new IllegalStateException();
+                } catch (IllegalStateException e) {
+                    log.warn("Received error from core: "+response.getMessage(), e);
+                }
+            }
             //TODO: i18n
+            if (log.isTraceEnabled()) {
+                try{
+                    throw new IllegalStateException();
+                } catch (IllegalStateException e) {
+                    log.warn("Received error from core: "+response.getMessage(), e);
+                }
+            }
             eventRegistry.fireNotificationEvent(NotificationEvent.Level.ERROR, response.getMessage());
 //            eventRegistry.fireNotificationEvent(NotificationEvent.Level.ERROR, response.getMessageKey());
             return whenValid.get();

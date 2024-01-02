@@ -285,11 +285,11 @@ abstract class TableFixedHeaderAndHorizontalScroll extends HTMLFormComponent {
                         const sibling = this.getVisiableSibling(column);
                         if (sibling) {
                             const colWidth = this.startOffset + (e.pageX - this.startPageX);
-                            let nextSiblingWidth = this.secondOffset - (e.pageX - this.startPageX);
+                            //let nextSiblingWidth = this.secondOffset - (e.pageX - this.startPageX);
                             //Minimal column width is 20px. We can't go less.
 
-                            if (colWidth > 25 && nextSiblingWidth > 25) {
-                                sibling.style.width = this.convertToPrecentageWidth(nextSiblingWidth) + '%'
+                            if (colWidth > 25 ) { //&& nextSiblingWidth > 25
+                                //sibling.style.width = this.convertToPrecentageWidth(nextSiblingWidth) + '%'
                                 column.style.width = this.convertToPrecentageWidth(colWidth) + '%';
                             }
 

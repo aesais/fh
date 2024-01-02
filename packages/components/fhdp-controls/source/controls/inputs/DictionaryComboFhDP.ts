@@ -109,7 +109,7 @@ class DictionaryComboFhDP extends ComboFhDP implements LanguageChangeObserver {
         if(iconSearch != null){
             $($("div.search-icon", inputGroup)[0]).addClass('fc-editable');
             $($("div.search-icon", inputGroup)[0]).on("click", function(){
-                if(self.accessibility === "VIEW"){//w trybie VIEW nie działa onClickSearchIcon
+                if(self.accessibility === "VIEW" && !!self.codeValue){//w trybie VIEW nie działa onClickSearchIcon
                     self.isSearch = true;
                     self.crateTooltip($("div.search-icon", self.getInputGroupElement())[0]);
                 }
@@ -703,16 +703,18 @@ class DictionaryComboFhDP extends ComboFhDP implements LanguageChangeObserver {
     }
 
     onClickSearchIconEvent(event) {
+        if(this.accessibility === "VIEW") {
+            return;
+        }
+
         event.stopPropagation();
         this.popupOpen = true;
         this.isSearch = true;
         this.isLastValueTooltip = false;
-        if(this.accessibility !== "VIEW") {
-            if (this._formId === 'FormPreview') {
-                this.fireEvent('onClickSearchIcon', "preview");
-            } else {
-                this.fireEvent('onClickSearchIcon', "search");
-            }
+        if (this._formId === 'FormPreview') {
+            this.fireEvent('onClickSearchIcon', "preview");
+        } else {
+            this.fireEvent('onClickSearchIcon', "search");
         }
         this.crateTooltip($("div.search-icon", this.getInputGroupElement())[0]);
         event.target.blur();

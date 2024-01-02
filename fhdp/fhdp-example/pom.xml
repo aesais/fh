@@ -143,6 +143,7 @@
                             <goal>yarn</goal>
                         </goals>
                         <configuration>
+							<yarnInheritsProxyConfigFromMaven>false</yarnInheritsProxyConfigFromMaven>
                             <arguments>cache clean</arguments>
                         </configuration>
                     </execution>
@@ -153,6 +154,7 @@
                             <goal>yarn</goal>
                         </goals>
                         <configuration>
+							<yarnInheritsProxyConfigFromMaven>false</yarnInheritsProxyConfigFromMaven>
                             <arguments>--update-checksums</arguments>
                         </configuration>
                     </execution>
@@ -162,6 +164,9 @@
                         <goals>
                             <goal>yarn</goal>
                         </goals>
+                        <configuration>
+							<yarnInheritsProxyConfigFromMaven>false</yarnInheritsProxyConfigFromMaven>
+                        </configuration>
                     </execution>
                     <execution>
                         <id>yarn upgrade</id>
@@ -170,6 +175,7 @@
                             <goal>yarn</goal>
                         </goals>
                         <configuration>
+							<yarnInheritsProxyConfigFromMaven>false</yarnInheritsProxyConfigFromMaven>
                             <arguments>upgrade fhdp-fh-starter</arguments>
                         </configuration>
                     </execution>
@@ -180,6 +186,7 @@
                             <goal>yarn</goal>
                         </goals>
                         <configuration>
+							<yarnInheritsProxyConfigFromMaven>false</yarnInheritsProxyConfigFromMaven>
                             <arguments>upgrade fhdp-charts</arguments>
                         </configuration>
                     </execution>

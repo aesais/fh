@@ -261,6 +261,19 @@ public class OutlineService {
         return null;
     }
 
+    public TreeElement<ElementCT> findLeftMenuElementByIndex(int index, String parentElementId, List<TreeElement<ElementCT>> menu){
+        TreeElement<ElementCT> parent = findLeftMenuElementByParent(parentElementId, menu);
+        if(null == parent) {
+            return null;
+        }
+        for (TreeElement<ElementCT> el : parent.getChildren()) {
+            if (el instanceof IndexedTreeElement && ((IndexedTreeElement)el).getIndex() == index) {
+                return el;
+            }
+        }
+        return null;
+    }
+
     protected String translateLabel(String label) {
         if (label != null && label.length() > 2 && label.startsWith("$.")) {
             return messageService.getAllBundles().getMessage(label.substring(2));

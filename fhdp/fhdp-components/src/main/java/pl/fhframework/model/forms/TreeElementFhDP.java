@@ -19,6 +19,7 @@ import pl.fhframework.model.forms.designer.BindingExpressionDesignerPreviewProvi
 import java.util.Optional;
 
 import static pl.fhframework.annotations.DesignerXMLProperty.PropertyFunctionalArea.BEHAVIOR;
+import static pl.fhframework.annotations.DesignerXMLProperty.PropertyFunctionalArea.CONTENT;
 
 @Control(parents = {TreeFhDP.class}, canBeDesigned = true)
 @CompilationNotSupportedIterable
@@ -31,6 +32,7 @@ public class TreeElementFhDP extends GroupingComponent<TreeElementFhDP> implemen
     private static final String ON_LAZY_LOAD = "onLazyLoad";
     private static final String ATTR_LABEL = "label";
     private static final String ATTR_SELECTED = "selected";
+    private static final String ATTR_SELECTED_NEW_ITEM = "selectedNewItem";
     private static final String ATTR_COLLAPSED = "collapsed";
     private static final String ATTR_NEXT_LEVEL_EXPANDABLE = "nextLevelExpandable";
     private static final String ATTR_EXPANDED_EXCEPTION = "expandedException";
@@ -154,6 +156,17 @@ public class TreeElementFhDP extends GroupingComponent<TreeElementFhDP> implemen
     @JsonIgnore
     private Expression nextLevelLazyExpandableExpression;
 
+    @JsonIgnore
+    @Getter
+    @Setter
+    @XMLProperty(required = true, value = ATTR_SELECTED_NEW_ITEM)
+    @DesignerXMLProperty(commonUse = true, previewValueProvider = BindingExpressionDesignerPreviewProvider.class, functionalArea = CONTENT)
+    @DocumentedComponentAttribute(boundable = true, value = "Selected new element, there will be no method invoke from provider.")
+    private ModelBinding<Boolean> selectedNewItemModelBinding;
+
+    @Getter
+    private Boolean selectedNewItem = true;
+
     public TreeElementFhDP(Form form) {
         super(form);
     }
@@ -165,6 +178,14 @@ public class TreeElementFhDP extends GroupingComponent<TreeElementFhDP> implemen
             if(bindingResultExpandedException != null){
                 if(bindingResultExpandedException.getValue() != null){
                     this.expandedException = bindingResultExpandedException.getValue();
+                }
+            }
+        }
+        if(selectedNewItemModelBinding != null) {
+            BindingResult<Boolean> bidingResult = selectedNewItemModelBinding.getBindingResult();
+            if (bidingResult != null) {
+                if (bidingResult.getValue() != null) {
+                    this.selectedNewItem = bidingResult.getValue();
                 }
             }
         }
@@ -282,6 +303,17 @@ public class TreeElementFhDP extends GroupingComponent<TreeElementFhDP> implemen
                 if (!areValuesTheSame(newhighlightColorValue, this.highlightColor)) {
                     this.highlightColor = newhighlightColorValue;
                     elementChanges.addChange(ATTR_HIGHLIGHT_COLOR, this.highlightColor);
+                }
+            }
+        }
+
+        if(selectedNewItemModelBinding != null) {
+            BindingResult<Boolean> bindingResult = selectedNewItemModelBinding.getBindingResult();
+            if (bindingResult != null) {
+                Boolean newSelectedNewItemValue = bindingResult.getValue();
+                if (!areValuesTheSame(newSelectedNewItemValue, this.selectedNewItem)) {
+                    this.selectedNewItem = newSelectedNewItemValue;
+                    elementChanges.addChange(ATTR_SELECTED_NEW_ITEM, this.selectedNewItem);
                 }
             }
         }
