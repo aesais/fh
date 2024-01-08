@@ -291,7 +291,6 @@ const meta: TagMetaType[] = [
     {
         tag: 'rawTag',
         tagConstructor: (match, attr) => {
-            const tag = String(attr);
             if(!attr) {
                 return '';
             }
