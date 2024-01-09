@@ -46,7 +46,7 @@ public class AppTitleUC extends FhdpBaseUC implements ISystemUseCase {
         form = showForm(AppTitleForm.class, model);
     }
 
-    private void initModel() {
+    protected void initModel() {
         String env;
 
         model.setSubVersion(applicationInfo.getBuildNumber() + "; " + applicationInfo.getBuildTimestamp());

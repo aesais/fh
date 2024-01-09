@@ -289,6 +289,17 @@ const meta: TagMetaType[] = [
         noContent: false
     },
     {
+        tag: 'rawTag',
+        tagConstructor: (match, attr) => {
+            if(!attr) {
+                return '';
+            }
+            return `<${attr}>`;
+        },
+        attr: '([a-zA-Z0-9\-\, \/]+)',
+        noContent: true
+    },
+    {
         tag: 'extAttributes/',
         tagConstructor: (match, contents) => {
             return '';
