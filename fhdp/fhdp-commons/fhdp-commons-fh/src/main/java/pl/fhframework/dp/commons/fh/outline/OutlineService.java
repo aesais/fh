@@ -266,7 +266,19 @@ public class OutlineService {
         if(null == parent) {
             return null;
         }
+        return findLeftMenuElementByIndex(index, parent);
+    }
+
+    public TreeElement<ElementCT> findLeftMenuElementByIndex(int index, TreeElement<ElementCT> parent) {
         for (TreeElement<ElementCT> el : parent.getChildren()) {
+            if(el instanceof GroupTreeElement) {
+                TreeElement<ElementCT> elFromGroup = findLeftMenuElementByIndex(index, el);
+                if(null != elFromGroup) {
+                    return elFromGroup;
+                }
+                continue;
+            }
+
             if (el instanceof IndexedTreeElement && ((IndexedTreeElement)el).getIndex() == index) {
                 return el;
             }
