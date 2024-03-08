@@ -5,20 +5,25 @@
       <option name="myRunnerSettings" />
       <option name="myRunnerParameters">
         <MavenRunnerParameters>
+          <option name="cmdOptions" />
           <option name="profiles">
             <set />
           </option>
           <option name="goals">
             <list>
               <option value="versions:set" />
-              <option value="-DnewVersion=4.10.4-SNAPSHOT" />
+              <option value="-DnewVersion=4.10.5.PL-szkolenie" />
               <option value="-DgenerateBackupPoms=false" />
               <option value="-DprocessAllModules=true" />
             </list>
           </option>
+          <option name="multimoduleDir" />
           <option name="pomFileName" />
           <option name="profilesMap">
             <map />
+          </option>
+          <option name="projectsCmdOptionValues">
+            <list />
           </option>
           <option name="resolveToWorkspace" value="false" />
           <option name="workingDirPath" value="$PROJECT_DIR$" />
