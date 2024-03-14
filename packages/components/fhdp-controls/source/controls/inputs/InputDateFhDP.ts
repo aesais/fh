@@ -55,6 +55,7 @@ class InputDateFhDP extends InputTextFhDP implements LanguageChangeObserver {
 
         this.i18n.registerStrings('lt', InputDateFhDPLt);
         this.i18n.registerStrings('pl', InputDateFhDPPl);
+        this.i18n.registerStrings('pl_en', InputDateFhDPPl);
         this.i18n.registerStrings('en', InputDateFhDPEn);
         this.i18n.registerStrings('ru', InputDateFhDPRu);
 

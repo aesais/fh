@@ -25,6 +25,7 @@ class EmbeddedView extends HTMLFormComponent {
         // }
         this.i18n.registerStrings('en', EmbeddedViewEn);
         this.i18n.registerStrings('pl', EmbeddedViewPl);
+        this.i18n.registerStrings('pl_en', EmbeddedViewPl);
         this.i18n.registerStrings('lt', EmbeddedViewLt);
     }
 
