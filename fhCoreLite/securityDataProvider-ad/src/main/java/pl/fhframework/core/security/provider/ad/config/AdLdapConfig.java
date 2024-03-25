@@ -18,7 +18,7 @@ public class AdLdapConfig {
     @Value("${fhframework.security.provider.ad.domain}")
     private String domain;
 
-    @Bean
+    @Bean("adLdapAuthenticationProvider")
     public ActiveDirectoryLdapAuthenticationProvider adLdapProvider() {
         final String url = String.format("ldap://%s:%s", server, port);
 
