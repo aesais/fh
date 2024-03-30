@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>2.6.4</version>
+        <version>2.7.18</version>
         <relativePath/>
     </parent>
 
@@ -29,11 +29,12 @@
 
         <fh.version>${project.version}</fh.version>
         <fh.version.display>${fh.version}</fh.version.display>
-        <springboot.version>2.6.4</springboot.version>
+        <springboot.version>2.7.18</springboot.version>
         <hibernate.version>5.6.7.Final</hibernate.version>
         <aspectj.version>1.9.4</aspectj.version>
         <bom.dir>${user.dir}/bom-project-lite</bom.dir>
         <config.dir.name>config</config.dir.name>
+        <!--suppress UnresolvedMavenProperty -->
         <config.dir>${project.build.sourceDirectory}/../resources/${config.dir.name}/</config.dir>
     </properties>
 
