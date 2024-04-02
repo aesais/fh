@@ -449,55 +449,6 @@
 							</execution>
 						</executions>
 					</plugin>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-javadoc-plugin</artifactId>
-                        <version>3.4.0</version>
-                        <configuration>
-							<doclint>none</doclint>
-                            <tags>
-                                <tag>
-                                    <name>summary</name>
-                                    <placement>a</placement>
-                                    <head>Summary (resource title)</head>
-                                </tag>
-                                <tag>
-                                    <name>title</name>
-                                    <placement>a</placement>
-                                    <head>Summary (resource title)</head>
-                                </tag>
-                                <tag>
-                                    <name>servicetag</name>
-                                    <placement>a</placement>
-                                    <head>Resource tag (label)</head>
-                                </tag>
-                                <tag>
-                                    <name>statuscode</name>
-                                    <placement>a</placement>
-                                    <head>Resource status code(s)</head>
-                                </tag>
-                                <tag>
-                                    <name>responseheader</name>
-                                    <placement>a</placement>
-                                    <head>Response header</head>
-                                </tag>
-                                <tag>
-                                    <name>created</name>
-                                    <placement>a</placement>
-                                    <head>Created</head>
-                                </tag>
-                            </tags>
-                        </configuration>
-                        <executions>
-                            <execution>
-                                <id>attach-javadocs</id>
-								<phase>package</phase>
-                                <goals>
-                                    <goal>jar</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-deploy-plugin</artifactId>
