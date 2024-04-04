@@ -9,7 +9,7 @@ import org.springframework.security.config.annotation.authentication.builders.Au
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.config.annotation.web.configurers.ExpressionUrlAuthorizationConfigurer;
+import org.springframework.security.config.annotation.web.configurers.AuthorizeHttpRequestsConfigurer;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -68,25 +68,23 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         http.csrf().disable();
 
         http.formLogin()
-                .loginPage("/login")
-                .failureUrl("/login?error").permitAll();
+            .loginPage("/login")
+            .failureUrl("/login?error").permitAll();
 
         http.httpBasic();
         http.cors();
 
         http.sessionManagement()
-                .maximumSessions(singleLoginManager.isTrunedOn() ? 1 : -1)
-                .sessionRegistry(sessionRegistry())
-                .expiredUrl("/login");
+            .maximumSessions(singleLoginManager.isTrunedOn() ? 1 : -1)
+            .sessionRegistry(sessionRegistry())
+            .expiredUrl("/login");
 
         http.logout()
-                .logoutRequestMatcher(new AntPathRequestMatcher("/" + logoutPath))
-                .logoutSuccessUrl("/login?logout").deleteCookies("JSESSIONID")
-                .invalidateHttpSession(true).permitAll();
+            .logoutRequestMatcher(new AntPathRequestMatcher("/" + logoutPath))
+            .logoutSuccessUrl("/login?logout").deleteCookies("JSESSIONID")
+            .invalidateHttpSession(true).permitAll();
 
-
-        ExpressionUrlAuthorizationConfigurer<HttpSecurity>.ExpressionInterceptUrlRegistry urlRegistry = http.authorizeRequests();
-
+        AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizationManagerRequestMatcherRegistry urlRegistry = http.authorizeHttpRequests();
 
         // if guests are not allowed FH Application Framework is not accessed without authentication (but still public html, thymeleaf templates are allowed)
         if (!guestsAllowed) {
