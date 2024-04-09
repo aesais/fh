@@ -113,6 +113,7 @@ class DictionaryComboFhDP extends ComboFhDP implements LanguageChangeObserver {
                     self.isSearch = true;
                     self.crateTooltip($("div.search-icon", self.getInputGroupElement())[0]);
                 }
+                event.stopPropagation();
             })
         }
 
