@@ -1,8 +1,10 @@
 package pl.fhframework.dp.commons.ad.config;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
+import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.kerberos.authentication.KerberosAuthenticationProvider;
@@ -19,7 +21,7 @@ import java.util.Objects;
 
 @Service
 public class ADSecurityProviderInitializer extends AbstractSecurityProviderInitializer {
-    private final ActiveDirectoryLdapAuthenticationProvider adAuthenticationProvider;
+    private final AuthenticationProvider adAuthenticationProvider;
     private final KerberosAuthenticationProvider kerberosAuthenticationProvider;
     private final KerberosServiceAuthenticationProvider kerberosServiceAuthenticationProvider;
     private final FhUserDetailsService userDetailsService;
@@ -34,7 +36,7 @@ public class ADSecurityProviderInitializer extends AbstractSecurityProviderIniti
 
     @Autowired
     public ADSecurityProviderInitializer(ISecurityDataProvider securityDataProvider,
-                                         ActiveDirectoryLdapAuthenticationProvider adAuthenticationProvider,
+                                         @Qualifier("adLdapAuthenticationProvider") AuthenticationProvider adAuthenticationProvider,
                                          KerberosAuthenticationProvider kerberosAuthenticationProvider,
                                          KerberosServiceAuthenticationProvider kerberosServiceAuthenticationProvider,
                                          FhUserDetailsService userDetailsService,

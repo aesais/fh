@@ -69,6 +69,7 @@ class InputTextFhDP extends HTMLFormComponent {
         this.textBeforeCharacterCounter = this.componentObj.textBeforeCharacterCounter || '';
 
         this.i18n.registerStrings('pl', InputTextFhDPPl);
+        this.i18n.registerStrings('pl_en', InputTextFhDPPl);
         this.i18n.registerStrings('en', InputTextFhDPEn);
         this.i18n.registerStrings('lt', InputTextLT);
 

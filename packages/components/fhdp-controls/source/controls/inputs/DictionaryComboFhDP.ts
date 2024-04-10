@@ -113,6 +113,7 @@ class DictionaryComboFhDP extends ComboFhDP implements LanguageChangeObserver {
                     self.isSearch = true;
                     self.crateTooltip($("div.search-icon", self.getInputGroupElement())[0]);
                 }
+                event.stopPropagation();
             })
         }
 
@@ -410,7 +411,7 @@ class DictionaryComboFhDP extends ComboFhDP implements LanguageChangeObserver {
     }
 
     protected getPopupProps(): RenderPopupProps {
-        if(!!this.lastValueHtmlElement) {
+        if(!!this.lastValueHtmlElement && !this.lastValueHtmlElement?.classList.contains("hide-old-value")) {
             return {
                 hookElementId: this.lastValueHtmlElement.id,
                 parent: this.lastValueHtmlElement,

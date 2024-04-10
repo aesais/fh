@@ -37,7 +37,7 @@ public abstract class ObjectDataComparatorBase<CHANGE, DTO> {
     final static DateTimeFormatter dtf = DateTimeFormatter.ofPattern(getDateFormat());
     final static DateTimeFormatter dtmf = DateTimeFormatter.ofPattern(getDateTimeFormat());
 
-    List<CHANGE> changes = null;
+    protected List<CHANGE> changes = null;
     public List<CHANGE> getChanges(){
         return changes;
     }

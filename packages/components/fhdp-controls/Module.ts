@@ -33,6 +33,11 @@ import {MSReportsView} from './source/controls/MSReportsView';
 import {InputTimeFhDP} from './source/controls/inputs/InputTimeFhDP';
 import {TimerFhDP} from './source/controls/TimerFhDP';
 import {SelectOneMenuFhDP} from './source/controls/inputs/SelectOneMenuFhDP';
+import {TablePagedPL} from './source/i18n/TablePaged.pl';
+import {FileUploadPL} from './source/i18n/FileUpload.pl';
+import {ApplicationLockPL} from './source/i18n/ApplicationLock.pl';
+import {ConnectorPL} from './source/i18n/Connector.pl';
+import {ShutdownEventPL} from './source/i18n/ShutdownEvent.pl';
 
 class FhDPControls extends FhModule {
 
@@ -44,12 +49,18 @@ class FhDPControls extends FhModule {
         // console.log('HERE:',i18n.selectedLanguage);
         i18n.supportedLanguages.push('pl');
         i18n.supportedLanguages.push('lt');
+        i18n.supportedLanguages.push('pl_en');
         i18n.registerStrings('lt', ShutdownEventLT, true);
         i18n.registerStrings('lt', ConnectorLT, true);
         i18n.registerStrings('lt', ApplicationLockLT, true);
         i18n.registerStrings('lt', FileUploadLT, true);
         i18n.registerStrings('ru', FileUploadRU, true);
         i18n.registerStrings('lt', TablePagedLT, true);
+        i18n.registerStrings('pl_en', ShutdownEventPL, true);
+        i18n.registerStrings('pl_en', ConnectorPL, true);
+        i18n.registerStrings('pl_en', ApplicationLockPL, true);
+        i18n.registerStrings('pl_en', FileUploadPL, true);
+        i18n.registerStrings('pl_en', TablePagedPL, true);
         let language = (window.navigator as any).userLanguage || window.navigator.language;
         if (i18n.supportedLanguages.indexOf(language) > -1) {
             i18n.selectLanguage(language);
