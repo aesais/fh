@@ -55,7 +55,8 @@ export const DictionaryComboFhDPPopperTable: React.FC<Props> = (props: Props) =>
     const {
         styles,
         attributes,
-        forceUpdate
+        forceUpdate,
+        update
     } = usePopper(hookElement, popperElementEx, {placement: placement as Placement});
 
     const [actionDebouncing, setActionDecouncing] = React.useState(false);
@@ -201,6 +202,13 @@ export const DictionaryComboFhDPPopperTable: React.FC<Props> = (props: Props) =>
             // setAfterFirstUpdate(true);
         }
     }, [forceUpdate])
+
+    React.useEffect(() => {
+        if (update && rows.length > 0 && !afterFirstUpdate) {
+            update();
+            setAfterFirstUpdate(true);
+        }
+    }, [rows]);
 
     React.useEffect(() => {
         $(document).on('click touchend', closeOnClickOutside);
