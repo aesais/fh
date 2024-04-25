@@ -1,4 +1,4 @@
-package pl.fhframework.compiler.core.cluster;
+package pl.fhframework.plugins.cache.standalone;
 
 import org.infinispan.Cache;
 import org.infinispan.notifications.Listener;
