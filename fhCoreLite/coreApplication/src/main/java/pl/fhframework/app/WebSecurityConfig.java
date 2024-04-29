@@ -7,15 +7,21 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.config.annotation.web.configurers.ExpressionUrlAuthorizationConfigurer;
+import org.springframework.security.config.annotation.web.configurers.AuthorizeHttpRequestsConfigurer;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.firewall.FirewalledRequest;
+import org.springframework.security.web.firewall.HttpFirewall;
+import org.springframework.security.web.firewall.RequestRejectedException;
+import org.springframework.security.web.firewall.StrictHttpFirewall;
+import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import pl.fhframework.accounts.SecurityFilter;
 import pl.fhframework.accounts.SingleLoginLockManager;
@@ -23,6 +29,8 @@ import pl.fhframework.config.FhWebConfiguration;
 import pl.fhframework.core.security.IDefaultUser;
 import pl.fhframework.core.security.SecurityProviderInitializer;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -64,29 +72,50 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     }
 
     @Override
+    public void configure(WebSecurity web) {
+        web.httpFirewall(new HttpFirewall() {
+            @Override
+            public FirewalledRequest getFirewalledRequest(HttpServletRequest request) throws RequestRejectedException {
+                return new FirewalledRequest(request) {
+                    @Override
+                    public void reset() {}
+                };
+            }
+
+            @Override
+            public HttpServletResponse getFirewalledResponse(HttpServletResponse response) {
+                return response;
+            }
+        });
+    }
+
+    @Override
     protected void configure(HttpSecurity http) throws Exception {
         http.csrf().disable();
 
         http.formLogin()
-                .loginPage("/login")
-                .failureUrl("/login?error").permitAll();
+            .loginPage("/login")
+            .failureUrl("/login?error").permitAll();
 
         http.httpBasic();
         http.cors();
 
+        HttpSessionRequestCache hrc = new HttpSessionRequestCache();
+        hrc.setCreateSessionAllowed(false);
+        http.requestCache()
+             .requestCache(hrc);
+
         http.sessionManagement()
-                .maximumSessions(singleLoginManager.isTrunedOn() ? 1 : -1)
-                .sessionRegistry(sessionRegistry())
-                .expiredUrl("/login");
+            .maximumSessions(singleLoginManager.isTrunedOn() ? 1 : -1)
+            .sessionRegistry(sessionRegistry())
+            .expiredUrl("/login");
 
         http.logout()
-                .logoutRequestMatcher(new AntPathRequestMatcher("/" + logoutPath))
-                .logoutSuccessUrl("/login?logout").deleteCookies("JSESSIONID")
-                .invalidateHttpSession(true).permitAll();
+            .logoutRequestMatcher(new AntPathRequestMatcher("/" + logoutPath))
+            .logoutSuccessUrl("/login?logout").deleteCookies("JSESSIONID")
+            .invalidateHttpSession(true).permitAll();
 
-
-        ExpressionUrlAuthorizationConfigurer<HttpSecurity>.ExpressionInterceptUrlRegistry urlRegistry = http.authorizeRequests();
-
+        AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizationManagerRequestMatcherRegistry urlRegistry = http.authorizeHttpRequests();
 
         // if guests are not allowed FH Application Framework is not accessed without authentication (but still public html, thymeleaf templates are allowed)
         if (!guestsAllowed) {
@@ -134,7 +163,9 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Bean
     public SecurityFilter customSecurityFilter() {
         SecurityFilter sf = new SecurityFilter();
-        sf.setAuthenticationFailureHandler(new SimpleUrlAuthenticationFailureHandler("/login?error"));
+        SimpleUrlAuthenticationFailureHandler si = new SimpleUrlAuthenticationFailureHandler("/login?error");
+        si.setAllowSessionCreation(false);
+        sf.setAuthenticationFailureHandler(si);
         return sf;
     }
 

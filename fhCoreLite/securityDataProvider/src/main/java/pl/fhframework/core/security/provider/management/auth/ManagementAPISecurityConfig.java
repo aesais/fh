@@ -3,7 +3,9 @@ package pl.fhframework.core.security.provider.management.auth;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configurers.AuthorizeHttpRequestsConfigurer;
 import org.springframework.security.config.annotation.web.configurers.ExpressionUrlAuthorizationConfigurer;
 import org.springframework.stereotype.Component;
 import pl.fhframework.config.FhWebConfiguration;
@@ -14,6 +16,7 @@ import pl.fhframework.core.security.provider.management.api.SecurityManagementAP
 
 import javax.annotation.PostConstruct;
 import java.util.*;
+import java.util.function.Predicate;
 
 /**
  * Configures URL security for management API
@@ -44,15 +47,17 @@ public class ManagementAPISecurityConfig implements FhWebConfiguration {
     @Override
     public void configure(HttpSecurity http) {
         try {
-            ExpressionUrlAuthorizationConfigurer<HttpSecurity>.AuthorizedUrl urls = http.authorizeRequests().antMatchers(
-                            ManagementAPIController.MANAGEMENT_API_URI + "/**",
-                            SecurityManagementAPIController.SECURITY_MANAGEMENT_API_URI + "/**");
+            String[] matchers={ManagementAPIController.MANAGEMENT_API_URI + "/**",
+                              SecurityManagementAPIController.SECURITY_MANAGEMENT_API_URI + "/**"};
             if (authorizationEnabled) {
                 FhLogger.info(this.getClass(), "ManagementAPI secured with X.509 certificates");
-                urls.hasAuthority(X509CertificateUserDetails.CERTIFICATE_AUTHENTICATED_USER_AUTHORITY);
+                http.authorizeHttpRequests(
+                      authorize -> authorize.mvcMatchers(matchers)
+                                            .hasAuthority(X509CertificateUserDetails.CERTIFICATE_AUTHENTICATED_USER_AUTHORITY));
             } else {
                 FhLogger.error("ManagementAPI NOT SECURED");
-                urls.permitAll();
+                http.authorizeHttpRequests(
+                      authorize -> authorize.mvcMatchers(matchers).permitAll());
             }
         } catch (Exception e) {
             throw new RuntimeException(e);

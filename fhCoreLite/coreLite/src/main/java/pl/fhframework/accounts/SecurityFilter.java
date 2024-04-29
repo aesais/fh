@@ -3,8 +3,11 @@ package pl.fhframework.accounts;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.session.SessionAuthenticationException;
+import org.springframework.security.web.firewall.StrictHttpFirewall;
+import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
@@ -31,8 +34,7 @@ public class SecurityFilter extends UsernamePasswordAuthenticationFilter {
 
             long startTime = System.currentTimeMillis();
 
-            ((HttpServletRequest) req).getSession().setAttribute("baseUrl", getBaseUrl(
-                    (HttpServletRequest) req));
+            req.setAttribute("baseUrl", getBaseUrl((HttpServletRequest) req));
             if (singleLoginLockManager.isLoggedIn(obtainUsername((HttpServletRequest) req))) {
                 unsuccessfulAuthentication((HttpServletRequest) req, (HttpServletResponse) res, new SessionAuthenticationException("Użytkownik jest już zalogowany"));
             }
