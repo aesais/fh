@@ -17,9 +17,8 @@ public class DefaultApplicationWebConfig implements FhWebConfiguration {
     public void configure(HttpSecurity http) {
         try {
             // register management url access
-            http
-                .authorizeRequests()
-                .antMatchers("/management/**").access("isAuthenticated() and hasIpAddress('127.0.0.1')");
+            http.authorizeHttpRequests(
+                  authorize -> authorize.mvcMatchers("/management/**").hasAuthority("IP_127_0_0_1"));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

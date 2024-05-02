@@ -72,7 +72,7 @@ public class HttpMappings {
         return bundleMessageSource;
     }
 
-    @RequestMapping(value = "/login", method = RequestMethod.GET)
+    @RequestMapping(value = "/login", method = {RequestMethod.GET, RequestMethod.POST})
     public ModelAndView login(
             @RequestParam(value = "error", required = false) String error,
             @RequestParam(value = "logout", required = false) String logout,
@@ -184,8 +184,7 @@ public class HttpMappings {
     //customize the error message
     private String getErrorMessage(HttpServletRequest request, HttpServletResponse response, String key) {
 
-        Exception exception =
-                (Exception) request.getSession().getAttribute(key);
+        Exception exception = (Exception) request.getAttribute(key);
 
         String error = "";
         Locale locale = getLocale(request, response);
