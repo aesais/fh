@@ -76,6 +76,27 @@ public class UserAccount extends BasePersistentObject implements IUserAccount {
         }
     }
 
+    @Override
+    @Transient
+    public String getOffice() {
+        return null;
+    }
+
+    @Override
+    public void setOffice(String office) {
+
+    }
+
+    @Override
+    @Transient
+    public List<String> getAltOffices() {
+        return null;
+    }
+
+    @Override
+    public void setAltOffices(List<String> altOffices) {
+    }
+
     /**
      * Returns a view of role instances associated with user account. Returned list instance is unmodifiable.
      *

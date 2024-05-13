@@ -46,6 +46,9 @@ public class SystemInfoUC extends FhdpBaseUC implements ISystemUseCase {
         model.setUser(systemUser == null ? "[Gość]" : systemUser.getFullName());
         model.setVersion("unknown".equals(applicationInfo.getBranchName().toLowerCase())?"Trunk":applicationInfo.getBranchName());
         model.setSubversion(applicationInfo.getBuildNumber() + "; " + applicationInfo.getBuildTimestamp());
+        if (systemUser.getOffice() != null){
+            model.setOffice(systemUser.getOffice());
+        }
 
         if(ipVisibility) {
             model.setServerIP(String.format("IP: %s", HostNameUtil.host()));
