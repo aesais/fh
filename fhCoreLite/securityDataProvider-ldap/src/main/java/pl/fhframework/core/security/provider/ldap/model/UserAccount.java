@@ -5,6 +5,7 @@ import lombok.Setter;
 import pl.fhframework.core.security.model.IRoleInstance;
 import pl.fhframework.core.security.model.IUserAccount;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -25,6 +26,8 @@ public class UserAccount implements IUserAccount {
     private Boolean blocked = Boolean.FALSE;
     private String blockingReason;
     private Boolean deleted = Boolean.FALSE;
+    private String office;
+    private List<String> altOffices = new ArrayList<>();
 
     @Override
     public List<IRoleInstance> getRoles() {

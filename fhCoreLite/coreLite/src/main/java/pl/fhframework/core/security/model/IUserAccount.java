@@ -53,6 +53,12 @@ public interface IUserAccount {
     /** Sets whether a user account is deleted */
     void setDeleted(Boolean deleted);
 
+    String getOffice();
+    void setOffice(String office);
+
+    List<String> getAltOffices();
+    void setAltOffices(List<String> altOffices);
+
     /** Gets collection of roles associated with a user account */
     List<IRoleInstance> getRoles();
     /** Adds new role instance */

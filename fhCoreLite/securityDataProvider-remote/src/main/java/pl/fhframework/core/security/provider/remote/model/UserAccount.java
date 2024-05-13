@@ -25,6 +25,8 @@ public class UserAccount implements IUserAccount {
     private Boolean blocked = Boolean.FALSE;
     private String blockingReason;
     private Boolean deleted = Boolean.FALSE;
+    private String office;
+    private List<String> altOffices = new ArrayList<>();
     private List<IRoleInstance> roleInstances = new ArrayList<>();
 
     @Override

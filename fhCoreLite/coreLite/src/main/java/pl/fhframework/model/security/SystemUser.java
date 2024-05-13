@@ -16,6 +16,8 @@ public class SystemUser {
     private String name;
     private String surname;
     private Principal principal;
+    private String office;
+    private List<String> altOffices = new ArrayList<>();
     protected List<IBusinessRole> businessRoles;
     private boolean guest;
 
@@ -72,4 +74,15 @@ public class SystemUser {
         return fullName;
     }
 
+    public void setOffice(String office) {
+        this.office = office;
+    }
+
+    public void setAltOffices(List<String> altOffices) {
+        if (altOffices == null){
+            this.altOffices = new ArrayList<>();
+            return;
+        }
+        this.altOffices = altOffices;
+    }
 }

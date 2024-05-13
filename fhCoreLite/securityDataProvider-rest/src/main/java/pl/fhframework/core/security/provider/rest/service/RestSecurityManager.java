@@ -14,6 +14,7 @@ import pl.fhframework.model.security.SystemUser;
 
 import java.lang.reflect.Field;
 import java.security.Principal;
+import java.util.List;
 import java.util.Set;
 
 @Service
@@ -29,16 +30,22 @@ public class RestSecurityManager extends CoreSecurityManager {
         String firstName = null;
         String lastName = null;
         String userLogin = null;
+        String office = null;
+        List<String> altOffices = null;
         if (principal != null) {
             IUserAccount userAccount = securityDataProvider.findUserAccountByLogin(principal.getName());
             if (userAccount != null) {
                 firstName = userAccount.getFirstName();
                 lastName = userAccount.getLastName();
                 userLogin = userAccount.getLogin();
+                office = userAccount.getOffice();
+                altOffices = userAccount.getAltOffices();
             }
         }
 
         SystemUser systemUser = new SystemUser(principal, firstName, lastName);
+        systemUser.setOffice(office);
+        systemUser.setAltOffices(altOffices);
 
         // for liferay
         if (!StringUtils.isEmpty(userLogin)) {
