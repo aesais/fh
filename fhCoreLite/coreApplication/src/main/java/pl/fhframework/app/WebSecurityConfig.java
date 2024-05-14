@@ -23,6 +23,7 @@ import org.springframework.security.web.firewall.RequestRejectedException;
 import org.springframework.security.web.firewall.StrictHttpFirewall;
 import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.util.matcher.RequestMatcher;
 import pl.fhframework.accounts.SecurityFilter;
 import pl.fhframework.accounts.SingleLoginLockManager;
 import pl.fhframework.config.FhWebConfiguration;
@@ -111,7 +112,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
             .expiredUrl("/login");
 
         http.logout()
-            .logoutRequestMatcher(new AntPathRequestMatcher("/" + logoutPath))
+            .logoutRequestMatcher(new LogoutRequestMatcher("autologout", "logout"))
             .logoutSuccessUrl("/login?logout").deleteCookies("JSESSIONID")
             .invalidateHttpSession(true).permitAll();
 
@@ -191,5 +192,20 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     public AuthenticationManager authenticationManagerBean() throws Exception {
         return super.authenticationManagerBean();
+    }
+
+    public static class LogoutRequestMatcher implements RequestMatcher {
+
+        private final AntPathRequestMatcher pathMatcherLogout;
+        private final AntPathRequestMatcher pathMatcherAutoLogout;
+
+        public LogoutRequestMatcher(String autologout, String logout){
+            this.pathMatcherLogout = new AntPathRequestMatcher("/" + logout);
+            this.pathMatcherAutoLogout = new AntPathRequestMatcher("/" + autologout);
+        }
+        @Override
+        public boolean matches(HttpServletRequest request) {
+            return pathMatcherAutoLogout.matches(request) || pathMatcherLogout.matches(request);
+        }
     }
 }
