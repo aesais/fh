@@ -137,6 +137,15 @@ public class WebSocketFormsHandler extends FormsHandler {
             }
         }
     }
+    private void logoutOtherBrowserWindows(WebSocketSession boundSession, WebSocketSession currentWss) {
+        if (boundSession!=null && boundSession.isOpen() && boundSession != currentWss) {
+            try {
+                sendInfoWithBlockedSession(boundSession, "SYSTEM");
+            } catch (Exception e) {
+                // ignore
+            }
+        }
+    }
 
     private void transportError(WebSocketSession session, Throwable exception) throws IOException {
         serviceTransportError(exception);
@@ -239,25 +248,18 @@ public class WebSocketFormsHandler extends FormsHandler {
                     userName = session.getPrincipal().getName();
                 }
 
-                WebSocketSession wsSessionToBlock = null;
                 // if it's the same http session id, then take over the session
                 if (loginLockManager.isLoggedInWithTheSameSession(userName, sessionId)) {
-                    wsSessionToBlock = userNames.get(userName);
+                    logoutOtherBrowserWindows(userNames.get(userName), session);
                     userNames.put(userName, session);
                     connect(session);
-                }
-                // if user is logged in with different session id, then block current session
-                else if (loginLockManager.isLoggedInWithDifferentSession(userName, sessionId)) {
-                    wsSessionToBlock = session;
-                }
-                if (wsSessionToBlock != null) {
-                    wsSessionToBlock.getAttributes().put(WebSocketSessionManager.BLOCKED_WS_KEY, true);
-                    sendInfoWithBlockedSession(wsSessionToBlock, "-1");
-                }
-                if (!loginLockManager.isLoggedIn(userName)) {
+                } else {
+                    // if user is logged in with different session id, then block other session
+                    //logoutOtherBrowserWindows(userNames.get(userName), session);
+                    //loginLockManager.releaseUserLogin(userName, WebSocketSessionManager.getHttpSession(session).getId());
                     userNames.put(userName, session);
                     connect(session);
-                    loginLockManager.assignUserLogin(userName, WebSocketSessionManager.getHttpSession(session).getId());
+                    loginLockManager.assignUserLogin(userName, sessionId);
                 }
             } catch (Throwable e) {
                 FhLogger.errorSuppressed("Error during connection init", e);
