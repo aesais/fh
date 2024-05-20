@@ -22,8 +22,8 @@ import java.io.IOException;
  */
 @Slf4j
 public class SecurityFilter extends UsernamePasswordAuthenticationFilter {
-    @Autowired
-    SingleLoginLockManager singleLoginLockManager;
+//    @Autowired
+//    SingleLoginLockManager singleLoginLockManager;
 
     @Override
     public void doFilter(final ServletRequest req, final ServletResponse res, final FilterChain chain)
@@ -35,13 +35,16 @@ public class SecurityFilter extends UsernamePasswordAuthenticationFilter {
             long startTime = System.currentTimeMillis();
 
             req.setAttribute("baseUrl", getBaseUrl((HttpServletRequest) req));
-            if (singleLoginLockManager.isLoggedIn(obtainUsername((HttpServletRequest) req))) {
-                unsuccessfulAuthentication((HttpServletRequest) req, (HttpServletResponse) res, new SessionAuthenticationException("Użytkownik jest już zalogowany"));
-            }
-            else {
-                super.doFilter(req, res, chain);
-            }
+            // below commented and replaced by just doFilter because is caused login of user in case
+            // when user is already logged - is such case WebSocketFormsHandler should call logoutOtherBrowserWindows
+//            if (singleLoginLockManager.isLoggedIn(obtainUsername((HttpServletRequest) req))) {
+//                unsuccessfulAuthentication((HttpServletRequest) req, (HttpServletResponse) res, new SessionAuthenticationException("Użytkownik jest już zalogowany"));
+//            }
+//            else {
+//                super.doFilter(req, res, chain);
+//            }
 
+            super.doFilter(req, res, chain);
             // logging authenticate time
             long stopTime = System.currentTimeMillis();
 
