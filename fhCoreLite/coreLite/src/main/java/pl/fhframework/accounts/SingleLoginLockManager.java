@@ -30,8 +30,8 @@ public class SingleLoginLockManager {
     public void assignUserLogin(String userName, String sessionId) {
         if (isTrunedOn()) {
             synchronized (WebSocketSessionManager.getHttpSession()) {
-                if (!containsKey(userName)) {
-                    singleLoginLockCache.update(userName, sessionId);
+                if (singleLoginLockCache.get(userName+"_"+sessionId) == null) {
+                    singleLoginLockCache.update(userName+"_"+sessionId, sessionId);
                     return;
                 }
                 throw new RuntimeException("User is already logged");
@@ -39,33 +39,31 @@ public class SingleLoginLockManager {
         }
     }
 
-    private boolean containsKey(String userName) {
-        return singleLoginLockCache.get(userName) != null;
-    }
-
+    /**
+     * On giver serwer user can be logged only one time (TODO: check wnen multiple logins enabled).
+     * Dlatego parametr sessionId - był ale przestałem go używać - to
+     * teraz nawet jest zgodne z kodem assignUserLogin
+     * @param userName
+     * @param sessionId
+     * @return
+     */
     public boolean releaseUserLogin(String userName, String sessionId) {
         if (isTrunedOn()) {
             synchronized (WebSocketSessionManager.getHttpSession()) {
-                if (sessionId.equals(singleLoginLockCache.get(userName))) {
-                    singleLoginLockCache.update(userName, null);
-                    return true;
-                }
+                singleLoginLockCache.update(userName+"_"+sessionId, null);
+                return true;
             }
         }
         return false;
     }
 
-    public boolean isLoggedIn(String userName) {
-        return containsKey(userName);
-    }
-
     public boolean isLoggedInWithDifferentSession(String userName, String sessionId) {
-        String currentSessionId = singleLoginLockCache.get(userName);
+        String currentSessionId = singleLoginLockCache.get(userName+"_"+sessionId);
         return currentSessionId != null && !Objects.equals(currentSessionId, sessionId);
     }
 
     public boolean isLoggedInWithTheSameSession(String userName, String sessionId) {
-        return sessionId.equals(singleLoginLockCache.get(userName));
+        return sessionId.equals(singleLoginLockCache.get(userName+"_"+sessionId));
     }
 
     @Scheduled(cron = "*/3 * * * * *")
