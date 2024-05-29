@@ -10,6 +10,7 @@ import pl.fhframework.subsystems.Subsystem;
 import pl.fhframework.trees.*;
 
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -42,16 +43,19 @@ public class MenuManager {
 
     protected List<MenuElement> createSubMenuElementsList(List<ITreeElement> elements) {
         List<MenuElement> menuElements = new LinkedList<>();
+        elements.sort(Comparator.comparingInt(ITreeElement::getPosition));
         for (ITreeElement element : elements) {
             MenuElement newElement;
             if (element instanceof UseCasesGroup) {
                 newElement = new MenuElement(translateLabel(element.getLabel()), element.getLabel(), element.getRef(), element.getIcon(), true, element.getActivityToken(), null);
                 newElement.setChildren(createSubMenuElementsList(element.getSubelements()));
+
             } else {
                 newElement = new MenuElement(translateLabel(element.getLabel()), element.getLabel(), element.getRef(), element.getIcon(), false, element.getActivityToken(), ((UseCaseInformation) element).getInputFactory());
             }
             menuElements.add(newElement);
         }
+
         return menuElements;
     }
 
