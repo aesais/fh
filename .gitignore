@@ -38,3 +38,4 @@ yarn-error.log*
 **/.settings
 /fhdp/fhdp-example/webpack_size.txt
 /fhdp/fhdp-example/webpack_stats.json
+/packages/components/fhdp-controls/cached-package.json
