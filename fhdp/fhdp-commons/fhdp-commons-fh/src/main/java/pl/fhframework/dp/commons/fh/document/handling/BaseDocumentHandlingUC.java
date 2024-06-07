@@ -7,9 +7,11 @@ import lombok.SneakyThrows;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
+import pl.fhframework.aspects.ApplicationContextHolder;
 import pl.fhframework.dp.commons.fh.helper.AESCypher;
 import pl.fhframework.dp.commons.fh.outline.*;
 
+import pl.fhframework.dp.commons.fh.services.PinupService;
 import pl.fhframework.dp.commons.fh.uc.FhdpBaseUC;
 import pl.fhframework.dp.commons.fh.uc.IGenericListOutputCallback;
 import pl.fhframework.dp.commons.fh.uc.header.AppSiderService;
@@ -296,19 +298,9 @@ public  abstract class BaseDocumentHandlingUC<MODEL extends BaseDocumentHandling
     }
 
     @Action(validate = false)
-    public void openPinup() throws InvalidAlgorithmParameterException, NoSuchPaddingException,
-            IllegalBlockSizeException, NoSuchAlgorithmException, InvalidKeySpecException,
-            BadPaddingException, InvalidKeyException {
-        String id = AESCypher.encrypt(model.getPinupCypherPassword(), model.getDocId().toString());
-        String url = model.getPinupUrl()
-            + "?id=" + id
-            + "&lng=" + getUserSession().getLanguage().toLanguageTag();
-
-        String theme = FhUtils.getCookieByKey("theme");
-        if(null != theme) {
-            url += "&theme=" + theme;
-        }
-        eventRegistry.fireCustomActionEvent("openPinup", url);
+    public void openPinup() throws Exception {
+        PinupService ps = ApplicationContextHolder.getApplicationContext().getBean(PinupService.class);
+        ps.openPinup(model.getDocId());
     }
 
     protected void initDocumentHandlingForm() {
