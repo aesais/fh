@@ -3,6 +3,7 @@ package pl.fhframework;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -31,6 +32,7 @@ import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Service
+@Profile("app")
 public class WebSocketFormsHandler extends FormsHandler {
 
     @Autowired

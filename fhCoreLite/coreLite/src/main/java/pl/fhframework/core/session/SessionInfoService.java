@@ -3,6 +3,7 @@ package pl.fhframework.core.session;
 import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Profile;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import pl.fhframework.core.security.model.SessionInfo;
@@ -15,6 +16,7 @@ import java.util.stream.Collectors;
  * @author Tomasz Kozlowski (created on 09.01.2020)
  */
 @Service
+@Profile("app")
 public class SessionInfoService {
 
     @Setter

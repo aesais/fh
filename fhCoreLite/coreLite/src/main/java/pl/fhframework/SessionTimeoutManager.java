@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.annotation.Profile;
 import org.springframework.context.annotation.Scope;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -19,6 +20,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @Component
 @ConditionalOnProperty(value = "fh.web.inactive_session_auto_logout")
 @Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)
+@Profile("app")
 public class SessionTimeoutManager {
     @Value("${fh.web.inactive_session_auto_logout:false}")
     private boolean active;

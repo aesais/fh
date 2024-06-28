@@ -5,6 +5,7 @@ import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.Profile;
 import org.springframework.context.annotation.Scope;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
@@ -34,6 +35,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @Setter
 @org.springframework.stereotype.Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+@Profile("app")
 public class UserSession extends Session {
 
     private static final int ERROR_INFORMATION_LIMIT = 10;

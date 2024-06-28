@@ -1,6 +1,7 @@
 package pl.fhframework.core.session;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Profile;
 import org.springframework.security.core.session.SessionInformation;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.stereotype.Service;
@@ -20,6 +21,7 @@ import java.util.stream.Collectors;
  * Service used to logout user
  */
 @Service
+@Profile("app")
 public class ForceLogoutService {
 
     @Autowired

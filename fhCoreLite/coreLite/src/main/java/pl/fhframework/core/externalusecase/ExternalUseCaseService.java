@@ -1,6 +1,7 @@
 package pl.fhframework.core.externalusecase;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -12,6 +13,7 @@ import pl.fhframework.ExternalUseCaseRegistry;
  */
 @RestController
 @RequiredArgsConstructor
+@Profile("app")
 public class ExternalUseCaseService {
 
     public static final String EXTERNAL_INVOKE_COMPLETED_PATH = "/externalInvokeCompleted";
