@@ -20,23 +20,12 @@
     <dependencies>
         <dependency>
             <groupId>pl.fhframework</groupId>
-            <artifactId>fh-boot-bom</artifactId>
-            <version>${project.version}</version>
-            <type>pom</type>
-        </dependency>
-        <dependency>
-            <groupId>pl.fhframework</groupId>
             <artifactId>coreLite</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>pl.fhframework</groupId>
             <artifactId>basicControls</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>pl.fhframework.persistence</groupId>
-            <artifactId>fhPersistenceLite</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>

@@ -9,7 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 import pl.fhframework.core.security.model.IBusinessRole;
 import pl.fhframework.core.security.model.IPermission;
 import pl.fhframework.core.security.provider.repository.PermissionRepository;
-import pl.fhframework.fhPersistence.anotation.WithoutConversation;
+//import pl.fhframework.fhPersistence.anotation.WithoutConversation;
 
 import java.util.Collection;
 import java.util.List;
@@ -54,7 +54,7 @@ public class PermissionProvider {
     }
 
     @Transactional(readOnly = true)
-    @WithoutConversation
+//    @WithoutConversation
     public List<IPermission> findPermissionsForRole(IBusinessRole businessRole) {
         return permissionRepository.findForBusinessRole(businessRole.getRoleName());
     }

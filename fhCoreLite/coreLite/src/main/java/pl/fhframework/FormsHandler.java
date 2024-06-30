@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import org.hibernate.LazyInitializationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
@@ -34,6 +33,7 @@ import pl.fhframework.model.forms.Timer;
 import pl.fhframework.subsystems.SubsystemManager;
 
 import javax.annotation.PostConstruct;
+import javax.persistence.PersistenceException;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
@@ -489,7 +489,7 @@ public abstract class FormsHandler {
             // Step 2
             try {
                 finalizeEventProcessing(context.getUserSession());
-            } catch (LazyInitializationException lie) {
+            } catch (PersistenceException lie) {
                 FhLogger.error(lie);
             }
         }

@@ -7,7 +7,7 @@ import pl.fhframework.annotations.Action;
 import pl.fhframework.core.uc.UseCase;
 import pl.fhframework.fhPersistence.anotation.Approve;
 import pl.fhframework.fhPersistence.anotation.Cancel;
-import pl.fhframework.fhPersistence.services.ChangesService;
+//import pl.fhframework.fhPersistence.services.ChangesService;
 import pl.fhframework.model.forms.Form;
 
 /**
@@ -28,8 +28,8 @@ public abstract class GenericBaseListUC<LIST, PARAMS, RESULT> extends FhdpBaseUC
     @Getter
     protected Form form;
 
-    @Autowired
-    protected ChangesService changesService;
+    //@Autowired
+    //protected ChangesService changesService;
 
 
     protected void init() {
@@ -112,7 +112,7 @@ public abstract class GenericBaseListUC<LIST, PARAMS, RESULT> extends FhdpBaseUC
 
     @Action("search")
     public void search() {
-        changesService.clearContext();
+        //changesService.clearContext();
         readData();
     }
 

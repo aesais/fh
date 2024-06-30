@@ -6,7 +6,7 @@ import pl.fhframework.core.security.IBusinessRoleLoader;
 import pl.fhframework.core.security.ISecurityDataProvider;
 import pl.fhframework.core.security.model.IBusinessRole;
 import pl.fhframework.core.security.model.IPermission;
-import pl.fhframework.fhPersistence.anotation.WithoutConversation;
+//import pl.fhframework.fhPersistence.anotation.WithoutConversation;
 
 import java.util.Collection;
 
@@ -22,31 +22,31 @@ public class BusinessRoleLoader implements IBusinessRoleLoader {
     private ISecurityDataProvider securityDataProvider;
 
     @Override
-    @WithoutConversation
+//    @WithoutConversation
     public Collection<IBusinessRole> getBusinessRolesForUser(String userName) {
         return securityDataProvider.findBusinessRolesForUser(userName);
     }
 
     @Override
-    @WithoutConversation
+//    @WithoutConversation
     public IBusinessRole getBusinessRoleByName(String roleName) {
         return securityDataProvider.findBusinessRoleByName(roleName);
     }
 
     @Override
-    @WithoutConversation
+//    @WithoutConversation
     public Collection<IBusinessRole> getBusinessRolesForFunction(String moduleUUID, String systemFunction) {
         return securityDataProvider.findBusinessRolesForFunction(moduleUUID, systemFunction);
     }
 
     @Override
-    @WithoutConversation
+//    @WithoutConversation
     public Collection<IPermission> getPermissionsForRole(IBusinessRole businessRole) {
         return securityDataProvider.findPermissionsForRole(businessRole);
     }
 
     @Override
-    @WithoutConversation
+//    @WithoutConversation
     public IBusinessRole createSimpleBusinessRoleInstance(String roleName) {
         return securityDataProvider.createSimpleBusinessRoleInstance(roleName);
     }
