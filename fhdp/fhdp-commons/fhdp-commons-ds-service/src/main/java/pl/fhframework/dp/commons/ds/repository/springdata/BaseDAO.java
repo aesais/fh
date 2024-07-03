@@ -24,10 +24,10 @@ import static org.springframework.data.mongodb.core.query.Criteria.where;
 
 
 public abstract class BaseDAO<T> {
-	@Autowired
+	@Autowired(required = false)
     protected MongoClient mongoClient;
     
-	@Autowired
+	@Autowired(required = false)
     protected MongoTemplate mongoTemplate;
 
     

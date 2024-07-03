@@ -2,6 +2,7 @@ package pl.fhframework.dp.commons.ds.repository.springdata;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Profile;
 import org.springframework.data.mongodb.core.FindAndModifyOptions;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -23,6 +24,7 @@ import static org.springframework.data.mongodb.core.query.Query.query;
 
 
 @Component
+@Profile("withMongo")
 public class DocumentDAO extends BaseDAO<RepositoryDocument> {
 
 	@Value("${drs.document.collection.name:fhdp_document}")

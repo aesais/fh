@@ -2,6 +2,7 @@ package pl.fhframework.dp.commons.ds.repository.services;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Profile;
 import org.springframework.data.mongodb.core.FindAndModifyOptions;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -14,6 +15,7 @@ import pl.fhframework.dp.transport.service.IMaxIdService;
 
 @Service
 @Slf4j
+@Profile("withMongo")
 public class MaxIdService implements IMaxIdService {
 
     @Autowired
