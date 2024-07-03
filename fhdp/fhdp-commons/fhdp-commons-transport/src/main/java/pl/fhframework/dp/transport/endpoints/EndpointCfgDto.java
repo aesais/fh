@@ -41,6 +41,8 @@ public class EndpointCfgDto implements IEndpointCfg, IPersistentObject<String> {
     private Integer proxyPort;
     private String proxyUser;
     private String proxyPassword;
+    private String bindingId;
+    private Boolean trustAllCertificates;
 	private Boolean checkOk;
 	private String checkDescription;
     private Boolean autoCheck;
