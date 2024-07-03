@@ -53,6 +53,9 @@ public class WebSocketFormsHandler extends FormsHandler {
     @Autowired
     private WebSocketConfiguration webSocketConfiguration;
 
+    @Autowired
+    private Optional<ISessionClusterCoordinator> sessionClusterCoordinator;
+
     private final static boolean FORBID_MULTI_SEND = false;//TODO: We can change it, but in case of activation of non-WebSocket-based connection we need to change the protocol on JSON tag so you could put several commands in one response.
 
     private final static long UNRESPONSIVE_WS_MILLIS = 15000;
@@ -89,6 +92,7 @@ public class WebSocketFormsHandler extends FormsHandler {
     public void connect(WebSocketSession session) {
         UserSession boundSession;
         FhLogger.info(this.getClass(), "Connected: " + this.getConnectionId());
+
         if (WebSocketSessionManager.hasUserSession()) {
             boundSession = SessionManager.getUserSession();
             logoutOtherBrowserWindows(boundSession, session);
@@ -111,7 +115,6 @@ public class WebSocketFormsHandler extends FormsHandler {
                 boundSession = applicationContext.getBean(UserSession.class, systemUser, createDescription(session));//new UserSession(this, systemUser, description);
                 boundSession.setHttpSession(WebSocketSessionManager.getHttpSession());
                 WebSocketSessionManager.setUserSession(boundSession);
-                wssRepository.onConnectionEstabilished(boundSession, session);
                 boundSession.setException(e);
             } finally {
                 if (session.getPrincipal() != null) {
@@ -120,6 +123,9 @@ public class WebSocketFormsHandler extends FormsHandler {
             }
         }
         wssRepository.onConnectionEstabilished(boundSession, session);
+        if (sessionClusterCoordinator.isPresent()){
+            sessionClusterCoordinator.get().onConnect(boundSession);
+        }
     }
 
     private void updateSessionAttributes(UserSession userSession) {
