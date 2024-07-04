@@ -43,6 +43,18 @@ public class ForceLogoutService {
     public boolean forceLogout(String sessionConversationUniqueId, ForcedLogoutEvent.Reason reason) {
         return forceLogout(findUserSessionByConversationId(sessionConversationUniqueId), reason);
     }
+    public boolean forceLogoutSessionId(String sessionId, ForcedLogoutEvent.Reason reason) {
+        return forceLogout(findUserSessionById(sessionId), reason);
+    }
+
+    private UserSession findUserSessionById(String sessionId) {
+        for (UserSession userSession : userSessionRepository.getUserSessions().values()) {
+            if (userSession.getHttpSession().getId().equals(sessionId)) {
+                return userSession;
+            }
+        }
+        return null;
+    }
 
     public boolean forceLogout(UserSession userSession, ForcedLogoutEvent.Reason reason) {
         if (userSession == null) {

@@ -2,6 +2,7 @@ package pl.fhframework.app;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
@@ -21,10 +22,10 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.security.web.firewall.FirewalledRequest;
 import org.springframework.security.web.firewall.HttpFirewall;
 import org.springframework.security.web.firewall.RequestRejectedException;
-import org.springframework.security.web.firewall.StrictHttpFirewall;
 import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
+import pl.fhframework.ISessionClusterCoordinator;
 import pl.fhframework.accounts.SecurityFilter;
 import pl.fhframework.accounts.SingleLoginLockManager;
 import pl.fhframework.config.FhWebConfiguration;
@@ -36,6 +37,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -61,6 +63,9 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Value("${server.logout.path:logout}")
     private String logoutPath;
 
+    @Value("${fh.login.maxPerUser:-1}")
+    private int maxPerUser;
+
     private SecurityProviderInitializer securityProviderInitializer;
 
     @Autowired(required = false)
@@ -68,6 +73,9 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Autowired
     SingleLoginLockManager singleLoginManager;
+
+    @Autowired
+    private Optional<ISessionClusterCoordinator> sessionClusterCoordinator;
 
     @Autowired
     public void setSecurityProviderInitializer(SecurityProviderInitializer securityProviderInitializer) {
@@ -108,8 +116,14 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         http.requestCache()
              .requestCache(hrc);
 
+        int maxSessions = singleLoginManager.isTrunedOn() ? 1 : maxPerUser;
+
+        if (sessionClusterCoordinator.isPresent()) {
+            sessionClusterCoordinator.get().loginCountConfigure(http, sessionRegistry(), maxSessions);
+        }
+
         http.sessionManagement()
-            .maximumSessions(singleLoginManager.isTrunedOn() ? 1 : -1)
+            .maximumSessions(maxSessions)
             .sessionRegistry(sessionRegistry())
             .expiredUrl("/login");
 

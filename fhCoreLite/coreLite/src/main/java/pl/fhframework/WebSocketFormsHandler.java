@@ -3,6 +3,7 @@ package pl.fhframework;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
@@ -54,6 +55,7 @@ public class WebSocketFormsHandler extends FormsHandler {
     private WebSocketConfiguration webSocketConfiguration;
 
     @Autowired
+    @Lazy
     private Optional<ISessionClusterCoordinator> sessionClusterCoordinator;
 
     private final static boolean FORBID_MULTI_SEND = false;//TODO: We can change it, but in case of activation of non-WebSocket-based connection we need to change the protocol on JSON tag so you could put several commands in one response.
