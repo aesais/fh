@@ -12,6 +12,9 @@ import org.springframework.security.authentication.AccountExpiredException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.LockedException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.security.web.authentication.session.SessionAuthenticationException;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -165,8 +168,14 @@ public class HttpMappings {
 
     @RequestMapping(value = "/autologout", method = RequestMethod.GET)
     public ModelAndView timeout(@RequestParam(value = "reason", required = false) String reason,
-                                HttpServletRequest request) {
+                                HttpServletRequest request, HttpServletResponse response) {
         ModelAndView model = new ModelAndView();
+
+
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null){
+            new SecurityContextLogoutHandler().logout(request, response, auth);
+        }
 
         // todo: better condition for custom logout url
         if (!StringUtils.isNullOrEmpty(logoutPath) && !Objects.equals("logout", logoutPath)) {

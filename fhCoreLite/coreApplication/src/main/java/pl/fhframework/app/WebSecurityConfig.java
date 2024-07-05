@@ -128,7 +128,9 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
             .expiredUrl("/login");
 
         http.logout()
-            .logoutRequestMatcher(new LogoutRequestMatcher("autologout", "logout"))
+            // logoutRequestMatcher turned off because logging-out functionality for /autologout path was moved to
+            // HttpMappings to keep the logout reason
+            //.logoutRequestMatcher(new LogoutRequestMatcher("autologout", "logout"))
             .logoutSuccessUrl("/login?logout").deleteCookies("JSESSIONID")
             .invalidateHttpSession(true).permitAll();
 
