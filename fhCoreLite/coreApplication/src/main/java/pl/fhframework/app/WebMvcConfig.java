@@ -24,7 +24,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
     LocaleChangeInterceptor yourInjectedInterceptor;
 
     /** [/path1/, classpath:/resource1/][/path2/, classpath:/resource2/] to be cached*/
-    @Value("${fh.cachedResourceMappings}")
+    @Value("${fh.cachedResourceMappings:null}")
     private String resourcePairs;
 
     @Override
