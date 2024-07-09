@@ -7,6 +7,7 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Profile;
 import org.springframework.data.mongodb.core.FindAndModifyOptions;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -26,6 +27,7 @@ import pl.fhframework.dp.commons.model.dao.SemaphoreDAO;
  */
 @Slf4j
 @Service
+@Profile("withMongo")
 public class SemaphoreServiceMongo implements ISemaphoreService {
 
     @Autowired

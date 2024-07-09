@@ -3,6 +3,7 @@ package pl.fhframework.core.session;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.Profile;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -34,6 +35,7 @@ import java.util.stream.Collectors;
  * Manager of user context in terms of interrelated web socket session , http session and user session
  */
 @Service
+@Profile("app")
 public class FhSessionService implements IFhSessionService {
     /**
      * Timeout of http session when WS session is interrupted

@@ -125,7 +125,7 @@ class TabContainer extends HTMLFormComponent {
                 this.accessibilityResolve(this.component, 'VIEW');
                 break;
             case 'HIDDEN':
-                if(this.invisible){
+                if (this.invisible) {
                     this.navElement.classList.add('invisible');
                 } else {
                     this.navElement.classList.add('d-none');
@@ -144,18 +144,18 @@ class TabContainer extends HTMLFormComponent {
     activateTab(tabIndex, onchange = true) {
         onchange = onchange != false;
         this.components.forEach((component, index) => {
-            if(index != tabIndex) {
+            if (index != tabIndex) {
                 // component.update({acce})
             }
         })
         if (this.components[tabIndex]) {
-            this.components.forEach((c:HTMLFormComponent, index) => {
-                if(index != tabIndex){
+            this.components.forEach((c: HTMLFormComponent, index) => {
+                if (index != tabIndex) {
                     c.hideAllHints();
                 }
             })
             this.changesQueue.queueValueChange(tabIndex);
-            if (this.onTabChange  && onchange) {
+            if (this.onTabChange && onchange) {
                 this.fireEvent('onTabChange', this.onTabChange);
             }
             (<any>this.components[tabIndex]).activate();
@@ -178,6 +178,22 @@ class TabContainer extends HTMLFormComponent {
         return [
             new AdditionalButton('addDefaultSubcomponent', 'plus', 'Add tab'),
         ];
+    }
+
+    /**
+     * Prevent turning off pointer-events when accesibility is set to VIEW.
+     *
+     * @param node
+     * @param access
+     */
+    public accessibilityResolve(node: HTMLElement, access: string) {
+
+        if (access !== 'EDIT' && access !== "VIEW") {
+            node.classList.add('fc-disabled');
+            node.classList.add('disabled');
+        } else {
+            node.classList.add('fc-editable');
+        }
     }
 }
 

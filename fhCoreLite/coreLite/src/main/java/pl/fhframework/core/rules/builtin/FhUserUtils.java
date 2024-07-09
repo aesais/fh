@@ -1,6 +1,7 @@
 package pl.fhframework.core.rules.builtin;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Profile;
 import pl.fhframework.core.rules.BusinessRule;
 import pl.fhframework.SessionManager;
 import pl.fhframework.core.security.ISecurityDataProvider;
@@ -14,6 +15,7 @@ import java.util.Collections;
  */
 @BusinessRule(categories = {"security", "user"})
 @RequiredArgsConstructor
+@Profile("app")
 public class FhUserUtils {
 
     private final ISecurityDataProvider securityDataProvider;

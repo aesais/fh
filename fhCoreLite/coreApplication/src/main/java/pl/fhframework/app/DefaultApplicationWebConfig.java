@@ -27,7 +27,7 @@ public class DefaultApplicationWebConfig implements FhWebConfiguration {
     @Override
     public List<String> permitedToAllRequestUrls() {
         return Arrays.asList("/public/**", "/FormComponents/**", "/FormsManager.js",
-                "/fhApplication.bundle.css", "/fhApplication.bundle.css.map",
+                "/fhApplication*.bundle.css", "/fhApplication*.bundle.css.map",
                 "/img/**", "/fonts/**", "/login","/gracefulShutdown", "/killInactive",
                 "/externalInvokeCompleted", "/autologout");
     }

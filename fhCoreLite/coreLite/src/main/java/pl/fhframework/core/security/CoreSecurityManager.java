@@ -1,6 +1,7 @@
 package pl.fhframework.core.security;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Profile;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Service;
@@ -18,6 +19,7 @@ import java.util.Set;
 @Service
 @Transactional
 @RequiredArgsConstructor
+@Profile("app")
 public class CoreSecurityManager implements SecurityManager {
 
     protected final ISecurityDataProvider securityDataProvider;

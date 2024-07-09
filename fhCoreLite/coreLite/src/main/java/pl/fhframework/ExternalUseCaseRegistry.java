@@ -2,6 +2,7 @@ package pl.fhframework;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 import org.springframework.web.socket.WebSocketSession;
 import pl.fhframework.core.externalusecase.ExternalUseCase;
@@ -22,6 +23,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 @Service
 @RequiredArgsConstructor
+@Profile("app")
 public class ExternalUseCaseRegistry {
 
     private final WebSocketFormsHandler formsHandler;

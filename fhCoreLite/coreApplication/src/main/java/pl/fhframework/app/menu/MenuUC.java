@@ -1,6 +1,7 @@
 package pl.fhframework.app.menu;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Profile;
 import pl.fhframework.core.i18n.IUseCase18nListener;
 import pl.fhframework.core.uc.IUseCaseCancelEvent;
 import pl.fhframework.core.uc.UseCase;
@@ -16,6 +17,7 @@ import pl.fhframework.menu.MenuManager;
 import java.util.List;
 
 @UseCase
+@Profile("app")
 //@SystemFunction(DemoSystemFunction.DEMO_PANEL_SIDE)
 public class MenuUC implements ISystemUseCase, IUseCase18nListener {
     public static final String  MENU_CONTAINER_ID = "menuForm";

@@ -120,4 +120,7 @@ public interface IEndpointCfg extends IEndpointCfgDefinition {
      */
     public String getProxyPassword();
 
+    String getBindingId();
+
+    Boolean getTrustAllCertificates();
 }

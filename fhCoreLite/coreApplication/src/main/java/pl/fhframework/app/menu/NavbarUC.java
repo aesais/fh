@@ -2,6 +2,7 @@ package pl.fhframework.app.menu;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Profile;
 import org.springframework.core.io.UrlResource;
 import pl.fhframework.ISystemUseCase;
 import pl.fhframework.annotations.Action;
@@ -27,6 +28,7 @@ import java.util.Map;
 import java.util.Objects;
 
 @UseCase
+@Profile("app")
 //@SystemFunction(DemoSystemFunction.DEMO_PANEL_TOP)
 public class NavbarUC implements INavbar, ISystemUseCase, IUseCaseRefreshListener {
     public static final String NAVBAR_CONTAINER_ID = "navbarForm";

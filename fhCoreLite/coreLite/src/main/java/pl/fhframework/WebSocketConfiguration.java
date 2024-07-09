@@ -8,6 +8,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.context.annotation.Profile;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.web.socket.config.annotation.EnableWebSocket;
 import org.springframework.web.socket.config.annotation.WebSocketConfigurer;
@@ -21,6 +22,7 @@ import java.util.List;
 @Configuration
 @EnableWebSocket
 @Lazy
+@Profile("app")
 public class WebSocketConfiguration implements WebSocketConfigurer {
     @Value("${fh.web.socket.origins:}")
     private List<String> websocketOrigins;

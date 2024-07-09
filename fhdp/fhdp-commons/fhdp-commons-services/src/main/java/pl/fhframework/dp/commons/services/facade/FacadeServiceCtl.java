@@ -23,7 +23,9 @@ import pl.fhframework.dp.transport.service.IOperationDtoService;
 import javax.persistence.PersistenceException;
 import java.beans.Introspector;
 import java.sql.SQLException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 @Service
@@ -32,6 +34,8 @@ public class FacadeServiceCtl implements IFacadeService {
 
     @Autowired
     ApplicationContext appContext;
+
+    private static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss.SSS");
 
     @Override
     @Transactional(propagation = Propagation.REQUIRES_NEW)
@@ -380,11 +384,16 @@ public class FacadeServiceCtl implements IFacadeService {
 
     protected void catchException(BaseRestResponse response, Throwable ex) {
         String message;
+        boolean submitErrorsToGUI = "true".equals(System.getProperty("dev.submit.errors.to.gui"));
+        String stamp="";
+        if (!submitErrorsToGUI){
+            stamp = "["+sdf.format(new Date())+"] ";
+        }
         if (ex instanceof IAppMsgException) {
-            message = ex.getMessage();
+            message = stamp+ex.getMessage();
             LoggerFactory.getLogger(this.getClass()).error(message, ex);
         } else if(ex instanceof PersistenceException) {
-            message = "Error saving to DB";
+            message = stamp+"Error saving to DB";
             if(ex.getCause() instanceof ConstraintViolationException) {
                 message += " - Check uniqueness of ";
                 if(ex.getCause().getCause() instanceof SQLException) {
@@ -398,11 +407,14 @@ public class FacadeServiceCtl implements IFacadeService {
             }
             LoggerFactory.getLogger(this.getClass()).error(message, ex);
         } else {
-            message = ExceptionUtils.getStackTrace(ex);
+            message = stamp + ExceptionUtils.getStackTrace(ex);
             LoggerFactory.getLogger(this.getClass()).error(message, ex);
         }
-
-        response.setMessage(message);
+        if (submitErrorsToGUI){
+            response.setMessage(message);
+        } else {
+            response.setMessage(stamp+" error in backend service");
+        }
         response.setValid(false);
     }
 }

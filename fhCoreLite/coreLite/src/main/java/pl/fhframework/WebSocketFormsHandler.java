@@ -3,6 +3,8 @@ package pl.fhframework;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -31,6 +33,7 @@ import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Service
+@Profile("app")
 public class WebSocketFormsHandler extends FormsHandler {
 
     @Autowired
@@ -50,6 +53,10 @@ public class WebSocketFormsHandler extends FormsHandler {
 
     @Autowired
     private WebSocketConfiguration webSocketConfiguration;
+
+    @Autowired
+    @Lazy
+    private Optional<ISessionClusterCoordinator> sessionClusterCoordinator;
 
     private final static boolean FORBID_MULTI_SEND = false;//TODO: We can change it, but in case of activation of non-WebSocket-based connection we need to change the protocol on JSON tag so you could put several commands in one response.
 
@@ -87,6 +94,7 @@ public class WebSocketFormsHandler extends FormsHandler {
     public void connect(WebSocketSession session) {
         UserSession boundSession;
         FhLogger.info(this.getClass(), "Connected: " + this.getConnectionId());
+
         if (WebSocketSessionManager.hasUserSession()) {
             boundSession = SessionManager.getUserSession();
             logoutOtherBrowserWindows(boundSession, session);
@@ -109,7 +117,6 @@ public class WebSocketFormsHandler extends FormsHandler {
                 boundSession = applicationContext.getBean(UserSession.class, systemUser, createDescription(session));//new UserSession(this, systemUser, description);
                 boundSession.setHttpSession(WebSocketSessionManager.getHttpSession());
                 WebSocketSessionManager.setUserSession(boundSession);
-                wssRepository.onConnectionEstabilished(boundSession, session);
                 boundSession.setException(e);
             } finally {
                 if (session.getPrincipal() != null) {
@@ -118,6 +125,9 @@ public class WebSocketFormsHandler extends FormsHandler {
             }
         }
         wssRepository.onConnectionEstabilished(boundSession, session);
+        if (sessionClusterCoordinator.isPresent()){
+            sessionClusterCoordinator.get().onConnect(boundSession);
+        }
     }
 
     private void updateSessionAttributes(UserSession userSession) {

@@ -529,7 +529,9 @@ public class UseCaseContainer implements Serializable {
 
             return (C) Proxy.newProxyInstance(classLoader, interfaces, (proxy, method, args) -> {
                 outputParams = args != null ? args : new Object[0];
-                useCaseConversation.registerOutputParams(useCase, outputParams);
+                if (useCaseConversation != null) {
+                    useCaseConversation.registerOutputParams(useCase, outputParams);
+                }
                 if (!method.getDeclaringClass().equals(Object.class)) {
                     terminateUseCase(this, false);
                 }

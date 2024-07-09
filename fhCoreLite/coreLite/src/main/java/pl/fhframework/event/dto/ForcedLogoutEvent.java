@@ -24,6 +24,8 @@ public class ForcedLogoutEvent extends EventDTO {
 
         LOGOUT_ACCESS("access"),
 
+        LOGOUT_LIMIT("limit"),
+
         LOGOUT_NO_PERMISSION("no_permission");
 
         @Getter
