@@ -3,6 +3,8 @@ import {HTMLFormComponent} from "fh-forms-handler";
 import {AdditionalButton} from "fh-forms-handler";
 import {TabContainer} from "./TabContainer";
 import {Repeater} from "../Repeater";
+import {Table} from "../Table/Table";
+import {TablePaged} from "../Table/TablePaged";
 
 class Tab extends HTMLFormComponent {
     private navElement: any;
@@ -65,6 +67,7 @@ class Tab extends HTMLFormComponent {
         if (this.componentObj.subelements) {
             this.addComponents(this.componentObj.subelements);
         }
+
     };
 
     /**
@@ -89,15 +92,19 @@ class Tab extends HTMLFormComponent {
     };
 
     activate = function () {
+
         if (!this.isRendered) {
             $(this.navElement).find('a').one('shown.bs.tab', function () {
                 while (this.contentWrapper.firstChild) this.contentWrapper.removeChild(this.contentWrapper.firstChild);
-                this.renderSubcomponents();
                 let renderSubcomponents = function (component) {
                     if (!(component instanceof Repeater)) {
                         component.display();
                     }
 
+                    if (component instanceof Table || component instanceof TablePaged) {
+                        // @ts-ignore
+                        component.rows.forEach(renderSubcomponents);
+                    }
                     component.components.forEach(renderSubcomponents);
                 };
 
@@ -108,6 +115,7 @@ class Tab extends HTMLFormComponent {
         }
         $(this.navElement).find('a').tab('show');
     };
+
 
     setAccessibility(accessibility) {
         // Alvays show in design mode.

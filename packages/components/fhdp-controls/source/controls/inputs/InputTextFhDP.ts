@@ -40,7 +40,6 @@ class InputTextFhDP extends HTMLFormComponent {
     public lastValueParser?: (lastValue: string) => string;
 
     constructor(componentObj: any, parent: HTMLFormComponent) {
-        console.log('hideCrossed ', componentObj.hideCrossed );
         if (componentObj.rawValue == undefined) {
             componentObj.rawValue = '';
         }
@@ -48,17 +47,12 @@ class InputTextFhDP extends HTMLFormComponent {
             componentObj.value = '';
         }
 
-
-        console.log('InputTextFhDP obj 2 ' ,componentObj);
-
-
         super(componentObj, parent);
         if (this.componentObj.hideCrossed == undefined) {
             this.hideCrossed = false;
         } else {
             this.hideCrossed = this.componentObj.hideCrossed;
         }
-        console.log('Input group element' , this.inputGroupElement);
 
         this.oldValue = componentObj.rawValue || componentObj.value || '';
         this.lastValue = this.componentObj.lastValue;
@@ -189,6 +183,19 @@ class InputTextFhDP extends HTMLFormComponent {
         this.createCharacterCounter();
     }
 
+
+
+    display() {
+        super.display();
+        if (this.isTextarea && this.textareaAutosize) {
+            //Additional logic to update height after display
+            setTimeout(function () {
+                autosize.update(this.input);
+            }.bind(this), 0)
+        }
+    }
+
+
     protected createCharacterCounter() {
         if(!!this.isCharacterCounter) {
             let counterElement = document.createElement('label');
@@ -245,7 +252,6 @@ class InputTextFhDP extends HTMLFormComponent {
     }
 
     protected createLastValueElement(){
-        console.log('in createLastValueElement ', this.componentObj.lastValue);
         if(this.componentObj.lastValue ){
             let group = document.createElement('div');
             group.classList.add('input-group-append');
@@ -322,7 +328,6 @@ class InputTextFhDP extends HTMLFormComponent {
                 }
                 if (validPos.input != null && validPos.match != null && validPos.match.fn != null) {
                     if (!validPos.input.match(validPos.match.fn)) {
-                        console.log("Rolling back to: " + this.lastValidMaskedValue);
                         this.input.value = this.lastValidMaskedValue;
                     }
                 }
@@ -540,7 +545,6 @@ class InputTextFhDP extends HTMLFormComponent {
         this.valueChanged = true;
         this.oldValue = this.rawValue;
         this.rawValue = this.input.value;
-        console.log('w updateModel');
         let theSameValue = this.isTheSameLastValue();
         if(this.lastValue===undefined && !!this.newValueText) {
             theSameValue = this.rawValue === '';
@@ -626,7 +630,6 @@ class InputTextFhDP extends HTMLFormComponent {
         return 'md-3';
     }
     protected toogleLastValueElement(theSameValue){
-        console.log('w toogleLastValueElement');
         let oldValueElement = this.inputGroupElement.getElementsByClassName('input-old-value');
         if(oldValueElement[0] ) {
             if(theSameValue){

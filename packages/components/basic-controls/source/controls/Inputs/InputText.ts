@@ -144,10 +144,6 @@ class InputText extends HTMLFormComponent {
             // @ts-ignore
             input.classList.add("input-autosize");
             autosize(this.input);
-            //Additional logic to update height after display
-            setTimeout(function () {
-                autosize.update(this.input);
-            }.bind(this), 0)
         }
 
         if (this.fh.isIE()) {
@@ -163,6 +159,16 @@ class InputText extends HTMLFormComponent {
                 }
             });
 
+        }
+    }
+
+    display() {
+        super.display();
+        if (this.isTextarea && this.textareaAutosize) {
+            //Additional logic to update height after display
+            setTimeout(function () {
+                autosize.update(this.input);
+            }.bind(this), 0)
         }
     }
 
@@ -184,7 +190,7 @@ class InputText extends HTMLFormComponent {
                     this.input.value = '';
                     this.updateModel();
                     if (this.onChange) {
-                        this.fireEventWithLock('onChange', this.onChange, event);
+                        this.fireEventWithLock('onChange', this.onChange);
                     }
                     this.input.focus();
                 }
@@ -254,7 +260,6 @@ class InputText extends HTMLFormComponent {
                 }
                 if (validPos.input != null && validPos.match != null && validPos.match.fn != null) {
                     if (!validPos.input.match(validPos.match.fn)) {
-                        console.log("Rolling back to: " + this.lastValidMaskedValue);
                         this.input.value = this.lastValidMaskedValue;
                     }
                 }
@@ -540,22 +545,6 @@ class InputText extends HTMLFormComponent {
 
     public getDefaultWidth(): string {
         return 'md-3';
-    }
-
-    public render() {
-        if (ENV_IS_DEVELOPMENT) {
-            // console.log("InputTextRender", this.id);
-            // if (this.isTextarea && this.textareaAutosize) {
-            //     // @ts-ignore
-            //     setTimeout(function () {
-            //         console.log("InputTextRender", this.id)
-            //         autosize.update(this.input);
-            //     }.bind(this), 0)
-            //
-            // }
-        }
-
-        super.render();
     }
 }
 

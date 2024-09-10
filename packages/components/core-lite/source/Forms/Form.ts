@@ -47,7 +47,6 @@ class Form extends HTMLFormComponent {
         this.state = this.componentObj.state;
         this.headingTypeValue = this.componentObj.headingTypeValue? this.componentObj.headingTypeValue : null;
         this.blockFocusForModal = this.componentObj.blockFocusForModal? this.componentObj.blockFocusForModal : false;
-        // console.log("this.componentObj.blockFocusForModal", this.componentObj.blockFocusForModal)
 
         /* TODO: remove after changing Java */
         if (this.componentObj.modal) {
@@ -135,18 +134,19 @@ class Form extends HTMLFormComponent {
         if (this.formType === 'STANDARD') {
             this.container.innerHTML = '';
         }
+        this.display();
+        this.createComponents();
 
-
-        // function isDescendant(parent, child) {
-        //     var node = child.parentNode;
-        //     while (node != null) {
-        //         if (node == parent) {
-        //             return true;
-        //         }
-        //         node = node.parentNode;
-        //     }
-        //     return false;
-        // }
+        function isDescendant(parent, child) {
+            var node = child.parentNode;
+            while (node != null) {
+                if (node == parent) {
+                    return true;
+                }
+                node = node.parentNode;
+            }
+            return false;
+        }
 
         if (this.formType === 'MODAL' || this.formType === 'MODAL_OVERFLOW') {
             this.htmlElement.dataset.backdrop = 'static';
@@ -155,15 +155,11 @@ class Form extends HTMLFormComponent {
             $(this.htmlElement).modal({show: true, focus: true});
 
             $(this.htmlElement).one('shown.bs.modal', function () {
-                this.display();
-                this.createComponents();
                 while (this.contentWrapper != null && this.contentWrapper.firstChild) this.contentWrapper.removeChild(this.contentWrapper.firstChild);
-
                 this.renderSubcomponents();
-                this.fireAfterInitActions();
                 this.modalDeferred.resolve();
                 this.focusFirstActiveInputElement(true);
-
+                this.fireAfterInitActions();
 
                 /**
                  * WCAG(Srean Reader) Block focus on elements that are outside/under opened modal.
@@ -199,8 +195,6 @@ class Form extends HTMLFormComponent {
                 }.bind(this))
             }
         } else {
-            this.display();
-            this.createComponents();
             this.renderSubcomponents();
             this.focusFirstActiveInputElement();
             this.fireAfterInitActions();
