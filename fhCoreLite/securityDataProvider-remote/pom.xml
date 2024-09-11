@@ -9,7 +9,7 @@
   <parent>
     <groupId>pl.fhframework</groupId>
     <artifactId>fhCoreLite</artifactId>
-    <version>4.10.5.PL.17</version>
+    <version>4.10.5.PL.18</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
   <dependencies>
