@@ -51,7 +51,6 @@ class TabContainer extends HTMLFormComponent {
 
         if (this.componentObj.subelements) {
             this.addComponents(this.componentObj.subelements);
-            this.activateTab(this.activeTabIndex);
         }
     };
 

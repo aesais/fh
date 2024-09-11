@@ -47,7 +47,6 @@ class Form extends HTMLFormComponent {
         this.state = this.componentObj.state;
         this.headingTypeValue = this.componentObj.headingTypeValue? this.componentObj.headingTypeValue : null;
         this.blockFocusForModal = this.componentObj.blockFocusForModal? this.componentObj.blockFocusForModal : false;
-        // console.log("this.componentObj.blockFocusForModal", this.componentObj.blockFocusForModal)
 
         /* TODO: remove after changing Java */
         if (this.componentObj.modal) {
@@ -160,6 +159,7 @@ class Form extends HTMLFormComponent {
                 this.renderSubcomponents();
                 this.modalDeferred.resolve();
                 this.focusFirstActiveInputElement(true);
+                this.fireAfterInitActions();
 
                 /**
                  * WCAG(Srean Reader) Block focus on elements that are outside/under opened modal.
@@ -197,6 +197,7 @@ class Form extends HTMLFormComponent {
         } else {
             this.renderSubcomponents();
             this.focusFirstActiveInputElement();
+            this.fireAfterInitActions();
         }
 
         if (this.viewMode == 'DESIGN') {
@@ -214,7 +215,7 @@ class Form extends HTMLFormComponent {
             this.container.style.height = 'auto';
         }
 
-        this.fireAfterInitActions();
+
     };
 
     destroy(removeFromParent) {
