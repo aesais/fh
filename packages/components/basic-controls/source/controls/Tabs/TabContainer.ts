@@ -51,12 +51,13 @@ class TabContainer extends HTMLFormComponent {
 
         if (this.componentObj.subelements) {
             this.addComponents(this.componentObj.subelements);
+            (<any>this.components[this.activeTabIndex]).showTab();
         }
     };
 
     display() {
         super.display();
-        this.activateTab(this.activeTabIndex, false);
+        this.activateTab(this.activeTabIndex, false, true);
     }
 
     findTab = function (tabId) {
@@ -140,7 +141,7 @@ class TabContainer extends HTMLFormComponent {
         this.accessibility = accessibility;
     }
 
-    activateTab(tabIndex, onchange = true) {
+    activateTab(tabIndex, onchange = true, forceRender = false) {
         onchange = onchange != false;
         this.components.forEach((component, index) => {
             if (index != tabIndex) {
@@ -157,7 +158,7 @@ class TabContainer extends HTMLFormComponent {
             if (this.onTabChange && onchange) {
                 this.fireEvent('onTabChange', this.onTabChange);
             }
-            (<any>this.components[tabIndex]).activate();
+            (<any>this.components[tabIndex]).activate(forceRender);
             this.activeTabIndex = tabIndex;
             if (this.designMode) {
                 TabContainer.designerActiveTabs[this.componentObj.id] = tabIndex;
