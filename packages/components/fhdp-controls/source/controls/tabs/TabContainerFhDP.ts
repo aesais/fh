@@ -85,13 +85,9 @@ class TabContainerFhDP extends HTMLFormComponent {
 
         if (this.componentObj.subelements) {
             this.addComponents(this.componentObj.subelements);
+            this.activateTab(this.activeTabIndex);
         }
     };
-
-    display() {
-        super.display();
-        this.activateTab(this.activeTabIndex);
-    }
 
     findTab = function (tabId) {
         for (let i = this.components.length - 1; i >= 0; i--) {
