@@ -4,7 +4,7 @@
     <parent>
         <groupId>pl.fhframework.dp</groupId>
         <artifactId>fhdp</artifactId>
-        <version>4.10.5.PL.18</version>
+        <version>4.10.5.PL.19</version>
     </parent>
     <artifactId>bom</artifactId>
     <packaging>pom</packaging>
