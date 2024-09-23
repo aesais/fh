@@ -307,6 +307,8 @@
         <xs:attribute type="xs:string" name="value"/>
         <xs:attribute type="xs:string" name="width" use="required" default="md-2"/>
         <xs:attribute type="xs:string" name="labelId"/>
+        <xs:attribute type="xs:boolean" default="true" name="isDefaultStyle"/>
+        <xs:attribute type="xs:string"  default="true" name="isTriState"/>
     </xs:complexType>
 
     <xs:element name="ComboFhDP" type="ComboFhDPType"/>
