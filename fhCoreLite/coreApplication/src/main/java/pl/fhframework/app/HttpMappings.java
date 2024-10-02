@@ -61,7 +61,10 @@ public class HttpMappings {
     private boolean guestsAllowed;
 
     @Value("${server.logout.path:}")
-    private String logoutPath;
+    private String serverLogoutPath;
+
+    @Value("${browser.logout.path:logout}")
+    private String browserLogoutPath;
 
     @Autowired
     @Lazy
@@ -116,7 +119,17 @@ public class HttpMappings {
         model.setViewName("login");
 
         return model;
+    }
 
+    @RequestMapping(value = "/${browser.logout.path:logout}", method = RequestMethod.GET)
+    public ModelAndView logout(HttpServletRequest request, HttpServletResponse response) {
+        Locale locale = getLocale(request, response);
+        response.setLocale(locale);
+
+        ModelAndView model = new ModelAndView();
+
+        model.setViewName("redirect:/");
+        return model;
     }
 
     @RequestMapping(value = "/${fh.web.guests.authenticate.path:authenticateGuest}", method = RequestMethod.GET)
@@ -178,8 +191,8 @@ public class HttpMappings {
         }
 
         // todo: better condition for custom logout url
-        if (!StringUtils.isNullOrEmpty(logoutPath) && !Objects.equals("logout", logoutPath)) {
-            model.setViewName("redirect:/" + logoutPath);
+        if (!StringUtils.isNullOrEmpty(serverLogoutPath) && !Objects.equals("logout", serverLogoutPath)) {
+            model.setViewName("redirect:/" + serverLogoutPath);
             return model;
         }
 
