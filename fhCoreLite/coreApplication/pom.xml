@@ -112,6 +112,7 @@
                         </goals>
                         <configuration>
                             <sources>
+                                <!--suppress UnresolvedMavenProperty -->
                                 <source>${project.build.directory}/generated-form-sources</source>
                             </sources>
                         </configuration>
@@ -127,6 +128,7 @@
                         <phase>process-resources</phase>
                         <configuration>
                             <tasks>
+                                <!--suppress UnresolvedMavenProperty -->
                                 <copy todir="${project.build.outputDirectory}" preservelastmodified="true">
                                     <fileset dir="src/main/java">
                                         <include name="menu.xml"/>

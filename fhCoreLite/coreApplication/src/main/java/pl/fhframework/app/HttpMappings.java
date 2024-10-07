@@ -22,11 +22,15 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.ModelAndView;
+import pl.fhframework.UserSession;
+import pl.fhframework.aspects.ApplicationContextHolder;
 import pl.fhframework.core.ResourceNotFoundException;
 import pl.fhframework.core.i18n.MessageService;
 import pl.fhframework.core.logging.FhLogger;
 import pl.fhframework.core.resource.ImageRepository;
 import pl.fhframework.core.resource.MarkdownRepository;
+import pl.fhframework.core.session.ForceLogoutService;
+import pl.fhframework.core.session.UserSessionRepository;
 import pl.fhframework.core.util.FileUtils;
 import pl.fhframework.core.util.StringUtils;
 import pl.fhframework.event.dto.ForcedLogoutEvent;
@@ -37,6 +41,7 @@ import javax.annotation.Resource;
 import javax.jws.WebParam;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -57,11 +62,17 @@ public class HttpMappings {
     @Autowired
     private MarkdownRepository markdownRepository;
 
+    @Autowired
+    private Optional<ForceLogoutService> forceLogoutService;
+
     @Value("${fh.web.guests.allowed:false}")
     private boolean guestsAllowed;
 
     @Value("${server.logout.path:}")
-    private String logoutPath;
+    private String serverLogoutPath;
+
+    @Value("${browser.logout.path:logout}")
+    private String browserLogoutPath;
 
     @Autowired
     @Lazy
@@ -116,7 +127,24 @@ public class HttpMappings {
         model.setViewName("login");
 
         return model;
+    }
 
+    @RequestMapping(value = "/${browser.logout.path:logout}", method = RequestMethod.GET)
+    public ModelAndView logout(HttpServletRequest request, HttpServletResponse response) {
+        Locale locale = getLocale(request, response);
+        response.setLocale(locale);
+
+        ModelAndView model = new ModelAndView();
+        if (forceLogoutService.isPresent()){
+            HttpSession httpSession = request.getSession(false);
+            UserSessionRepository userSessionRepository =
+                  ApplicationContextHolder.getApplicationContext().getBean(UserSessionRepository.class);
+            UserSession userSession = userSessionRepository.getUserSession(httpSession.getId());
+            forceLogoutService.get().forceLogout(userSession, ForcedLogoutEvent.Reason.LOGOUT_FORCE);
+        }
+
+        model.setViewName("redirect:/");
+        return model;
     }
 
     @RequestMapping(value = "/${fh.web.guests.authenticate.path:authenticateGuest}", method = RequestMethod.GET)
@@ -178,8 +206,8 @@ public class HttpMappings {
         }
 
         // todo: better condition for custom logout url
-        if (!StringUtils.isNullOrEmpty(logoutPath) && !Objects.equals("logout", logoutPath)) {
-            model.setViewName("redirect:/" + logoutPath);
+        if (!StringUtils.isNullOrEmpty(serverLogoutPath) && !Objects.equals("logout", serverLogoutPath)) {
+            model.setViewName("redirect:/" + serverLogoutPath);
             return model;
         }
 

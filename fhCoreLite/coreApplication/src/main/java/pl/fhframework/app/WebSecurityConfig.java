@@ -2,7 +2,6 @@ package pl.fhframework.app;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
@@ -56,6 +55,10 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 //    private List<String> corsHeaders;
 //    @Value("${fh.web.cors.allowCredentials:false}")
 //    private Boolean corsAllowCredentials;
+    @Value("${fh.web.xssProtection:true}")
+    private boolean xssProtection;
+    @Value("${fh.web.csrfProtection:false}")
+    private boolean csrfProtection;
     @Value("${fh.web.guests.allowed:false}")
     private boolean guestsAllowed;
     @Value("${fh.web.guests.authenticate.path:authenticateGuest}")
@@ -102,8 +105,12 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        http.csrf().disable();
-
+        if (!csrfProtection){
+            http.csrf().disable();
+        }
+        if (!xssProtection) {
+            http.headers().xssProtection().disable();
+        }
         http.formLogin()
             .loginPage("/login")
             .failureUrl("/login?error").permitAll();
@@ -118,9 +125,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
         int maxSessions = singleLoginManager.isTrunedOn() ? 1 : maxPerUser;
 
-        if (sessionClusterCoordinator.isPresent()) {
-            sessionClusterCoordinator.get().loginCountConfigure(http, sessionRegistry(), maxSessions);
-        }
+       sessionClusterCoordinator.ifPresent(iCoord -> iCoord.loginCountConfigure(http, sessionRegistry(), maxSessions));
 
         http.sessionManagement()
             .maximumSessions(maxSessions)
