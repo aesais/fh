@@ -47,7 +47,7 @@ public class ForceLogoutService {
         return forceLogout(findUserSessionById(sessionId), reason);
     }
 
-    private UserSession findUserSessionById(String sessionId) {
+    public UserSession findUserSessionById(String sessionId) {
         for (UserSession userSession : userSessionRepository.getUserSessions().values()) {
             if (userSession.getHttpSession().getId().equals(sessionId)) {
                 return userSession;
