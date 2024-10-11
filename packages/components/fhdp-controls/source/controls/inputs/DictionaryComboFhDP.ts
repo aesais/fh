@@ -78,6 +78,7 @@ class DictionaryComboFhDP extends ComboFhDP implements LanguageChangeObserver {
 
     create() {
         super.create();
+        this.hintElement = this.inputGroupElement;
         let self = this;
 
         let inputGroup = this.getInputGroupElement();
@@ -429,9 +430,12 @@ class DictionaryComboFhDP extends ComboFhDP implements LanguageChangeObserver {
         const { hookElementId, parent, position } = this.getPopupProps();
 
         const handlePopupClose = (force?: boolean) => {
-            if ((!this.dirty && !this.clickInPopup) || force) {
-                this.popupOpen = false;
-                this.renderPopup();
+            if (this.popupOpen || force) {
+                if ((!this.dirty && !this.clickInPopup) || force) {
+                    this.popupOpen = false;
+                    this.renderPopup();
+                    this.input.focus();
+                }
             }
         }
         window['handlePopupClose'] = handlePopupClose;
@@ -723,6 +727,13 @@ class DictionaryComboFhDP extends ComboFhDP implements LanguageChangeObserver {
 
     defferFunction(func) {
         setTimeout(func, 100);
+    }
+
+    public initHint() {
+        if(this.hintElement == this.input) {
+            this.hintElement = this.inputGroupElement;
+        }
+        super.initHint();
     }
 }
 
