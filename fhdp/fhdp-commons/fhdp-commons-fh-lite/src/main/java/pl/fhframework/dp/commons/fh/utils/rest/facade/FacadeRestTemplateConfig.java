@@ -52,19 +52,32 @@ public class FacadeRestTemplateConfig {
     private String keystorePassword;
 
     @PostConstruct
-    public void createRestTemplate() throws UnrecoverableKeyException, CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException, KeyManagementException {
-        if(StringUtils.isEmpty(keystore)) {
-            if (StringUtils.isEmpty(username)) {
-                restTemplate = createSimpleRestTemplate();
-            } else {
-                restTemplate = createSimpleAuthenticationRestTemplate();
+    public void postConstruct() throws UnrecoverableKeyException, CertificateException, NoSuchAlgorithmException,
+                                       KeyStoreException, IOException, KeyManagementException {
+        createRestTemplate();
+    }
+
+    public void createRestTemplate() throws UnrecoverableKeyException, CertificateException, NoSuchAlgorithmException,
+                                            KeyStoreException, IOException, KeyManagementException {
+        RestTemplate restTemplate;
+        synchronized (FacadeRestTemplateConfig.class) {
+            if (FacadeRestTemplateConfig.restTemplate != null) {
+                return;
             }
-        } else {
-            restTemplate = createSslRestTemplate();
+            if (StringUtils.isEmpty(keystore)) {
+                if (StringUtils.isEmpty(username)) {
+                    restTemplate = createSimpleRestTemplate();
+                } else {
+                    restTemplate = createSimpleAuthenticationRestTemplate();
+                }
+            } else {
+                restTemplate = createSslRestTemplate();
+            }
+            List<ClientHttpRequestInterceptor> interceptors = new ArrayList<>();
+            interceptors.add(new RequestResponseLoggingInterceptor());
+            restTemplate.setInterceptors(interceptors);
+            FacadeRestTemplateConfig.restTemplate = restTemplate;
         }
-        List<ClientHttpRequestInterceptor> interceptors = new ArrayList<>();
-        interceptors.add(new RequestResponseLoggingInterceptor());
-        restTemplate.setInterceptors(interceptors);
     }
 
     private RestTemplate createSslRestTemplate() throws UnrecoverableKeyException, CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException, KeyManagementException {
