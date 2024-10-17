@@ -62,9 +62,6 @@ public class HttpMappings {
     @Autowired
     private MarkdownRepository markdownRepository;
 
-    @Autowired
-    private Optional<ForceLogoutService> forceLogoutService;
-
     @Value("${fh.web.guests.allowed:false}")
     private boolean guestsAllowed;
 
@@ -135,13 +132,11 @@ public class HttpMappings {
         response.setLocale(locale);
 
         ModelAndView model = new ModelAndView();
-        if (forceLogoutService.isPresent()){
-            HttpSession httpSession = request.getSession(false);
-            UserSessionRepository userSessionRepository =
-                  ApplicationContextHolder.getApplicationContext().getBean(UserSessionRepository.class);
-            UserSession userSession = userSessionRepository.getUserSession(httpSession.getId());
-            forceLogoutService.get().forceLogout(userSession, ForcedLogoutEvent.Reason.LOGOUT_FORCE);
-        }
+        ForceLogoutService forceLogoutService =
+              ApplicationContextHolder.getApplicationContext().getBean(ForceLogoutService.class);
+        HttpSession httpSession = request.getSession(false);
+        UserSession userSession = forceLogoutService.findUserSessionById(httpSession.getId());
+        forceLogoutService.forceLogout(userSession, ForcedLogoutEvent.Reason.LOGOUT_FORCE);
 
         model.setViewName("redirect:/");
         return model;

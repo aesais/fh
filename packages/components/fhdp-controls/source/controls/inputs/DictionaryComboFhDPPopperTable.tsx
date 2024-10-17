@@ -238,7 +238,7 @@ export const DictionaryComboFhDPPopperTable: React.FC<Props> = (props: Props) =>
     }
 
     const closeOnClickOutside = (e) => {
-        if (popperElement.current && (popperElement.current.contains(e.target) || parent.contains(e.target))) {
+        if (hookElement.contains(e.target) || popperElement.current && (popperElement.current.contains(e.target) || parent.contains(e.target))) {
             clickInPopup(true);
             return;
         } else {
