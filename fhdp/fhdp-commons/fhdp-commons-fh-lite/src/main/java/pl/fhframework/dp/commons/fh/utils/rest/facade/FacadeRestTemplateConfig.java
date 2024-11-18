@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.client.ClientHttpRequestFactory;
+import org.springframework.http.client.ClientHttpRequestInterceptor;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.web.client.RestTemplate;
 import pl.fhframework.core.logging.FhLogger;
@@ -29,6 +30,8 @@ import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Supplier;
 
 @Configuration
@@ -49,15 +52,31 @@ public class FacadeRestTemplateConfig {
     private String keystorePassword;
 
     @PostConstruct
-    public void createRestTemplate() throws UnrecoverableKeyException, CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException, KeyManagementException {
-        if(StringUtils.isEmpty(keystore)) {
-            if (StringUtils.isEmpty(username)) {
-                restTemplate = createSimpleRestTemplate();
-            } else {
-                restTemplate = createSimpleAuthenticationRestTemplate();
+    public void postConstruct() throws UnrecoverableKeyException, CertificateException, NoSuchAlgorithmException,
+                                       KeyStoreException, IOException, KeyManagementException {
+        createRestTemplate();
+    }
+
+    public void createRestTemplate() throws UnrecoverableKeyException, CertificateException, NoSuchAlgorithmException,
+                                            KeyStoreException, IOException, KeyManagementException {
+        RestTemplate restTemplate;
+        synchronized (FacadeRestTemplateConfig.class) {
+            if (FacadeRestTemplateConfig.restTemplate != null) {
+                return;
             }
-        } else {
-            restTemplate = createSslRestTemplate();
+            if (StringUtils.isEmpty(keystore)) {
+                if (StringUtils.isEmpty(username)) {
+                    restTemplate = createSimpleRestTemplate();
+                } else {
+                    restTemplate = createSimpleAuthenticationRestTemplate();
+                }
+            } else {
+                restTemplate = createSslRestTemplate();
+            }
+            List<ClientHttpRequestInterceptor> interceptors = new ArrayList<>();
+            interceptors.add(new RequestResponseLoggingInterceptor());
+            restTemplate.setInterceptors(interceptors);
+            FacadeRestTemplateConfig.restTemplate = restTemplate;
         }
     }
 
@@ -112,11 +131,5 @@ public class FacadeRestTemplateConfig {
                 .setConnectTimeout(Duration.ofMillis(timeout))
                 .setReadTimeout(Duration.ofMillis(timeout))
                 .build();
-        //TODO: turn below restTemplate based on parameter; below rest template allows for detailed req/res logging
-        //via interceptor class
-//        ClientHttpRequestFactory factory = new BufferingClientHttpRequestFactory(new SimpleClientHttpRequestFactory());
-//        RestTemplate template = new RestTemplate(factory);
-//        template.setInterceptors(Collections.singletonList(new RequestResponseLoggingInterceptor()));
-//        return template;
     }
 }

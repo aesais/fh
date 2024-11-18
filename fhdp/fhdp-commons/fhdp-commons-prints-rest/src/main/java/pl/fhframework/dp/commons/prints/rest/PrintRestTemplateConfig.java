@@ -21,8 +21,8 @@ import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.web.client.RestTemplate;
-import pl.fhframework.dp.commons.utils.date.LocalDatesModule;
 import pl.fhframework.core.logging.FhLogger;
+import pl.fhframework.dp.commons.utils.date.LocalDatesModule;
 
 import javax.annotation.PostConstruct;
 import javax.net.ssl.SSLContext;
@@ -35,8 +35,6 @@ import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.time.Duration;
 import java.util.function.Supplier;
-
-//import org.springframework.boot.web.client.RestTemplateBuilder;
 
 @Configuration
 public class PrintRestTemplateConfig {
@@ -54,19 +52,29 @@ public class PrintRestTemplateConfig {
     @Value("${ssl.keystorePassword:}")
     private String keystorePassword;
 
-
     public static RestTemplate restTemplate;
 
     @PostConstruct
+    public void postConstruct() throws UnrecoverableKeyException, CertificateException, NoSuchAlgorithmException,
+                           KeyStoreException, IOException, KeyManagementException {
+        createRestTemplate();
+    }
     public void createRestTemplate() throws UnrecoverableKeyException, CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException, KeyManagementException {
-        if(StringUtils.isEmpty(keystore)) {
-            if (StringUtils.isEmpty(username)) {
-                restTemplate = createSimpleRestTemplate();
-            } else {
-                restTemplate = createSimpleAuthenticationRestTemplate();
+        RestTemplate restTemplate;
+        synchronized (PrintRestTemplateConfig.class) {
+            if (PrintRestTemplateConfig.restTemplate != null) {
+                return;
             }
-        } else {
-            restTemplate = createSslRestTemplate();
+            if(StringUtils.isEmpty(keystore)) {
+                if (StringUtils.isEmpty(username)) {
+                    restTemplate = createSimpleRestTemplate();
+                } else {
+                    restTemplate = createSimpleAuthenticationRestTemplate();
+                }
+            } else {
+                restTemplate = createSslRestTemplate();
+            }
+            PrintRestTemplateConfig.restTemplate = restTemplate;
         }
     }
 
@@ -115,7 +123,6 @@ public class PrintRestTemplateConfig {
         return builder.build();
     }
 
-
     /** Creates simple rest template */
     private RestTemplate createSimpleRestTemplate() {
         RestTemplate ret = new RestTemplate(getClientHttpRequestFactory());
@@ -146,6 +153,4 @@ public class PrintRestTemplateConfig {
         converter.setObjectMapper(mapper);
         return converter;
     }
-
-
 }
