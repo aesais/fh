@@ -6,7 +6,7 @@ let {lazyInject} = getDecorators(FhContainer);
 
 class CheckBoxFhDP extends CheckBox {
   protected isDefaultStyle: boolean = true;
-  protected isTriState: boolean = true;
+  protected isTriState: boolean = false;
   protected isIntermediate: boolean = false;
 
   constructor(componentObj: any, parent: HTMLFormComponent) {
@@ -20,8 +20,8 @@ class CheckBoxFhDP extends CheckBox {
     if(componentObj.isDefaultStyle === false || componentObj.isDefaultStyle === 'false'){
       this.isDefaultStyle = false;
     }
-    if(componentObj.isTriState === false || componentObj.isTriState === 'false') {
-      this.isTriState = false;
+    if(componentObj.isTriState === true || componentObj.isTriState === 'true') {
+      this.isTriState = true;
     }
   }
 
