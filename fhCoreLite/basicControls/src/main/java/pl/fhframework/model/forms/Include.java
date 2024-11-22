@@ -331,7 +331,7 @@ public class Include extends GroupingComponent<Component> implements Includeable
         public void serialize(Include tag, JsonGenerator gen, SerializerProvider serializers) throws IOException {
             if (tag != null && tag.getSubcomponents() != null) {
                 Group group = new Group(tag.getForm());
-                group.setStyleClasses(tag.getClass().getSimpleName());
+                group.setStyleClassesBinding(new StaticBinding<>(tag.getClass().getSimpleName()));
                 group.setId(tag.getId());
                 group.getSubcomponents().addAll(tag.getSubcomponents());
                 gen.writeObject(group);

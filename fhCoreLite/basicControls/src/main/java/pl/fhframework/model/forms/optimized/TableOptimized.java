@@ -559,10 +559,10 @@ public class TableOptimized extends  Repeater implements ITabular, IChangeableBy
 
         // przeniesienie stylów kolumny na komórki
         IntStream.range(0, columns.size()).forEach(i -> {
-            String columnStyles = columns.get(i).getStyleClasses();
+            ModelBinding<String> columnStyles = columns.get(i).getStyleClassesBinding();
             if (columnStyles != null) {
                 for (TableRowOptimized row : this.tableRows) {
-                    row.getTableCells().get(i).setStyleClasses(columnStyles);
+                    row.getTableCells().get(i).setStyleClassesBinding(columnStyles);
                 }
             }
         });

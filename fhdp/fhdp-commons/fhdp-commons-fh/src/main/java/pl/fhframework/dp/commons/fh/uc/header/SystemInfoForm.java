@@ -2,6 +2,7 @@ package pl.fhframework.dp.commons.fh.uc.header;
 
 import lombok.Getter;
 import lombok.Setter;
+import pl.fhframework.binding.StaticBinding;
 import pl.fhframework.core.model.Model;
 import pl.fhframework.model.forms.Form;
 
@@ -27,6 +28,6 @@ public class SystemInfoForm extends Form<SystemInfoForm.Model> {
     }
 
     public SystemInfoForm() {
-        setStyleClasses("form-transparent");
+//        setStyleClassesBinding(new StaticBinding<>("form-transparent"));
     }
 }

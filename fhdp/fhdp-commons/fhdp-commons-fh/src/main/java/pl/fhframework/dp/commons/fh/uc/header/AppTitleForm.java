@@ -3,6 +3,7 @@ package pl.fhframework.dp.commons.fh.uc.header;
 
 import lombok.Getter;
 import lombok.Setter;
+import pl.fhframework.binding.StaticBinding;
 import pl.fhframework.model.forms.Form;
 
 public class AppTitleForm extends Form<AppTitleForm.Model> {
@@ -20,6 +21,7 @@ public class AppTitleForm extends Form<AppTitleForm.Model> {
     }
 
     public AppTitleForm() {
-        setStyleClasses("form-transparent");
+
+//        setStyleClassesBinding(new StaticBinding<>("form-transparent"));
     }
 }

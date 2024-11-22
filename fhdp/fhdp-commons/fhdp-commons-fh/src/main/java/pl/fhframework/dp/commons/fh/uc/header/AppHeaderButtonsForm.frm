@@ -1,4 +1,4 @@
-<Form container="appHeaderButtons" id="appHeaderButtonsInner" xmlns="http://fh.asseco.com/form/1.0">
+<Form container="appHeaderButtons" id="appHeaderButtonsInner" styleClasses="form-transparent" xmlns="http://fh.asseco.com/form/1.0">
     <Button id="headerMainMenuButton" width="md-6" label="[icon='fas fa-bars']"
             onClick="toggleMenu" hint="{$.fhdp.bar.menu.toggle}" hintTrigger="HOVER"
             styleClasses="app-header-button app-header-button--menu"/>

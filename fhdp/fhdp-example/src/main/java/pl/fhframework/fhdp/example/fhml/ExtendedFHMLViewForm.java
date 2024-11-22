@@ -2,6 +2,7 @@ package pl.fhframework.fhdp.example.fhml;
 
 import lombok.Getter;
 import lombok.Setter;
+import pl.fhframework.binding.StaticBinding;
 import pl.fhframework.model.forms.Form;
 
 import java.util.ArrayList;
@@ -17,7 +18,7 @@ public class ExtendedFHMLViewForm extends Form<ExtendedFHMLViewForm.Model> {
     }
 
     public ExtendedFHMLViewForm() {
-        setStyleClasses("extendedFHMLViewForm");
+        setStyleClassesBinding(new StaticBinding<>("extendedFHMLViewForm"));
         setWrapperStyle("extendedFHMLViewFormWrapper");
     }
 }

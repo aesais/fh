@@ -8,7 +8,7 @@ import pl.fhframework.annotations.OverridenPropertyAnnotations;
  */
 @OverridenPropertyAnnotations(designerXmlProperty = @DesignerXMLProperty(skip = true), property = "width")
 @OverridenPropertyAnnotations(designerXmlProperty = @DesignerXMLProperty(skip = true), property = "hintBinding")
-@OverridenPropertyAnnotations(designerXmlProperty = @DesignerXMLProperty(skip = true), property = "styleClasses")
+@OverridenPropertyAnnotations(designerXmlProperty = @DesignerXMLProperty(skip = true), property = "styleClassesBinding")
 @OverridenPropertyAnnotations(designerXmlProperty = @DesignerXMLProperty(skip = true), property = "verticalAlign")
 @OverridenPropertyAnnotations(designerXmlProperty = @DesignerXMLProperty(skip = true), property = "horizontalAlign")
 @OverridenPropertyAnnotations(designerXmlProperty = @DesignerXMLProperty(skip = true), property = "height")

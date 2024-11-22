@@ -55,7 +55,7 @@ public interface TableComponent<T extends FormElement> {
         clone.setWidth(thisElement.getWidth());
         clone.setHorizontalAlign(thisElement.getHorizontalAlign());
         clone.setVerticalAlign(thisElement.getVerticalAlign());
-        clone.setStyleClasses(thisElement.getStyleClasses());
+        clone.setStyleClassesBinding(thisElement.getStyleClassesBinding());
         clone.setHintBinding(table.getRowBinding(thisElement.getHintBinding(), clone, iteratorReplacements));
     }
 
@@ -78,7 +78,7 @@ public interface TableComponent<T extends FormElement> {
         clone.setWidth(thisElement.getWidth());
         clone.setHorizontalAlign(thisElement.getHorizontalAlign());
         clone.setVerticalAlign(thisElement.getVerticalAlign());
-        clone.setStyleClasses(thisElement.getStyleClasses());
+        clone.setStyleClassesBinding(thisElement.getStyleClassesBinding());
         clone.setHintBinding(table.getRowBinding(thisElement.getHintBinding(), clone, iteratorReplacements));
     }
 
