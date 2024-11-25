@@ -400,10 +400,6 @@ public abstract class FormElement extends Component {
     public void refreshView(Set<ElementChanges> changeSet) {
         ElementChanges elementChanges = this.updateView();
 
-        if (styleClassesBinding != null) {
-            styleClasses = styleClassesBinding.resolveValueAndAddChanges(this, elementChanges, styleClasses, STYLECLASSES_ATTR);
-        }
-
         if (hintBinding != null) {
             hint = hintBinding.resolveValueAndAddChanges(this, elementChanges, hint, HINT_ATTR);
         }
@@ -445,6 +441,10 @@ public abstract class FormElement extends Component {
         //TODO:visibility changes
 
         refreshAvailability(changedElement);
+
+        if (styleClassesBinding != null) {
+            styleClasses = styleClassesBinding.resolveValueAndAddChanges(this, changedElement, styleClasses, STYLECLASSES_ATTR);
+        }
 
         return changedElement;
     }
