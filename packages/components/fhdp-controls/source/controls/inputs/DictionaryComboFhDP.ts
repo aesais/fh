@@ -222,8 +222,14 @@ class DictionaryComboFhDP extends ComboFhDP implements LanguageChangeObserver {
             if(this.hideCrossed == "true"){
                 groupSpan.classList.add('input-old-value-remove-line');
             }
+            /**
+             * When presentation
+             */
             if(this.componentObj.lastValue && this.rawValue == this.lastValue){
                 group.classList.add('hide-old-value');
+                if(this.isTableMode) {
+                    this.input.classList.add("fhml-tag-lt"); // przekreślenie
+                }
             }
 
             groupSpan.innerText = lastValueText;
@@ -278,8 +284,12 @@ class DictionaryComboFhDP extends ComboFhDP implements LanguageChangeObserver {
         if(this.lastValueHtmlElement) {
             if(theSameValue){
                 this.lastValueHtmlElement.classList.add('hide-old-value');
+                //Add strikethrough to main value if they are the same in TableMode
+                this.input.classList.add("fhml-tag-lt");
             } else {
                 this.lastValueHtmlElement.classList.remove('hide-old-value');
+                //Remove strikethrough from main value if they are not the same in TableMode
+                this.input.classList.remove("fhml-tag-lt");
             }
         }
     }

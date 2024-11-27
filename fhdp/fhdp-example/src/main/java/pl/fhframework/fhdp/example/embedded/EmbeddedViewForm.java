@@ -2,6 +2,7 @@ package pl.fhframework.fhdp.example.embedded;
 
 import lombok.Getter;
 import lombok.Setter;
+import pl.fhframework.binding.StaticBinding;
 import pl.fhframework.model.forms.Form;
 
 public class EmbeddedViewForm extends Form<EmbeddedViewForm.Model> {
@@ -18,7 +19,7 @@ public class EmbeddedViewForm extends Form<EmbeddedViewForm.Model> {
     }
 
     public EmbeddedViewForm() {
-        setStyleClasses("embeddedViewForm");
+        setStyleClassesBinding(new StaticBinding<>("embeddedViewForm"));
         setWrapperStyle("embeddedViewFormWrapper");
     }
 }

@@ -657,10 +657,10 @@ public class Table extends Repeater implements ITabular, IChangeableByClient, IE
 
         // przeniesienie stylów kolumny na komórki
         IntStream.range(0, columns.size()).forEach(i -> {
-            String columnStyles = columns.get(i).getStyleClasses();
+            ModelBinding<String> columnStyles = columns.get(i).getStyleClassesBinding();
             if (columnStyles != null) {
                 for (TableRow row : this.tableRows) {
-                    row.getTableCells().get(i).setStyleClasses(columnStyles);
+                    row.getTableCells().get(i).setStyleClassesBinding(columnStyles);
                 }
             }
         });

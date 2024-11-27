@@ -135,7 +135,7 @@ public class NavbarForm__View extends NavbarForm {
                 this::getA_dropdown_1_labelModelBinding, /* getter */
                 null /* setter */
         ));
-        a_dropdown_1.setStyleClasses("navbar-btn");
+        a_dropdown_1.setStyleClassesBinding(new StaticBinding<>("navbar-btn"));
 
         u_toggleMenu_1 = new DropdownItem(this);
         a_dropdown_1.addSubcomponent(u_toggleMenu_1);
@@ -644,7 +644,7 @@ public class NavbarForm__View extends NavbarForm {
                 this::getA_dropdown_2_1_labelModelBinding, /* getter */
                 null /* setter */
         ));
-        a_dropdown_2_1.setStyleClasses("navbar-btn");
+        a_dropdown_2_1.setStyleClassesBinding(new StaticBinding<>("navbar-btn"));
 
         u_polishLang_1 = new DropdownItem(this);
         a_dropdown_2_1.addSubcomponent(u_polishLang_1);

@@ -33,6 +33,7 @@ public abstract class FormElement extends Component {
     private static final String PIXED_OR_PERCENTAGE_REGEX = "(\\-)?[0-9]*|[0-9]+px$|[0-9][0-9]%$|[1][0][0]%$";
     private static final String PIXED_REGEX = "(-?)([0-9]+)((px)?)";
     private static final String PIXED_POSITIVE_REGEX = "([0-9]+)((px)?)";
+    private static final String STYLECLASSES_ATTR = "styleClasses";
     private static final String HINT_ATTR = "hint";
     private static final String HINT_PLACEMENT_ATTR = "hintPlacement";
     private static final String HINT_TITLE_ATTR = "hintTitle";
@@ -117,11 +118,17 @@ public abstract class FormElement extends Component {
      * Style classes defined for component, separated by ',' character
      */
     @Getter
+    @DesignerXMLProperty(functionalArea = LOOK_AND_STYLE, priority = 89)
+    private String styleClasses = "";
+
+
+    @JsonIgnore
+    @Getter
     @Setter
-    @XMLProperty
+    @XMLProperty(value = STYLECLASSES_ATTR)
     @DesignerXMLProperty(functionalArea = LOOK_AND_STYLE, priority = 89)
     @DocumentedComponentAttribute("Component style classes, should be separated by ',' character")
-    private String styleClasses;
+    private ModelBinding<String> styleClassesBinding;
 
     /**
      * Hint for component
@@ -434,6 +441,10 @@ public abstract class FormElement extends Component {
         //TODO:visibility changes
 
         refreshAvailability(changedElement);
+
+        if (styleClassesBinding != null) {
+            styleClasses = styleClassesBinding.resolveValueAndAddChanges(this, changedElement, styleClasses, STYLECLASSES_ATTR);
+        }
 
         return changedElement;
     }

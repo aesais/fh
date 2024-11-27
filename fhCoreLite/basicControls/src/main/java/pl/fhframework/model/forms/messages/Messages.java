@@ -561,7 +561,7 @@ public class Messages implements IMessages {
 
             Canvas canvas = new Canvas(dialog);
             if (severity.isPresent())
-                canvas.setStyleClasses(severity.get().getBoostrapStyle());
+                canvas.setStyleClassesBinding(new StaticBinding<>(severity.get().getBoostrapStyle()));
 
             dialog.addSubcomponent(canvas);
 

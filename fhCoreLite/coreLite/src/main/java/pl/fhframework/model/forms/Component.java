@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.ReflectionUtils;
 import pl.fhframework.BindingResult;
 import pl.fhframework.annotations.*;
@@ -35,6 +36,7 @@ import static pl.fhframework.annotations.DesignerXMLProperty.PropertyFunctionalA
  * Created by krzysztof.kobylarek on 2016-12-20.
  */
 @ModelElement(type = ModelElementType.HIDDEN)
+@Slf4j
 public class Component implements Cloneable, IDesignEventSource, IEventSource, IUnmanagedUseCaseParameter {
 
     public static final String ACCESSIBILITY = "accessibility";
@@ -233,6 +235,7 @@ public class Component implements Cloneable, IDesignEventSource, IEventSource, I
             try {
                 availabilityFromRule = accessibilityRule.getAccessibilityFunction().apply(accessibilityRule);
             } catch (Exception e) {
+                log.error("Applying rule failure!", e);
                 FhLogger.error("Applying rule failure!", e);
                 availabilityFromRule = AccessibilityEnum.DEFECTED;
             }
