@@ -300,6 +300,9 @@ public class AppNavBarUC extends FhdpBaseUC implements INavbar, ISystemUseCase {
             if(isOperationSiderOpen || isHelpPageSiderOpen) {
                 closeAppSider();
             }
+            if (!this.menuService.isHidden()) {
+                this.menuService.hide();
+            }
             isAppSiderOpen = true;
             showForm(AppNavSiderHelpForm.class, model);
         }
@@ -324,6 +327,9 @@ public class AppNavBarUC extends FhdpBaseUC implements INavbar, ISystemUseCase {
             if(isAppSiderOpen || isHelpPageSiderOpen) {
                 closeAppSider();
             }
+            if (!this.menuService.isHidden()) {
+                this.menuService.hide();
+            }
             isOperationSiderOpen = true;
             showForm(AppNavSiderOperationForm.class, model);
         }
@@ -337,6 +343,9 @@ public class AppNavBarUC extends FhdpBaseUC implements INavbar, ISystemUseCase {
         } else {
             if(isAppSiderOpen || isOperationSiderOpen) {
                 closeAppSider();
+            }
+            if (!this.menuService.isHidden()) {
+                this.menuService.hide();
             }
             isHelpPageSiderOpen = true;
             showForm(AppNavSiderHelpPageForm.class, model);
