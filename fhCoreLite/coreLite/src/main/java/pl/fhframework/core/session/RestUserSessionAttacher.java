@@ -9,7 +9,9 @@ import pl.fhframework.UserSession;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -27,9 +29,13 @@ public class RestUserSessionAttacher implements HandlerInterceptor {
     @Override
     public boolean preHandle(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, Object o) throws Exception {
         for (IRestUserSessionFinder sessionFinder : sessionFinders) {
-            Optional<UserSession> userSession = sessionFinder.getUserSession(httpServletRequest);
-            if (userSession.isPresent()) {
-                SessionManager.registerThreadSessionManager(new SessionHoldingSessionManager(userSession.get()));
+            Optional<UserSession> userSessionOpt = sessionFinder.getUserSession(httpServletRequest);
+            if (userSessionOpt.isPresent()) {
+                UserSession userSession = userSessionOpt.get();
+                Map<String, String[]> map = (HashMap<String, String[]>) userSession.getAttributes().computeIfAbsent(
+                      "URL_PARAM", k -> new HashMap<String, String[]>());
+                map.putAll(httpServletRequest.getParameterMap());
+                SessionManager.registerThreadSessionManager(new SessionHoldingSessionManager(userSession));
                 httpServletRequest.setAttribute(MARKER_ATTRIBUTE, true);
                 break;
             }
