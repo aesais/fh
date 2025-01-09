@@ -4,13 +4,13 @@
     <parent>
         <groupId>pl.fhframework</groupId>
         <artifactId>fh-compile-bom</artifactId>
-        <version>4.10.5.PL.23</version>
+        <version>4.10.5.PL.24-SNAPSHOT</version>
         <relativePath>../bom-project-lite/fh-compile-bom</relativePath>
     </parent>
     <groupId>pl.fhframework.dp</groupId>
     <artifactId>fhdp</artifactId>
     <packaging>pom</packaging>
-    <version>4.10.5.PL.23</version>
+    <version>4.10.5.PL.24-SNAPSHOT</version>
 
     <name>fhdp</name>
 
@@ -35,7 +35,7 @@
 <!--        <spring.security.version>5.4.2</spring.security.version>-->
 <!--        <jackson.version>2.11.4</jackson.version>-->
 <!--        <jaxb.version>2.2.11</jaxb.version>-->
-        <cxf.version>3.5.2</cxf.version>
+        <cxf.version>3.4.5</cxf.version>
 <!--        <httpclient.version>4.5.13</httpclient.version>-->
         <java.cas.client.version>3.6.2</java.cas.client.version>
 
