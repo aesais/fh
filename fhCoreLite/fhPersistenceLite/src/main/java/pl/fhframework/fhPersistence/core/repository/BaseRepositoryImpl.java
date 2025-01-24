@@ -39,7 +39,7 @@ public class BaseRepositoryImpl<T, ID extends Serializable>
             return super.save(entity);
         }
 
-        entityManager.persist(entity);
+        entityManager.merge(entity);
         return entity;
     }
 }
