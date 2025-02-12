@@ -66,12 +66,7 @@ public class InactiveClientKiller {
     }
 
     private UserSession getUserSession(WebSocketSession wss) {
-        HttpSession httpSession = (HttpSession)wss.getAttributes().get(WebSocketSessionManager.HTTP_SESSION_KEY);
-        if (httpSession != null) {
-            return userSessionRepository.getUserSession(httpSession.getId());
-        } else {
-            return null;
-        }
+        return userSessionRepository.getUserSession(wss);
     }
 
 }

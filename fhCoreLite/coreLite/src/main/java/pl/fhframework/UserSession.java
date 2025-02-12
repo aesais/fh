@@ -37,6 +37,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Profile("app")
 public class UserSession extends Session {
+    public static final String WEB_SOCKET_SESSION_ID = "web_socket_session_id";
 
     private static final int ERROR_INFORMATION_LIMIT = 10;
 
@@ -73,6 +74,9 @@ public class UserSession extends Session {
 
     // original session id - ChangeSessionIdAuthenticationStrategy is called after logging in
     private String httpSessionOrgId;
+
+    // Unique conversation id, which determines single conversation (related to browser window) within a http session. It provides capability to maintain many conversations within one http session
+    private String conversationId;
 
     /**
      * Optional authentication propagated from a remote cloud server.

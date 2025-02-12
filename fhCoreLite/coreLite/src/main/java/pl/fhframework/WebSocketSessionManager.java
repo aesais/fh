@@ -120,17 +120,14 @@ public class WebSocketSessionManager implements ISessionManagerImpl {
      */
     public static void setUserSession(UserSession userSession) {
         HttpSession sessionHttp = getHttpSession();
-        UserSession pUserSession = getUserSessionRepository().getUserSession(sessionHttp.getId());
-        if (pUserSession == null || pUserSession.getSystemUser().isGuest()) {
-            getUserSessionRepository().setUserSession(sessionHttp.getId(), userSession);
-        }
+        getUserSessionRepository().setUserSession(sessionHttp.getId(), userSession);
     }
 
     /**
      * Checks if an UserSession is already bound to current HTTP session
      */
     public static boolean hasUserSession() {
-        return getUserSessionRepository().getUserSession(getHttpSession().getId()) != null;
+        return false;
     }
 
     public static void prepareSessionScope() {
@@ -169,8 +166,7 @@ public class WebSocketSessionManager implements ISessionManagerImpl {
     }
 
     public UserSession getSession() {
-        HttpSession sessionHttp = getHttpSession();
-        return getUserSessionRepository().getUserSession(sessionHttp.getId());
+        return getUserSessionRepository().getUserSession(getWebSocketSession());
     }
 
     public static WebSocketSession getWebSocketSession() {
@@ -190,6 +186,10 @@ public class WebSocketSessionManager implements ISessionManagerImpl {
 
     public static HttpSession getHttpSession() {
         return getHttpSession(getWebSocketSession());
+    }
+
+    public static UserSession getUserSessionForWebSocketSession(WebSocketSession session) {
+        return getUserSessionRepository().getUserSession(session);
     }
 
     private static UserSessionRepository getUserSessionRepository() {

@@ -135,8 +135,7 @@ public class HttpMappings {
         ForceLogoutService forceLogoutService =
               ApplicationContextHolder.getApplicationContext().getBean(ForceLogoutService.class);
         HttpSession httpSession = request.getSession(false);
-        UserSession userSession = forceLogoutService.findUserSessionById(httpSession.getId());
-        forceLogoutService.forceLogout(userSession, ForcedLogoutEvent.Reason.LOGOUT_FORCE);
+        forceLogoutService.forceLogout(httpSession, ForcedLogoutEvent.Reason.LOGOUT_FORCE);
 
         model.setViewName("redirect:/");
         return model;

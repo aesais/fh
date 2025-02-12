@@ -15,6 +15,7 @@ import pl.fhframework.event.dto.ForcedLogoutEvent;
 import javax.servlet.http.HttpSession;
 import java.util.Collection;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 /**
@@ -40,21 +41,32 @@ public class ForceLogoutService {
         return true;
     }
 
+    public boolean forceLogout(HttpSession httpSession, ForcedLogoutEvent.Reason reason){
+        final AtomicBoolean someUserSessionHasBeenLogout = new AtomicBoolean(false);
+        userSessionRepository.getAllUserSessions().stream()
+                .forEach(userSession -> {
+                    if (forceLogout(userSession, reason)) {
+                        someUserSessionHasBeenLogout.compareAndSet(false, true);
+                    }
+                });
+        return someUserSessionHasBeenLogout.get();
+    }
+
     public boolean forceLogout(String sessionConversationUniqueId, ForcedLogoutEvent.Reason reason) {
         return forceLogout(findUserSessionByConversationId(sessionConversationUniqueId), reason);
     }
-    public boolean forceLogoutSessionId(String sessionId, ForcedLogoutEvent.Reason reason) {
-        return forceLogout(findUserSessionById(sessionId), reason);
-    }
+//    public boolean forceLogoutSessionId(String sessionId, ForcedLogoutEvent.Reason reason) {
+//        return forceLogout(findUserSessionById(sessionId), reason);
+//    }
 
-    public UserSession findUserSessionById(String sessionId) {
-        for (UserSession userSession : userSessionRepository.getUserSessions().values()) {
-            if (userSession.getHttpSession().getId().equals(sessionId)) {
-                return userSession;
-            }
-        }
-        return null;
-    }
+//    public UserSession findUserSessionById(String sessionId) {
+//        for (UserSession userSession : userSessionRepository.getAllUserSessions()) {
+//            if (userSession.getHttpSession().getId().equals(sessionId)) {
+//                return userSession;
+//            }
+//        }
+//        return null;
+//    }
 
     public boolean forceLogout(UserSession userSession, ForcedLogoutEvent.Reason reason) {
         if (userSession == null) {
@@ -98,7 +110,7 @@ public class ForceLogoutService {
     }
 
     private UserSession findUserSessionByConversationId(String sessionConversationUniqueId) {
-        for (UserSession userSession : userSessionRepository.getUserSessions().values()) {
+        for (UserSession userSession : userSessionRepository.getAllUserSessions()) {
             if (userSession.getConversationUniqueId().equals(sessionConversationUniqueId)) {
                 return userSession;
             }
@@ -107,7 +119,7 @@ public class ForceLogoutService {
     }
 
     private Collection<UserSession> findUserSessionsByUsername(String username) {
-        return userSessionRepository.getUserSessions().values().stream()
+        return userSessionRepository.getAllUserSessions().stream()
                 .filter(s -> s.getSystemUser().getLogin().equals(username))
                 .collect(Collectors.toList());
     }
