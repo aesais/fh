@@ -2,6 +2,7 @@ package pl.fhframework.core.session;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
@@ -27,6 +28,7 @@ import java.util.function.Consumer;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class UserSessionRepository implements HttpSessionListener, ApplicationListener<ContextRefreshedEvent> {
 
     private Map<String, UserSession> userSessionsByFhId = new ConcurrentHashMap<>();
@@ -247,7 +249,14 @@ public class UserSessionRepository implements HttpSessionListener, ApplicationLi
     }
 
     public Set<UserSession> getUserSessionsInHttpSession(HttpSession httpSession) {
-        return Collections.unmodifiableSet(userConversationsByHttpSessions.get(httpSession.getId()));
+        Set<UserSession> userSessions = userConversationsByHttpSessions.get(httpSession.getId());
+        if (userSessions != null) {
+            log.info("Found {} user sessions in http session {}", userSessions.size(), httpSession.getId());
+            return Collections.unmodifiableSet(userSessions);
+        }else{
+            log.warn("No user sessions in http session {}", httpSession.getId());
+            return Collections.emptySet();
+        }
     }
 
     public UserSession getUserSession(WebSocketSession webSocketSession) {

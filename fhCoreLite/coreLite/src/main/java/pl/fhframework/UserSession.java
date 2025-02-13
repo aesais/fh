@@ -100,9 +100,10 @@ public class UserSession extends Session {
 
     private Integer sustainTimeOutMinutesOverride;
 
-    public UserSession(SystemUser systemUser, UserSessionDescription description) {
+    public UserSession(SystemUser systemUser, UserSessionDescription description, HttpSession httpSession, String conversationId) {
         super(description);
         setSystemUser(systemUser);
+        setConversationId(conversationId);
     }
 
     @PostConstruct
