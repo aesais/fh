@@ -127,25 +127,26 @@ public class UserSessionRepository implements HttpSessionListener, ApplicationLi
         userSessionsByConversationId.remove(userSession.getConversationUniqueId());
         userConversations.remove(userSession.getConversationId());
         userConversationsByHttpSessions.get(userSession.getHttpSession().getId()).remove(userSession);
-        //removeSessionInfo(httpSessionId);
+        removeSessionInfo(userSession.getConversationUniqueId());
         return true;
     }
 
     private synchronized void putSessionInfo(String httpSessionId, UserSession userSession) {
         SessionInfo sessionInfo = new SessionInfo();
+        sessionInfo.setHttpSessionId(httpSessionId);
         sessionInfo.setSessionId(userSession.getConversationUniqueId());
         sessionInfo.setLogonTime(new Date(userSession.getCreationTimestamp().toEpochMilli()));
         sessionInfo.setUserName(userSession.getSystemUser().getLogin());
         sessionInfo.setNodeUrl(nodeUrl);
         // put into cache
         Map<String, SessionInfo> sessionsInfo = sessionInfoCache.getSessionsInfoForNode(nodeUrl);
-        sessionsInfo.put(httpSessionId, sessionInfo);
+        sessionsInfo.put(userSession.getConversationUniqueId(), sessionInfo);
         sessionInfoCache.putSessionsInfoForNode(nodeUrl, sessionsInfo);
     }
 
-    private synchronized void removeSessionInfo(String httpSessionId) {
+    private synchronized void removeSessionInfo(String conversationId) {
         Map<String, SessionInfo> sessionsInfo = sessionInfoCache.getSessionsInfoForNode(nodeUrl);
-        sessionsInfo.remove(httpSessionId);
+        sessionsInfo.remove(conversationId);
         sessionInfoCache.putSessionsInfoForNode(nodeUrl, sessionsInfo);
     }
 
