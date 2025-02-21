@@ -193,6 +193,7 @@
                         <phase>process-resources</phase>
                         <configuration>
                             <tasks>
+                                <!--suppress UnresolvedMavenProperty -->
                                 <copy todir="${project.build.outputDirectory}" preservelastmodified="true">
                                     <fileset dir="src/main/java">
                                         <include name="**/*.frm"/>
@@ -223,6 +224,7 @@
                         <manifestEntries>
                             <mode>development</mode>
                             <url>${project.url}</url>
+                            <!--suppress UnresolvedMavenProperty -->
                             <buildNumber>${buildNumber}</buildNumber>
                             <key>value</key>
                         </manifestEntries>
@@ -247,6 +249,7 @@
                     <forceAjcCompile>true</forceAjcCompile>
                     <sources/>
                     <weaveDirectories>
+                        <!--suppress UnresolvedMavenProperty -->
                         <weaveDirectory>${project.build.directory}/classes</weaveDirectory>
                     </weaveDirectories>
                     <aspectLibraries>

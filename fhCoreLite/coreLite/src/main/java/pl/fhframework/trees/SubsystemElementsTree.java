@@ -2,28 +2,28 @@ package pl.fhframework.trees;
 
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
+import pl.fhframework.ReflectionUtils;
+import pl.fhframework.annotations.ElementPresentedOnTree;
 import pl.fhframework.core.FhFormException;
 import pl.fhframework.core.io.FhResource;
 import pl.fhframework.core.logging.FhLogger;
 import pl.fhframework.core.uc.IInitialUseCase;
 import pl.fhframework.core.util.FileUtils;
-import pl.fhframework.ReflectionUtils;
-import pl.fhframework.annotations.ElementPresentedOnTree;
 import pl.fhframework.subsystems.ModuleRegistry;
 import pl.fhframework.subsystems.Subsystem;
 import pl.fhframework.subsystems.SubsystemManager;
 
 import java.io.IOException;
-import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
+
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 public abstract class SubsystemElementsTree {
 
     protected static final String MENU_CONFIGURATION_FILE_PATH = "menu.xml";
     protected static final long MINIMAL_TIME_BETWEEN_SOURCE_REFRESH = 10000;
-
 
     /*
     private Predicate<ITreeElement> filter;
@@ -161,23 +161,39 @@ public abstract class SubsystemElementsTree {
         return main.getSubelements();
     }
 
-    public static TreeRoot getDynamicGroupsAndSubsystemsHierarchy(Subsystem subsystem) {
-        TreeRoot treeRoot = new TreeRoot(subsystem);
+    private static FhResource findMenuResource(Subsystem subsystem){
         //first try generated menu.xml
         PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
         FhResource menuResource = subsystem.getBasePath().resolve(MENU_CONFIGURATION_FILE_PATH);
         if (!menuResource.exists()) {
             //try menu.xml from jar
-            try {
-                menuResource = FhResource.get(
-                        resolver.getResource(FileUtils.resolve(subsystem.getBaseClassPath(), MENU_CONFIGURATION_FILE_PATH).toExternalForm())
-                );
-            } catch (Exception e) {
-                FhLogger.warn(
-                        String.format("Cannot find %s file for subsystem %s", MENU_CONFIGURATION_FILE_PATH, subsystem.getLabel())
-                );
-                return treeRoot;
+            if (System.getProperty("dev.fh.menu.xml")!=null) {
+                try {
+                    menuResource = FhResource.get(
+                          resolver.getResource(FileUtils.resolve(subsystem.getBaseClassPath(), System.getProperty("dev.fh.menu.xml"))
+                                                        .toExternalForm()));
+                } catch (Exception ignored) {}
             }
+            if (!menuResource.exists()) {
+                try {
+                    menuResource = FhResource.get(
+                          resolver.getResource(FileUtils.resolve(subsystem.getBaseClassPath(), MENU_CONFIGURATION_FILE_PATH)
+                                                        .toExternalForm()));
+                } catch (Exception e) {
+                    FhLogger.warn(String.format("Cannot find %s file for subsystem %s", MENU_CONFIGURATION_FILE_PATH, subsystem.getLabel()));
+                    return null;
+                }
+            }
+        }
+        return menuResource;
+    }
+
+    public static TreeRoot getDynamicGroupsAndSubsystemsHierarchy(Subsystem subsystem) {
+        TreeRoot treeRoot = new TreeRoot(subsystem);
+
+        FhResource menuResource = findMenuResource(subsystem);
+        if (menuResource==null) {
+            return treeRoot;
         }
 
         treeRoot.setResourceLastChecked(System.currentTimeMillis());
@@ -197,8 +213,8 @@ public abstract class SubsystemElementsTree {
         long delta =  currentTime - treeRoot.getResourceLastChecked();
         if (delta > MINIMAL_TIME_BETWEEN_SOURCE_REFRESH) {
             treeRoot.setResourceLastChecked(currentTime);
-            FhResource menuResource = treeRoot.getSubsystem().getBasePath().resolve(MENU_CONFIGURATION_FILE_PATH);
-            if (menuResource.exists()) {
+            FhResource menuResource = findMenuResource(treeRoot.getSubsystem());
+            if (menuResource!=null && menuResource.exists()) {
                 long resourceModificationTime = FileUtils.getLastModified(menuResource).toEpochMilli();
                 return resourceModificationTime != treeRoot.getResourceTimestamp();
             }
@@ -213,12 +229,15 @@ public abstract class SubsystemElementsTree {
      * @param xml xml menu content
      */
     public void exportMenu(Subsystem subsystem, String xml) {
-        FhResource menuResource = subsystem.getBasePath().resolve(MENU_CONFIGURATION_FILE_PATH);
+        FhResource menuResource = findMenuResource(subsystem);
+        if (menuResource==null) {
+            return;
+        }
 
         Path targetPath = menuResource.getExternalPath();
         try {
             Files.createDirectories(targetPath.getParent());
-            Files.write(targetPath, xml.getBytes(Charset.forName("UTF-8")));
+            Files.write(targetPath, xml.getBytes(UTF_8));
         } catch (IOException e) {
             throw new FhFormException("Error writing: " + e.getMessage(), e);
         }

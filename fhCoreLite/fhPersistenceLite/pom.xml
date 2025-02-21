@@ -72,6 +72,7 @@
                         <manifestEntries>
                             <mode>development</mode>
                             <url>${project.url}</url>
+                            <!--suppress UnresolvedMavenProperty -->
                             <buildNumber>${buildNumber}</buildNumber>
                             <key>value</key>
                         </manifestEntries>
