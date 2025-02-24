@@ -1,5 +1,6 @@
 package pl.fhframework.core.web;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
@@ -12,6 +13,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.util.UriUtils;
+import pl.fhframework.UserSessionSharedData;
 import pl.fhframework.core.logging.FhLogger;
 import pl.fhframework.BindingResult;
 import pl.fhframework.SessionManager;
@@ -33,6 +35,7 @@ import java.util.*;
 /**
  * File upload and download web controller.
  */
+@Slf4j
 @Controller
 public class FileUploadDownloadController {
 
@@ -49,12 +52,14 @@ public class FileUploadDownloadController {
     ResponseEntity<Map<?, ?>> fileUpload(@RequestParam("file") MultipartFile[] file,
                                          @RequestParam("formId") String formId,
                                          @RequestParam("componentId") String componentId) throws IOException {
-        UserSession userSession = SessionManager.getUserSession();
-        if (userSession == null) {
+        UserSessionSharedData userSessionSharedData = SessionManager.getUserSessionSharedData();
+
+        if (userSessionSharedData == null) {
             FhLogger.error("Must be an authenticated user");
             return new ResponseEntity<>(null, HttpStatus.UNAUTHORIZED);
         }
-        final Optional<Form<?>> formOpt = userSession.getUseCaseContainer().getFormsContainer().findActiveFormById(formId);
+        UserSession myConversation = getMatchingConversation(formId);
+        final Optional<Form<?>> formOpt = myConversation.getUseCaseContainer().getFormsContainer().findActiveFormById(formId);
         if (!formOpt.isPresent()) {
             FhLogger.error("No active currently presented form.");
             return new ResponseEntity<>(null, HttpStatus.PRECONDITION_FAILED);
@@ -95,7 +100,7 @@ public class FileUploadDownloadController {
 
             List<String> fileIds = new ArrayList<>();
             for (MultipartFile file_ : file) {
-                fileIds.add(fileService.save(file_, userSession));
+                fileIds.add(fileService.save(file_, userSessionSharedData));
             }
             map.put("ids", fileIds);
             return new ResponseEntity<>(map, HttpStatus.CREATED);
@@ -107,7 +112,7 @@ public class FileUploadDownloadController {
 
     @RequestMapping(value = FILE_DOWNLOAD_URL + "/formElement", method = RequestMethod.GET, produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
     public void fileDownloadForFormElementId(@RequestParam String id, @RequestParam("formId") String formId, HttpServletResponse response) throws IOException {
-        UserSession userSession = SessionManager.getUserSession();
+        UserSession userSession = getMatchingConversation(formId);
         if (userSession == null) {
             sendError(response, HttpStatus.UNAUTHORIZED, "Must be an authenticated user");
             return;
@@ -131,7 +136,7 @@ public class FileUploadDownloadController {
 
     @RequestMapping(value = FILE_DOWNLOAD_URL + "/binding", method = RequestMethod.GET, produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
     public void fileDownloadForBinding(@RequestParam String binding, @RequestParam String formId, HttpServletResponse response) throws IOException {
-        UserSession userSession = SessionManager.getUserSession();
+        UserSession userSession = getMatchingConversation(formId);
         if (userSession == null) {
             sendError(response, HttpStatus.UNAUTHORIZED, "Must be an authenticated user");
             return;
@@ -153,12 +158,12 @@ public class FileUploadDownloadController {
 
     @RequestMapping(value = FILE_DOWNLOAD_URL + "/resource/{resourceId}", method = RequestMethod.GET, produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
     public void fileDownloadForResource(@PathVariable String resourceId, HttpServletResponse response) throws IOException {
-        UserSession userSession = SessionManager.getUserSession();
-        if (userSession == null) {
+        UserSessionSharedData sharedData = SessionManager.getUserSessionSharedData();
+        if (sharedData == null) {
             sendError(response, HttpStatus.UNAUTHORIZED, "Must be an authenticated user");
             return;
         }
-        streamResource(userSession.getDownloadFileIndexes().get(resourceId), response);
+        streamResource(sharedData.getDownloadFileIndexes().get(resourceId), response);
     }
 
     private void streamResource(Resource resource, HttpServletResponse response) throws IOException {
@@ -206,5 +211,14 @@ public class FileUploadDownloadController {
     private void sendError(HttpServletResponse response, HttpStatus status, String errorMessage) throws IOException {
         FhLogger.error(errorMessage);
         response.sendError(status.value(), errorMessage);
+    }
+
+    private UserSession getMatchingConversation(String formId) {
+        Set<UserSession> userSessions = SessionManager.getUserSessionsInCurrentScope();
+        UserSession myConversation = userSessions.stream()
+                .filter(us -> us.getUseCaseContainer().getFormsContainer().findActiveFormById(formId).isPresent())
+                .findAny()
+                .orElse(null);
+        return myConversation;
     }
 }

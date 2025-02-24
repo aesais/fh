@@ -5,6 +5,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import pl.fhframework.UserSessionSharedData;
 import pl.fhframework.core.logging.FhLogger;
 import pl.fhframework.UserSession;
 
@@ -20,9 +21,9 @@ public final class FileService {
 
     private static Path tempDirectory;
 
-    public String save(MultipartFile file, UserSession userSession) throws IOException {
+    public String save(MultipartFile file, UserSessionSharedData userSessionSharedData) throws IOException {
         String fileName = cutFileName(file.getOriginalFilename());
-        Pair<String, TemporaryResource> temporaryResource = createNewTemporaryResource(fileName, userSession);
+        Pair<String, TemporaryResource> temporaryResource = createNewTemporaryResource(fileName, userSessionSharedData);
         temporaryResource.getSecond().setContentType(file.getContentType());
         File temporaryFile = temporaryResource.getSecond().getFile();
         file.transferTo(temporaryFile.toPath());
@@ -30,11 +31,11 @@ public final class FileService {
         return temporaryResource.getFirst();
     }
 
-    public Path generateHolder(String fileName, UserSession userSession) throws IOException {
+    public Path generateHolder(String fileName, UserSessionSharedData userSessionSharedData) throws IOException {
         String uuid = UUID.randomUUID().toString();
         Path tempFilePath = Files.createTempFile(getTempDirectoryInstance(), fileName + TemporaryResource.TEMP_FILE_PREFIX + uuid, "");
         File temporaryFile = tempFilePath.toFile();
-        userSession.getUploadFileIndexes().put(uuid, new TemporaryResource(temporaryFile));
+        userSessionSharedData.getUploadFileIndexes().put(uuid, new TemporaryResource(temporaryFile));
         return tempFilePath;
     }
 
@@ -42,8 +43,8 @@ public final class FileService {
         return FilenameUtils.getBaseName(originalFilename) + "." + FilenameUtils.getExtension(originalFilename);
     }
 
-    public TemporaryResource getResource(String fileId, UserSession userSession) {
-        return userSession.getUploadFileIndexes().get(fileId);
+    public TemporaryResource getResource(String fileId, UserSessionSharedData userSessionSharedData) {
+        return userSessionSharedData.getUploadFileIndexes().get(fileId);
     }
 
     public Path getTempDirectoryInstance() throws IOException {
@@ -62,15 +63,15 @@ public final class FileService {
     }
 
     public void deleteUserTemporaryFiles(UserSession userSession) {
-        userSession.getUploadFileIndexes().values().forEach(r -> r.getFile().delete());
+        userSession.getSharedData().getUploadFileIndexes().values().forEach(r -> r.getFile().delete());
     }
 
-    public Pair<String, TemporaryResource> createNewTemporaryResource(String fileName, UserSession userSession) throws IOException {
+    public Pair<String, TemporaryResource> createNewTemporaryResource(String fileName, UserSessionSharedData userSessionSharedData) throws IOException {
         Path tempFilePath = Files.createTempFile(getTempDirectoryInstance(), fileName + TemporaryResource.TEMP_FILE_PREFIX, "");
         File temporaryFile = tempFilePath.toFile();
         String uuid = UUID.randomUUID().toString();
         TemporaryResource temporaryResource = new TemporaryResource(temporaryFile);
-        userSession.getUploadFileIndexes().put(uuid, temporaryResource);
+        userSessionSharedData.getUploadFileIndexes().put(uuid, temporaryResource);
         return Pair.of(uuid, temporaryResource);
     }
 }

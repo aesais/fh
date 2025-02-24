@@ -12,7 +12,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
+import java.util.Set;
 
 /**
  * Interceptor for REST controllers that attaches UserSession object to SessionManager.
@@ -25,18 +25,24 @@ public class RestUserSessionAttacher implements HandlerInterceptor {
 
     @Autowired
     private List<IRestUserSessionFinder> sessionFinders;
+    @Autowired
+    UserSessionRepository userSessionRepository;
 
     @Override
     public boolean preHandle(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, Object o) throws Exception {
+        Set<UserSession> conversationsInScope = userSessionRepository.getUserSessionsInHttpSession(httpServletRequest.getSession());
+        if (conversationsInScope!=null){
+            SessionManager.registerThreadSessionManager(new SessionHoldingSessionManager(conversationsInScope));
+            httpServletRequest.setAttribute(MARKER_ATTRIBUTE, true);
+        }
         for (IRestUserSessionFinder sessionFinder : sessionFinders) {
-            Optional<UserSession> userSessionOpt = sessionFinder.getUserSession(httpServletRequest);
-            if (userSessionOpt.isPresent()) {
-                UserSession userSession = userSessionOpt.get();
-                Map<String, String[]> map = (HashMap<String, String[]>) userSession.getAttributes().computeIfAbsent(
-                      "URL_PARAM", k -> new HashMap<String, String[]>());
-                map.putAll(httpServletRequest.getParameterMap());
-                SessionManager.registerThreadSessionManager(new SessionHoldingSessionManager(userSession));
-                httpServletRequest.setAttribute(MARKER_ATTRIBUTE, true);
+            Set<UserSession> userConversations = sessionFinder.getUserConversationsForSameHttpSession(httpServletRequest);
+            if (!userConversations.isEmpty()) {
+                for (UserSession conversation : userConversations) {
+                    Map<String, String[]> map = (HashMap<String, String[]>) conversation.getAttributes().computeIfAbsent(
+                            "URL_PARAM", k -> new HashMap<String, String[]>());
+                    map.putAll(httpServletRequest.getParameterMap());
+                }
                 break;
             }
         }

@@ -13,7 +13,9 @@ import pl.fhframework.core.util.StringUtils;
 import pl.fhframework.model.dto.InMessageEventData;
 
 import java.lang.ref.WeakReference;
+import java.util.Collections;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -154,6 +156,11 @@ public class ExternalUseCaseRegistry {
         @Override
         public UserSession getSession() {
             return userSession;
+        }
+
+        @Override
+        public Set<UserSession> getSessionsInCurrentScope() {
+            return Collections.singleton(userSession);
         }
 
     }

@@ -103,7 +103,7 @@ public class WebSocketFormsHandler extends FormsHandler {
         } else {
             try {
                 SystemUser systemUser = securityManager.buildSystemUser(session.getPrincipal());
-                boundSession = applicationContext.getBean(UserSession.class, systemUser, createDescription(session), WebSocketSessionManager.getHttpSession(), session.getId());//new UserSession(this, systemUser, description);
+                boundSession = WebSocketSessionManager.issueNewConversation(systemUser, session);
                 boundSession.setHttpSession(WebSocketSessionManager.getHttpSession());
                 updateSessionAttributes(boundSession);
                 WebSocketSessionManager.setUserSession(boundSession);
@@ -114,7 +114,7 @@ public class WebSocketFormsHandler extends FormsHandler {
                 FhLogger.error("Error creating session", e);
                 SystemUser systemUser = new SystemUser(session.getPrincipal());
                 systemUser.getBusinessRoles().add(new NoneBusinessRole());
-                boundSession = applicationContext.getBean(UserSession.class, systemUser, createDescription(session), WebSocketSessionManager.getHttpSession(), session.getId());//new UserSession(this, systemUser, description);
+                boundSession = WebSocketSessionManager.issueNewConversation(systemUser, session);
                 boundSession.setHttpSession(WebSocketSessionManager.getHttpSession());
                 WebSocketSessionManager.setUserSession(boundSession);
                 boundSession.setException(e);
@@ -160,16 +160,6 @@ public class WebSocketFormsHandler extends FormsHandler {
     private void transportError(WebSocketSession session, Throwable exception) throws IOException {
         serviceTransportError(exception);
         session.close(CloseStatus.SERVER_ERROR);
-    }
-
-    private UserSessionDescription createDescription(WebSocketSession session) {
-        UserSessionDescription description = new UserSessionDescription();
-        description.setServerAddress(session.getLocalAddress().toString());
-        description.setClientInfo(session.getHandshakeHeaders().getFirst(HttpHeaders.USER_AGENT));
-        description.setHandshakeHeaders(session.getHandshakeHeaders());
-        description.setUserAddress(session.getRemoteAddress().toString());
-        description.setConversationUniqueId(Long.toHexString(new Random().nextLong()));
-        return description;
     }
 
     @Override

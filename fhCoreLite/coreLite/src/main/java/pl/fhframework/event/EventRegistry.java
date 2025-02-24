@@ -30,7 +30,7 @@ public class EventRegistry {
 
     public void fireDownloadEvent(Resource resource) {
         String uuid = UUID.randomUUID().toString();
-        SessionManager.getUserSession().getDownloadFileIndexes().put(uuid, resource);
+        SessionManager.getUserSessionSharedData().getDownloadFileIndexes().put(uuid, resource);
 
         fireDownloadEvent(FILE_DOWNLOAD_RESOURCE_URL + uuid);
     }

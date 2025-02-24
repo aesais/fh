@@ -65,7 +65,7 @@ public class CsvService {
         try {
             return fileService.createNewTemporaryResource(
                     UUID.randomUUID().toString() + ".csv",
-                    SessionManager.getUserSession()
+                    SessionManager.getUserSessionSharedData()
             ).getSecond();
         } catch (IOException e) {
             throw new FhException("Cannot create empty CSV file.", e);

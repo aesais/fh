@@ -167,7 +167,7 @@ public class JrReportUtils {
 
             virtualizer.setReadOnly(true);
 
-            Path pathToReport = fileService.generateHolder(raportName.getBaseClassName() + extension, SessionManager.getUserSession());
+            Path pathToReport = fileService.generateHolder(raportName.getBaseClassName() + extension, SessionManager.getUserSessionSharedData());
 
             exportFunction.accept(jasperPrint, pathToReport.toFile().getAbsolutePath());
 

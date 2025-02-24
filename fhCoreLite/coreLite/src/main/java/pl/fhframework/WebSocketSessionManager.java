@@ -4,6 +4,7 @@ package pl.fhframework;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.context.i18n.LocaleContextHolder;
+import org.springframework.http.HttpHeaders;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.servlet.i18n.SessionLocaleResolver;
 import org.springframework.web.socket.WebSocketSession;
@@ -11,10 +12,14 @@ import pl.fhframework.aspects.ApplicationContextHolder;
 import pl.fhframework.core.logging.FhLogger;
 import pl.fhframework.core.logging.LogLevel;
 import pl.fhframework.core.session.UserSessionRepository;
+import pl.fhframework.model.security.SystemUser;
 
 import javax.servlet.http.HttpSession;
 import java.io.Serializable;
+import java.util.Collections;
 import java.util.Locale;
+import java.util.Random;
+import java.util.Set;
 
 /**
  * Manager of user context in terms of interrelated web socket session , http session and user session
@@ -169,6 +174,11 @@ public class WebSocketSessionManager implements ISessionManagerImpl {
         return getUserSessionRepository().getUserSession(getWebSocketSession());
     }
 
+    @Override
+    public Set<UserSession> getSessionsInCurrentScope() {
+        return Collections.singleton(getSession());
+    }
+
     public static WebSocketSession getWebSocketSession() {
         return threadLocalSession.get();
     }
@@ -178,6 +188,17 @@ public class WebSocketSessionManager implements ISessionManagerImpl {
     }
 
     private WebSocketSessionManager() {
+    }
+
+    public static UserSession issueNewConversation(SystemUser systemUser, WebSocketSession session) {
+        HttpSession httpSession = getHttpSession();
+        //First we try take shared data from previous conversation - all conversations within the same http session share SharedData object.
+        UserSessionSharedData sharedData = getUserSessionRepository().getUserSessionSharedData(httpSession);
+        if (sharedData == null) {
+            //If it is first conversation within http session we prepare structures and create new shared data between conversations in the same http session
+            sharedData = new UserSessionSharedData(httpSession.getId());
+        }
+        return ApplicationContextHolder.getApplicationContext().getBean(UserSession.class, systemUser, createDescription(session), sharedData, session.getId());
     }
 
     public static HttpSession getHttpSession(WebSocketSession session) {
@@ -194,5 +215,15 @@ public class WebSocketSessionManager implements ISessionManagerImpl {
 
     private static UserSessionRepository getUserSessionRepository() {
         return ApplicationContextHolder.getApplicationContext().getBean(UserSessionRepository.class);
+    }
+
+    private static UserSessionDescription createDescription(WebSocketSession session) {
+        UserSessionDescription description = new UserSessionDescription();
+        description.setServerAddress(session.getLocalAddress().toString());
+        description.setClientInfo(session.getHandshakeHeaders().getFirst(HttpHeaders.USER_AGENT));
+        description.setHandshakeHeaders(session.getHandshakeHeaders());
+        description.setUserAddress(session.getRemoteAddress().toString());
+        description.setConversationUniqueId(Long.toHexString(new Random().nextLong()));
+        return description;
     }
 }

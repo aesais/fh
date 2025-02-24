@@ -2,6 +2,7 @@ package pl.fhframework;
 
 
 import pl.fhframework.model.security.SystemUser;
+import java.util.Set;
 
 /**
  * Manager of user context and session.
@@ -23,6 +24,21 @@ public abstract class SessionManager {
     public static UserSession getUserSession() {
         ISessionManagerImpl instance = THREAD_SESSION_MANAGER.get();
         return instance != null && instance.getSession() instanceof UserSession ? (UserSession) instance.getSession() : null;
+    }
+
+    public static Set<UserSession> getUserSessionsInCurrentScope() {
+        ISessionManagerImpl instance = THREAD_SESSION_MANAGER.get();
+        return instance != null ? instance.getSessionsInCurrentScope() : null;
+    }
+
+    public static UserSessionSharedData getUserSessionSharedData() {
+        //return THREAD_SESSION_SHARED_DATA.get();
+        Set<UserSession> userSessions = getUserSessionsInCurrentScope();
+        if (userSessions != null && !userSessions.isEmpty()) {
+            return userSessions.iterator().next().getSharedData();
+        } else{
+            return null;
+        }
     }
 
     public static SystemUser getSystemUser() {

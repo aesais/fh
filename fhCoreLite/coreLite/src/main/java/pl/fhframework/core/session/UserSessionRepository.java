@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.socket.WebSocketSession;
 import pl.fhframework.UserSession;
+import pl.fhframework.UserSessionSharedData;
 import pl.fhframework.WebSocketSessionManager;
 import pl.fhframework.core.logging.FhLogger;
 import pl.fhframework.core.security.model.SessionInfo;
@@ -268,4 +269,25 @@ public class UserSessionRepository implements HttpSessionListener, ApplicationLi
         return new HashSet<>(userConversations.values());
     }
 
+    public UserSessionSharedData getUserSessionSharedData(HttpSession httpSession) {
+        Set<UserSession> userSessions = userConversationsByHttpSessions.get(httpSession.getId());
+        if (userSessions != null) {
+            log.info("Found {} user sessions in http session {}", userSessions.size(), httpSession.getId());
+            return getUserSessionSharedData(httpSession.getId());
+        }else{
+            log.warn("Can't get shared data for session due to http session with id {}", httpSession.getId());
+            return null;
+        }
+    }
+
+    private UserSessionSharedData getUserSessionSharedData(String httpSessionId) {
+        Set<UserSession> userSessions = userConversationsByHttpSessions.get(httpSessionId);
+        if (userSessions != null) {
+            return userSessions.stream()
+                    .map(UserSession::getSharedData)
+                    .findFirst().orElse(new UserSessionSharedData(httpSessionId));
+        }else{
+            return null;
+        }
+    }
 }

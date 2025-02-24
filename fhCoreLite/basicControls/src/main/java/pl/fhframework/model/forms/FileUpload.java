@@ -206,7 +206,7 @@ public class FileUpload extends FormElement implements TableComponent<FileUpload
         if (this.multiple) {
             List<Resource> tempResources = new ArrayList<>();
             fileIds.forEach(c -> {
-                Resource tempResource = fileService.getResource(c, SessionManager.getUserSession());
+                Resource tempResource = fileService.getResource(c, SessionManager.getUserSessionSharedData());
                 tempResources.add(tempResource);
             });
 
@@ -215,7 +215,7 @@ public class FileUpload extends FormElement implements TableComponent<FileUpload
             }
             filesModelBinding.setValue(tempResources);
         } else {
-            Resource tempResource = fileService.getResource(fileIds.get(0), SessionManager.getUserSession());
+            Resource tempResource = fileService.getResource(fileIds.get(0), SessionManager.getUserSessionSharedData());
 
             if (fileModelBinding == null) {
                 throw new FhException("File container binding not set. Please bind resource to {file} option.");

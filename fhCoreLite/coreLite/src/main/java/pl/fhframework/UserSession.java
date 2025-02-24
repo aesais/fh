@@ -41,6 +41,8 @@ public class UserSession extends Session {
 
     private static final int ERROR_INFORMATION_LIMIT = 10;
 
+    private final UserSessionSharedData sharedData;
+
     @Getter
     private UseCaseContainer useCaseContainer;
 
@@ -52,9 +54,6 @@ public class UserSession extends Session {
 
     @Autowired
     private IValidationResults validationResults;
-
-    private Map<String, TemporaryResource> uploadFileIndexes = new HashMap<>();
-    private Map<String, Resource> downloadFileIndexes = new HashMap<>();
 
     private List<ErrorInformation> awaitingErrorInformations = new ArrayList<>();
 
@@ -100,8 +99,9 @@ public class UserSession extends Session {
 
     private Integer sustainTimeOutMinutesOverride;
 
-    public UserSession(SystemUser systemUser, UserSessionDescription description, HttpSession httpSession, String conversationId) {
+    public UserSession(SystemUser systemUser, UserSessionDescription description, UserSessionSharedData userSessionSharedData, String conversationId) {
         super(description);
+        this.sharedData = userSessionSharedData;
         setSystemUser(systemUser);
         setConversationId(conversationId);
     }

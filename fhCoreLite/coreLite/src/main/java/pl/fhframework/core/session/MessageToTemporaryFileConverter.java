@@ -46,7 +46,7 @@ public class MessageToTemporaryFileConverter implements HttpMessageConverter<Tem
     @Override
     public TemporaryResource read(Class<? extends TemporaryResource> clazz, HttpInputMessage inputMessage) throws IOException, HttpMessageNotReadableException {
         String filename = inputMessage.getHeaders().getFirst("X-Log-Filename");
-        TemporaryResource temp = fileService.createNewTemporaryResource(filename, SessionManager.getUserSession()).getSecond();
+        TemporaryResource temp = fileService.createNewTemporaryResource(filename, SessionManager.getUserSessionSharedData()).getSecond();
         try (OutputStream tempOutput = temp.getOutputStream()) {
             StreamUtils.copy(inputMessage.getBody(), tempOutput);
         }
