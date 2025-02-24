@@ -161,10 +161,10 @@ public class UserSession extends Session {
             if (cookiesStr != null) {
                 for (String cookieLine : cookiesStr) {
                     for (String cookieStr : cookieLine.split(";")) {
-                        if (cookieStr.contains(CommonHttpHeaders.JSESSIONID)
-                                || cookieStr.contains(CommonHttpHeaders.CSRF)) {
+//                        if (cookieStr.contains(CommonHttpHeaders.JSESSIONID)
+//                                || cookieStr.contains(CommonHttpHeaders.CSRF)) {
                             sessionCookies.add(cookieStr);
-                        }
+//                        }
                     }
                 }
             }
