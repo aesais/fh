@@ -325,8 +325,8 @@ class Connector {
             try {
                 data = JSON.parse(stringData);
             } catch (e) {
-                data = JSON.parse("{}")
                 console.warn("Niepoprawny JSON:", stringData);
+                throw e;
             }
 
 
