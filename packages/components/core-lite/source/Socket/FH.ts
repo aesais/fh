@@ -32,8 +32,9 @@ class FH {
 
     public init() {
         this.socketHandler.selectBestConnector();
-        this.socketHandler.activeConnector.connect(function (connectionIdJson) {
+        this.socketHandler.activeConnector.connect(function (request:any, connectionIdJson) {
             this.socketHandler.connectionId = connectionIdJson.sessionId;
+
 
             var requestId = this.socketHandler.activeConnector.getSubsystemMetadata(
                 function (requestId, data) {
@@ -46,6 +47,9 @@ class FH {
                     }
                 }.bind(this));
             this.applicationLock.enable(requestId);
+
+            sessionStorage.setItem('fh_connection', JSON.stringify(connectionIdJson));
+
         }.bind(this));
 
         $(function () {
@@ -77,6 +81,9 @@ class FH {
                     }
                 }.bind(this));
             this.applicationLock.enable(requestId);
+
+            sessionStorage.setItem('fh_connection_external', JSON.stringify(connectionIdJson));
+
         }.bind(this), socketUrl);
 
         $(function () {
@@ -151,6 +158,8 @@ class FH {
         // other browser
         return false;
     }
+
+
 }
 
 export {FH};

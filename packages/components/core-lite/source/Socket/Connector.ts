@@ -83,16 +83,24 @@ class Connector {
             console.log(this.retryCount, Math.floor(new Date().getTime() / 1000),
                 'Trying to connect to "' + this.target + '"');
         }
+
+        let conversationParam = "";
+        let sessionData:any = sessionStorage.getItem("fh_connection");
+        if(sessionData){
+            conversationParam = "?conversationId="+ JSON.parse(sessionData).converstaionId;
+        }
+
+
         // in Liferay target has full path (socketUrl)
         if (this.target.indexOf('wss://') == 0 || this.target.indexOf('ws://') == 0) {
-            this.ws = new WebSocket(this.target);
+            this.ws = new WebSocket(this.target + conversationParam);
         } else {
             var protocol = ('https:' === document.location.protocol ? 'wss://' : 'ws://');
             let path = protocol + location.host + this.target;
             if (!this.target.startsWith('/')) {
                 path = protocol + location.host + '/' + this.target;
             }
-            this.ws = new WebSocket(path);
+            this.ws = new WebSocket(path + conversationParam);
         }
 
         this.ws.onopen = this.onOpen.bind(this);
@@ -113,7 +121,14 @@ class Connector {
                 'Trying to connect to "' + socketUrl + '"');
         }
 
-        this.ws = new WebSocket(socketUrl);
+        let conversationParam = "";
+        let sessionData:any = sessionStorage.getItem("fh_connection_external");
+        if(sessionData){
+
+            conversationParam = "?conversationId="+JSON.parse(sessionData).converstaionId;
+        }
+
+        this.ws = new WebSocket(socketUrl + conversationParam);
 
         this.ws.onopen = this.onOpen.bind(this);
         this.ws.onclose = this.onClose.bind(this);
@@ -230,6 +245,7 @@ class Connector {
                 return;
             }
             connector.serverAlive = result.status === 200;
+
 
             connector.connect(undefined);
         }).catch(error => {

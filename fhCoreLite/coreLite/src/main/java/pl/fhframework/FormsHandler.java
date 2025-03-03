@@ -230,7 +230,7 @@ public abstract class FormsHandler {
     protected void serviceRequestImpl(AbstractMessage message, String requestId, WebSocketContext context) throws IOException {
         switch (message.getCommand()) {
             case Commands.IN_GET_SESSION_ID:
-                sendResponse(requestId, new OutMessageSessionMetadata(this.getConnectionId()));
+                sendResponse(requestId, new OutMessageSessionMetadata(this.getConnectionId(), this.getUserSession(context).getConversationId()));
                 break;
             case Commands.IN_INIT:
                 init((InMessageInit) message, requestId, context);
