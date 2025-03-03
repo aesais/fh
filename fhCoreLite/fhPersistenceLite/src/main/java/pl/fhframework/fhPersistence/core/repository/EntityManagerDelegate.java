@@ -36,6 +36,6 @@ public class EntityManagerDelegate implements EntityManager {
     }
 
     private boolean noSessionContext() {
-        return SessionManager.getSession() == null;
+        return SessionManager.getUserSessionsInCurrentScope() == null || SessionManager.getUserSessionsInCurrentScope().isEmpty();
     }
 }
