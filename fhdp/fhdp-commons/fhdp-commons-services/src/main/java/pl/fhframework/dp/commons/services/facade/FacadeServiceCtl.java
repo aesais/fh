@@ -10,6 +10,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
+import pl.fhframework.core.i18n.MessageService;
+import pl.fhframework.core.uc.handlers.INoFormHandler;
+import pl.fhframework.dp.commons.base.exception.AppMsgRuntimeException;
 import pl.fhframework.dp.commons.base.exception.IAppMsgException;
 import pl.fhframework.dp.commons.base.model.IPersistentObject;
 import pl.fhframework.dp.commons.rest.*;
@@ -34,6 +37,9 @@ public class FacadeServiceCtl implements IFacadeService {
 
     @Autowired
     ApplicationContext appContext;
+
+    @Autowired
+    private MessageService messageService;
 
     private static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss.SSS");
 
@@ -389,7 +395,11 @@ public class FacadeServiceCtl implements IFacadeService {
         if (!submitErrorsToGUI){
             stamp = "["+sdf.format(new Date())+"] ";
         }
-        if (ex instanceof IAppMsgException) {
+        if (ex instanceof IAppMsgException && ex.getMessage().contains("-3:")) {
+            message = stamp+messageService.getAllBundles().getMessage("fh.core.facade.optimistic.lock");
+            submitErrorsToGUI = true;
+            LoggerFactory.getLogger(this.getClass()).error(message, ex);
+        } else if (ex instanceof IAppMsgException) {
             message = stamp+ex.getMessage();
             LoggerFactory.getLogger(this.getClass()).error(message, ex);
         } else if(ex instanceof PersistenceException) {

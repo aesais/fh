@@ -228,6 +228,9 @@ class DictionaryComboFhDP extends ComboFhDP implements LanguageChangeObserver {
             if(this.componentObj.lastValue && this.rawValue == this.lastValue){
                 group.classList.add('hide-old-value');
             }
+            if(!this.componentObj.lastValue && !this.rawValue){
+                group.classList.add('hide-old-value');
+            }
 
             groupSpan.innerText = lastValueText;
             group.appendChild(groupSpan);
