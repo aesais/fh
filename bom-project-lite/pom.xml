@@ -12,7 +12,7 @@
     <parent>
         <groupId>pl.fhframework</groupId>
         <artifactId>fhFramework</artifactId>
-        <version>4.10.5.PL.26-SNAPSHOT</version>
+        <version>4.10.5.PL.26-MULTOWINDOW</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
