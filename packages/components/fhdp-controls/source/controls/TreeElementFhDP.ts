@@ -18,12 +18,12 @@ class TreeElementFhDP extends TreeElement {
     this.expandedException = componentObj.expandedException;
     console.log('expandedException', this.expandedException);
     this.onLabelClickOverride = componentObj.onLabelClick;
-    this.selectedOverride = componentObj.selected || false;
     this.labelOverride = componentObj.label;
+    this.selectedOverride = componentObj.selected || false;
     this.isCustomHighlight = componentObj.isHighlight;
     this.customHighlightColor = componentObj.highlightColor;
     this.selectedNewItem = this.componentObj.selectedNewItem ?? true;
-    TreeElementHelper.getInstance().registerElement(this);
+    TreeElementHelper.getInstance().registerElement(this as any);
   }
 
   create() {
@@ -40,16 +40,14 @@ class TreeElementFhDP extends TreeElement {
         }
       }
 
-      if(this.accessibility !== 'HIDDEN') {
-        let regex = /[a-zA-Z_0-9]+\[0\]/;
-        if (this.id.endsWith('[0]')) {
-          let match = this.id.match(regex);
-          if (match && match.length && match[0] === this.id) {
-            this.setCurrent(true);
-            this.selectBranch(document.getElementById(this.id));
-          }
-        }
+      if (this.selectedOverride) {
+        this.setCurrent(true)
+        this.component.classList.add("selected");
+      } else {
+        this.setCurrent(false)
+        this.component.classList.remove("selected");
       }
+
     }
   }
 
@@ -149,10 +147,11 @@ class TreeElementFhDP extends TreeElement {
     event.stopPropagation();
     TreeElementHelper.getInstance().setCurrent(this);
 
+    this.selectedOverride = !this.selectedOverride;
     this.changesQueue.queueAttributeChange('selected', this.selectedOverride);
 
     if (this.onLabelClickOverride) {
-        this.fireEventWithLock('onLabelClick', "onLabelClick");
+      this.fireEventWithLock('onLabelClick', "onLabelClick");
     }
     return false;
   };
