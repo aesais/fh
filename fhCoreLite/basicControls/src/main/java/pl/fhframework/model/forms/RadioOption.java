@@ -80,6 +80,7 @@ public class RadioOption extends BaseInputField implements IPairableComponent<St
 
         if (groupModelBinding instanceof CompiledBinding) {
             resultHash = Objects.hash(
+                    ((CompiledBinding) groupModelBinding).getBindingExpression(),
                     ((CompiledBinding) groupModelBinding).getTargetType(),
                     groupModelBinding.getBindingResult().getAttributeName()
             );

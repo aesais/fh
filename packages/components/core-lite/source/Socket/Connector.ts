@@ -321,7 +321,14 @@ class Connector {
         let receivedData = event.data.slice(i + 1);
         //Message decompression (if any compression used)
         this.decompressData(receivedData, stringData =>{
-            var data = JSON.parse(stringData);
+            var data;
+            try {
+                data = JSON.parse(stringData);
+            } catch (e) {
+                console.warn("Niepoprawny JSON:", stringData);
+                throw e;
+            }
+
 
             if (ENV_IS_DEVELOPMENT) {
                 console.log('Received:', data);
