@@ -416,7 +416,7 @@ export const DictionaryComboFhDPPopperTable: React.FC<Props> = (props: Props) =>
                     </table>
                 </div>
                 {generatePagination(generate)}
-            </div>), document.getElementById('fh-layout-standard'), `dictionary-combo-popper-portal-key`);
+            </div>), document.body, `dictionary-combo-popper-portal-key`);
     }
 
     return (
