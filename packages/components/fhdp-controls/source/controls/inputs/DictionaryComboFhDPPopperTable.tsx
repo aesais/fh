@@ -394,7 +394,7 @@ export const DictionaryComboFhDPPopperTable: React.FC<Props> = (props: Props) =>
         // }
         const generate = paginationPlacement === "BOTTOM";
         return ReactDOM.createPortal((
-            <div ref={popperElement} id={`dictionary-combo-popper-${+new Date()}`} className={'MuiPaper-root'}
+            <div ref={popperElement} id={`dictionary-combo-popper-${(Math.floor((Math.random() * 10000000)))}`} className={'MuiPaper-root'}
                  style={{...styles.popper, ...popperDisplay}} {...attributes.popper} onClick={unlockClickInPopup}>
                 <div style={styles.header} onClick={unlockClickInPopup}>
                     <span dangerouslySetInnerHTML={{__html: title}} onClick={unlockClickInPopup}/>
