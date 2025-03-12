@@ -10,6 +10,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.core.Authentication;
+import org.springframework.web.socket.WebSocketSession;
 import pl.fhframework.core.logging.ErrorInformation;
 import pl.fhframework.core.logging.FhLogger;
 import pl.fhframework.core.logging.processor.IErrorInformationProcessor;
@@ -44,6 +45,9 @@ public class UserSession extends Session {
     private final UserSessionSharedData sharedData;
 
     @Getter
+    private boolean closed = false;
+
+    @Getter
     private UseCaseContainer useCaseContainer;
 
     @Getter
@@ -69,13 +73,10 @@ public class UserSession extends Session {
     @Autowired
     private EventRegistry eventRegistry;
 
-    private HttpSession httpSession;
 
-    // original session id - ChangeSessionIdAuthenticationStrategy is called after logging in
-    private String httpSessionOrgId;
 
-    // Unique conversation id, which determines single conversation (related to browser window) within a http session. It provides capability to maintain many conversations within one http session
-    private String conversationId;
+    // Unique connection id, which is changing after each web socket reconnection
+    private String connectionId;
 
     /**
      * Optional authentication propagated from a remote cloud server.
@@ -99,11 +100,10 @@ public class UserSession extends Session {
 
     private Integer sustainTimeOutMinutesOverride;
 
-    public UserSession(SystemUser systemUser, UserSessionDescription description, UserSessionSharedData userSessionSharedData, String conversationId) {
+    public UserSession(UserSessionDescription description, UserSessionSharedData userSessionSharedData, WebSocketSession webSocketSession) {
         super(description);
         this.sharedData = userSessionSharedData;
-        setSystemUser(systemUser);
-        setConversationId(conversationId);
+        this.connectionId = webSocketSession.getId();
     }
 
     @PostConstruct
@@ -173,16 +173,19 @@ public class UserSession extends Session {
         return sessionCookies;
     }
 
+    @Override
     public void setLanguage(Locale language) {
         if (!Objects.equals(getLanguage(), language)) {
             eventRegistry.fireLanguageChangeEvent(language.getLanguage());
         }
         super.setLanguage(language);
+        sharedData.setLanguage(language);
         useCaseContainer.onSessionLanguageChange();
     }
 
-    public String getConversationUniqueId() {
-        return getDescription().getConversationUniqueId();
+    @Override
+    public Locale getLanguage(){
+        return sharedData.getLanguage();
     }
 
     /**
@@ -251,13 +254,11 @@ public class UserSession extends Session {
         return true;
     }
 
-    public void setHttpSession(HttpSession httpSession) {
-        this.httpSession = httpSession;
-        if (httpSession != null) {
-            httpSessionOrgId = httpSession.getId();
-        }
-        else {
-            httpSessionOrgId = null;
-        }
+    public void setAsClosed(){
+        this.closed = false;
+    }
+
+    public SystemUser getSystemUser(){
+        return sharedData.getSystemUser();
     }
 }

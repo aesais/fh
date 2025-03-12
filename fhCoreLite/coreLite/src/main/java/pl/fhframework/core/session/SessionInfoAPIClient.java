@@ -42,7 +42,7 @@ public class SessionInfoAPIClient {
 
     /** Gets info about active functionality for given user session */
     public String getUserActiveFunctionality(SessionInfo sessionInfo) {
-        String url = prepareURL(sessionInfo.getNodeUrl(), ACTIVE_FUNCTIONALITY_PATH_SEGMENT, sessionInfo.getSessionId());
+        String url = prepareURL(sessionInfo.getNodeUrl(), ACTIVE_FUNCTIONALITY_PATH_SEGMENT, sessionInfo.getConversationId());
         try {
             return createRestTemplate().getForObject(url, String.class);
         } catch (Throwable e) {
@@ -70,7 +70,7 @@ public class SessionInfoAPIClient {
             String sessionIds = null;
             if (!CollectionUtils.isEmpty(sessions)) {
                 sessionIds = sessions.stream()
-                    .map(SessionInfo::getSessionId)
+                    .map(SessionInfo::getConversationId)
                     .collect(Collectors.joining(","));
             }
 
@@ -93,7 +93,7 @@ public class SessionInfoAPIClient {
 
     /** Force logout of given user */
     public boolean forceLogout(SessionInfo sessionInfo) {
-        String url = prepareURL(sessionInfo.getNodeUrl(), LOGOUT_PATH_SEGMENT, sessionInfo.getSessionId());
+        String url = prepareURL(sessionInfo.getNodeUrl(), LOGOUT_PATH_SEGMENT, sessionInfo.getConversationId());
         try {
             Boolean result = createRestTemplate().postForObject(url, null, Boolean.class);
             return result != null ? result : false;
@@ -105,7 +105,7 @@ public class SessionInfoAPIClient {
 
     /** Downloads given user log file */
     public Resource donwloadUserLog(SessionInfo sessionInfo) {
-        String url = prepareURL(sessionInfo.getNodeUrl(), SESSIONS_LOG_PATH_SEGMENT, sessionInfo.getSessionId());
+        String url = prepareURL(sessionInfo.getNodeUrl(), SESSIONS_LOG_PATH_SEGMENT, sessionInfo.getConversationId());
         try {
             HttpHeaders headers = new HttpHeaders();
             headers.add(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_OCTET_STREAM_VALUE);
@@ -125,7 +125,7 @@ public class SessionInfoAPIClient {
     }
 
     /** Prepares URL for REST service */
-    private String prepareURL(String nodeUrl, String... pathSegments) {
+    private String  prepareURL(String nodeUrl, String... pathSegments) {
         return UriComponentsBuilder.fromUriString(nodeUrl)
                 .pathSegment(MANAGEMENT_API_PATH_SEGMENT)
                 .pathSegment(SESSIONS_PATH_SEGMENT)

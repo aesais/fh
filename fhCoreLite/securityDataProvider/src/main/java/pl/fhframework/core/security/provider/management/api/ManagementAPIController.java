@@ -43,7 +43,7 @@ public class ManagementAPIController {
 
     public static final String MANAGEMENT_API_SESSIONS_LOG_OUT_URI = MANAGEMENT_API_URI + "/sessions/logout/{sessionId}";
 
-    public static final String MANAGEMENT_API_ACTIVE_FUNCTIONALITY_URI = MANAGEMENT_API_URI + "/sessions/activeFunctionality/{sessionId}";
+    public static final String MANAGEMENT_API_ACTIVE_FUNCTIONALITY_URI = MANAGEMENT_API_URI + "/sessions/activeFunctionality/{userConversationId}";
 
     public static final String MANAGEMENT_API_ECHO_URI = MANAGEMENT_API_URI + "/sessions/echo";
 
@@ -86,8 +86,8 @@ public class ManagementAPIController {
     }
 
     @GetMapping(path = MANAGEMENT_API_SESSIONS_LOG_URI, produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
-    public void donwloadUserLog(@PathVariable("sessionId") String sessionId, HttpServletResponse response) {
-        Resource resource = localUserSessionService.donwloadUserLog(sessionId);
+    public void donwloadUserLog(@PathVariable("sessionId") String userSessionConversationId, HttpServletResponse response) {
+        Resource resource = localUserSessionService.donwloadUserLog(userSessionConversationId);
         response.setHeader(LOG_FILENAME_HEADER, resource.getFilename());
         response.setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_OCTET_STREAM_VALUE);
         response.setStatus(HttpServletResponse.SC_OK);
@@ -100,10 +100,10 @@ public class ManagementAPIController {
     }
 
     @PostMapping(path = MANAGEMENT_API_MESSAGE_URI)
-    public int sendMessage(@RequestParam(MANAGEMENT_API_MESSAGE_IDS) List<String> sessionIds,
+    public int sendMessage(@RequestParam(MANAGEMENT_API_MESSAGE_IDS) List<String> userConversationIds,
                            @RequestParam(MANAGEMENT_API_MESSAGE_TITLE) String title,
                            @RequestParam(MANAGEMENT_API_MESSAGE_MSG) String message) {
-        return localUserSessionService.sendMessage(sessionIds, title, message);
+        return localUserSessionService.sendMessage(userConversationIds, title, message);
     }
 
     @PostMapping(path = MANAGEMENT_API_SESSIONS_LOG_OUT_URI)
@@ -112,9 +112,9 @@ public class ManagementAPIController {
     }
 
     @GetMapping(path = MANAGEMENT_API_ACTIVE_FUNCTIONALITY_URI)
-    public ResponseEntity getUserActiveFunctionality(@PathVariable String sessionId) {
+    public ResponseEntity getUserActiveFunctionality(@PathVariable String userConversationId) {
         try {
-            String activeFunctionality = localUserSessionService.getUserActiveFunctionality(sessionId);
+            String activeFunctionality = localUserSessionService.getUserActiveFunctionality(userConversationId);
             return ResponseEntity.ok(new RawValue(activeFunctionality));
         } catch (Exception e) {
             FhLogger.error(e);

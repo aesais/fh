@@ -14,8 +14,6 @@ import pl.fhframework.event.dto.ForcedLogoutEvent;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 @Component
 @ConditionalOnProperty(value = "fh.web.inactive_session_auto_logout")
@@ -37,29 +35,28 @@ public class SessionTimeoutManager {
     @Autowired
     private UserSessionRepository userSessionRepository;
 
-    private Map<String, Instant> sessionActivityDictionary = new ConcurrentHashMap<>();
-
-    public Session.TimeoutData keepSessionAlive(String conversationId) {
+    public Session.TimeoutData keepSessionAlive(UserSessionSharedData userSessionSharedData) {
         if (!active) {
             throw new IllegalStateException("Session timeout management is not enabled.");
         }
 
-        Instant activityLimitDate = sessionActivityDictionary.get(conversationId);
+        Instant activityLimitDate = userSessionSharedData.getActivityLimitDate();
         if (activityLimitDate != null) {
             boolean allowedDuration = Instant.now().isBefore(activityLimitDate);
             if (allowedDuration) {
                 activityLimitDate = getInstantMinutesLater();
-                sessionActivityDictionary.put(conversationId, activityLimitDate);
+                userSessionSharedData.setActivityLimitDate(activityLimitDate);
             }
-            userSessionRepository.onSessionKeepAlive(conversationId);
+            userSessionRepository.onSessionKeepAlive(userSessionSharedData);
             return new Session.TimeoutData(activityLimitDate, counterElementId, maxInactivityMinutes);
         } else {
-            throw new IllegalStateException("Cannot find session in activity dictionary. Make sure it has been properly initialized.");
+            return null;
         }
     }
 
-    void registerConversation(String conversationId) {
-        sessionActivityDictionary.put(conversationId, getInstantMinutesLater());
+    Session.TimeoutData initSessionTimeout(UserSessionSharedData sharedData) {
+        sharedData.setActivityLimitDate(getInstantMinutesLater());
+        return this.keepSessionAlive(sharedData);
     }
 
     private Instant getInstantMinutesLater() {
@@ -69,13 +66,9 @@ public class SessionTimeoutManager {
     @Scheduled(fixedDelay = 500L)
     public synchronized void serverSideInactiveSessionsLogout() {
         if (active) {
-            sessionActivityDictionary.keySet().removeIf(conversationId -> {
-                Instant activityLimitDate = sessionActivityDictionary.get(conversationId);
-                if (Instant.now().isBefore(activityLimitDate)) {
-                    return false;
-                } else {
-                    forceLogoutService.forceLogout(conversationId, ForcedLogoutEvent.Reason.LOGOUT_TIMEOUT);
-                    return true;
+            userSessionRepository.getAllSessionsSharedData().forEach(sharedData -> {
+                if (Instant.now().isAfter(sharedData.getActivityLimitDate())) {
+                    forceLogoutService.forceLogout(sharedData, ForcedLogoutEvent.Reason.LOGOUT_TIMEOUT);
                 }
             });
         }

@@ -18,7 +18,6 @@ import javax.servlet.http.HttpSession;
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.Locale;
-import java.util.Random;
 import java.util.Set;
 
 /**
@@ -118,22 +117,7 @@ public class WebSocketSessionManager implements ISessionManagerImpl {
         }
     }
 
-    /**
-     * Set user sesion and preserve it in httpSession
-     *
-     * @param userSession
-     */
-    public static void setUserSession(UserSession userSession) {
-        HttpSession sessionHttp = getHttpSession();
-        getUserSessionRepository().setUserSession(sessionHttp.getId(), userSession);
-    }
 
-    /**
-     * Checks if an UserSession is already bound to current HTTP session
-     */
-    public static boolean hasUserSession() {
-        return false;
-    }
 
     public static void prepareSessionScope() {
         final HttpSession httpSession = getHttpSession();
@@ -196,9 +180,12 @@ public class WebSocketSessionManager implements ISessionManagerImpl {
         UserSessionSharedData sharedData = getUserSessionRepository().getUserSessionSharedData(httpSession);
         if (sharedData == null) {
             //If it is first conversation within http session we prepare structures and create new shared data between conversations in the same http session
-            sharedData = new UserSessionSharedData(httpSession.getId());
+            sharedData = new UserSessionSharedData(httpSession, systemUser);
         }
-        return ApplicationContextHolder.getApplicationContext().getBean(UserSession.class, systemUser, createDescription(session), sharedData, session.getId());
+        UserSession newConversation = ApplicationContextHolder.getApplicationContext().getBean(UserSession.class, createDescription(session), sharedData, session);
+        sharedData.addConversation(newConversation);
+        getUserSessionRepository().registerNewConversation(newConversation);
+        return newConversation;
     }
 
     public static HttpSession getHttpSession(WebSocketSession session) {
@@ -217,13 +204,24 @@ public class WebSocketSessionManager implements ISessionManagerImpl {
         return ApplicationContextHolder.getApplicationContext().getBean(UserSessionRepository.class);
     }
 
+    private static WebSocketSessionRepository getWebSocketSessionRepository(){
+        return ApplicationContextHolder.getApplicationContext().getBean(WebSocketSessionRepository.class);
+    }
+    public static UserSession getPreviousUserSession(WebSocketSession webSocketSession){
+        return getUserSessionRepository().getPreviousUserConversation(webSocketSession);
+    }
+    public static void restorePreviousUserSession(UserSession previousUserSession, WebSocketSession newWebSocketSession) {
+        String oldConnectionId = previousUserSession.getConnectionId();
+        getWebSocketSessionRepository().removeOldConnection(oldConnectionId);
+        getUserSessionRepository().restorePreviousUsersSession(previousUserSession, newWebSocketSession);
+    }
+
     private static UserSessionDescription createDescription(WebSocketSession session) {
         UserSessionDescription description = new UserSessionDescription();
         description.setServerAddress(session.getLocalAddress().toString());
         description.setClientInfo(session.getHandshakeHeaders().getFirst(HttpHeaders.USER_AGENT));
         description.setHandshakeHeaders(session.getHandshakeHeaders());
         description.setUserAddress(session.getRemoteAddress().toString());
-        description.setConversationUniqueId(Long.toHexString(new Random().nextLong()));
         return description;
     }
 }

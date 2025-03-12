@@ -1,6 +1,5 @@
 package pl.fhframework.core.session;
 
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +15,7 @@ import pl.fhframework.UserSessionSharedData;
 import pl.fhframework.WebSocketSessionManager;
 import pl.fhframework.core.logging.FhLogger;
 import pl.fhframework.core.security.model.SessionInfo;
+import pl.fhframework.event.dto.ForcedLogoutEvent;
 
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpSession;
@@ -26,20 +26,16 @@ import java.net.UnknownHostException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
 @Slf4j
 public class UserSessionRepository implements HttpSessionListener, ApplicationListener<ContextRefreshedEvent> {
+    private ForceLogoutService forceLogoutService;
 
-    private Map<String, UserSession> userSessionsByFhId = new ConcurrentHashMap<>();
-    private Map<String, Set<UserSession>> userConversationsByHttpSessions = new ConcurrentHashMap<>();
-    @Getter
-    private Map<String, HttpSession> orphanSessions = new ConcurrentHashMap<>();
-    @Getter
-    private Map<String, UserSession> userSessionsByConversationId = new ConcurrentHashMap<>();
-    //private Map<Integer, UserSession> userSessionsHash = new ConcurrentHashMap<>();
-    private Map<String, UserSession> userConversations = new ConcurrentHashMap<>();
+    private final Map<String, UserSessionSharedData> userSessionSharedDataByHttpSessionId = new ConcurrentHashMap<>();
+    private final Map<String, UserSession> userConversationsByConnectionId = new ConcurrentHashMap<>();
     private Set<Consumer<UserSession>> userSessionDestroyedListeners = new HashSet<>();
     private Set<Consumer<UserSession>> userSessionKeepAliveListeners = new HashSet<>();
 
@@ -95,8 +91,14 @@ public class UserSessionRepository implements HttpSessionListener, ApplicationLi
         sessionInfoCache.putSessionsInfoForNode(nodeUrl, new ConcurrentHashMap<>());
     }
 
+    /**
+     * Deprecated - use getHttpSessionCount() instead
+     * @return
+     */
+    @Deprecated
     public int getUserSessionCount() {
-        return userConversations.size();
+        //return userConversations.size();
+        return getHttpSessionCount();
     }
 
     public void addUserSessionDestroyedListener(Consumer<UserSession> listener) {
@@ -107,48 +109,34 @@ public class UserSessionRepository implements HttpSessionListener, ApplicationLi
         userSessionKeepAliveListeners.add(listener);
     }
 
-    public void setUserSession(String httpSessionId, UserSession userSession) {
-        Set<UserSession> userSessionsInHttpSession = userConversationsByHttpSessions.computeIfAbsent(httpSessionId, k -> new HashSet<>());
-        userSessionsInHttpSession.add(userSession);
 
-        userSessionsByConversationId.put(userSession.getConversationUniqueId(), userSession);
-        userConversations.put(userSession.getConversationId(), userSession);
-        putSessionInfo(httpSessionId, userSession);
-    }
 
-//    public void removeUserSession(String httpSessionId) {
-//        UserSession userSession = userSessions.remove(httpSessionId);
-//        userSessionsHash.remove(System.identityHashCode(userSession.getHttpSession()));
-//        userSessionsByConversationId.remove(userSession.getConversationUniqueId());
-//        removeSessionInfo(httpSessionId);
-//    }
 
-    public boolean removeUserSession(UserSession userSession) {
-        userSessionsByConversationId.remove(userSession.getConversationUniqueId());
-        userSessionsByConversationId.remove(userSession.getConversationUniqueId());
-        userConversations.remove(userSession.getConversationId());
-        userConversationsByHttpSessions.get(userSession.getHttpSession().getId()).remove(userSession);
-        removeSessionInfo(userSession.getConversationUniqueId());
-        return true;
-    }
 
     private synchronized void putSessionInfo(String httpSessionId, UserSession userSession) {
         SessionInfo sessionInfo = new SessionInfo();
         sessionInfo.setHttpSessionId(httpSessionId);
-        sessionInfo.setSessionId(userSession.getConversationUniqueId());
+        sessionInfo.setConversationId(userSession.getConversationId());
+        sessionInfo.setConnectionId(userSession.getConnectionId());
         sessionInfo.setLogonTime(new Date(userSession.getCreationTimestamp().toEpochMilli()));
         sessionInfo.setUserName(userSession.getSystemUser().getLogin());
         sessionInfo.setNodeUrl(nodeUrl);
         // put into cache
         Map<String, SessionInfo> sessionsInfo = sessionInfoCache.getSessionsInfoForNode(nodeUrl);
-        sessionsInfo.put(userSession.getConversationUniqueId(), sessionInfo);
+        sessionsInfo.put(userSession.getConversationId(), sessionInfo);
         sessionInfoCache.putSessionsInfoForNode(nodeUrl, sessionsInfo);
     }
 
-    private synchronized void removeSessionInfo(String conversationId) {
+    private synchronized void removeSessionInfo(UserSession userConversation) {
+        String conversationId = userConversation.getConversationId();
         Map<String, SessionInfo> sessionsInfo = sessionInfoCache.getSessionsInfoForNode(nodeUrl);
         sessionsInfo.remove(conversationId);
         sessionInfoCache.putSessionsInfoForNode(nodeUrl, sessionsInfo);
+    }
+
+    private synchronized void updateConnectionIdForSessionInfo(UserSession userSession){
+        Map<String, SessionInfo> sessionsInfo = sessionInfoCache.getSessionsInfoForNode(nodeUrl);
+        sessionsInfo.get(userSession.getConversationId()).setConnectionId(userSession.getConnectionId());
     }
 
     private String generateNodeUrl() {
@@ -194,10 +182,6 @@ public class UserSessionRepository implements HttpSessionListener, ApplicationLi
         sessionInfoCache.evictSessionsInfoForNode(node);
     }
 
-//    public UserSession getUserSession(String httpSessionId) {
-//        return userSessions.get(httpSessionId);
-//    }
-
     @Override
     public void sessionCreated(HttpSessionEvent httpSessionEvent) {
         // ignore
@@ -208,39 +192,55 @@ public class UserSessionRepository implements HttpSessionListener, ApplicationLi
         onHttpSessionExpired(httpSessionEvent.getSession());
     }
 
-    public void onSessionKeepAlive(String conversationId) {
-        UserSession session = userSessionsByConversationId.get(conversationId);
-        if (session != null) {
+    public void onSessionKeepAlive(UserSessionSharedData sharedData) {
+        sharedData.getConversations().forEach(conversation -> {
             for (Consumer<UserSession> listener : userSessionKeepAliveListeners) {
-                listener.accept(session);
+                listener.accept(conversation);
             }
-        }
+        });
     }
 
     private void onHttpSessionExpired(HttpSession httpSession) {
-        Set<UserSession> sessions = getUserSessionsInHttpSession(httpSession);
-        for (UserSession userSession : sessions) {
-            if (userSession != null) {
-                try {
-                    for (Consumer<UserSession> listener : userSessionDestroyedListeners) {
-                        listener.accept(userSession);
-                    }
-                } finally {
-                    boolean response = removeUserSession(userSession);
+        UserSessionSharedData sharedData = getUserSessionSharedData(httpSession);
+        int noOfConversations = sharedData.getConversations().size();
+        forceLogoutService.forceLogout(sharedData, ForcedLogoutEvent.Reason.LOGOUT_TIMEOUT);
+        boolean result = removeHttpSessionWithAllConversations(httpSession);
+        if (result) {
+            FhLogger.info("Removed expired session for {} with id {} and {} conversations.", sharedData.getSystemUser().getLogin(), httpSession.getId(), noOfConversations);
+        } else {
+            FhLogger.error("Unsuccessful attempt to delete the session for {} with id {} and {} conversations.", sharedData.getSystemUser().getLogin(), httpSession.getId(), noOfConversations);
+        }
+    }
 
-                    if (response) {
-                        FhLogger.info("Removed expired session for {}.", getUserLogin(userSession), userSession.getConversationId(), httpSession.getId());
-                    } else {
-                        FhLogger.error("Unsuccessful attempt to delete the session for {}", getUserLogin(userSession));
+    private boolean removeHttpSessionWithAllConversations(HttpSession httpSession) {
+        UserSessionSharedData sharedData = userSessionSharedDataByHttpSessionId.get(httpSession.getId());
+        if (sharedData != null) {
+            try {
+                sharedData.getConversations().forEach(userConversation -> {
+                    for (Consumer<UserSession> listener : userSessionDestroyedListeners) {
+                        listener.accept(userConversation);
                     }
-                }
+                    if (userConversation.isClosed()) {
+                        userConversationsByConnectionId.remove(userConversation.getConversationId());
+                        removeSessionInfo(userConversation);
+                    }
+                });
+                sharedData.clearConversations();
+                userSessionSharedDataByHttpSessionId.remove(httpSession.getId());
+                return true;
+            } catch (Exception e) {
+                FhLogger.errorSuppressed(e);
+                return false;
             }
+        }else{
+            FhLogger.error("Can't get shared data for session due to http session with id {}", httpSession.getId());
+            return false;
         }
     }
 
     public static String getUserLogin(UserSession userSession){
         try{
-            return userSession.getSystemUser().getLogin();
+            return userSession.getSharedData().getSystemUser().getLogin();
         }catch (Exception ex){
             return "unknown user";
         }
@@ -251,10 +251,10 @@ public class UserSessionRepository implements HttpSessionListener, ApplicationLi
     }
 
     public Set<UserSession> getUserSessionsInHttpSession(HttpSession httpSession) {
-        Set<UserSession> userSessions = userConversationsByHttpSessions.get(httpSession.getId());
-        if (userSessions != null) {
-            log.info("Found {} user sessions in http session {}", userSessions.size(), httpSession.getId());
-            return Collections.unmodifiableSet(userSessions);
+        UserSessionSharedData sharedData = getUserSessionSharedData(httpSession);
+        if (sharedData != null) {
+            log.info("Found {} user conversations in http session {}", sharedData.getConversations().size(), httpSession.getId());
+            return Collections.unmodifiableSet(sharedData.getConversations());
         }else{
             log.warn("No user sessions in http session {}", httpSession.getId());
             return Collections.emptySet();
@@ -262,32 +262,90 @@ public class UserSessionRepository implements HttpSessionListener, ApplicationLi
     }
 
     public UserSession getUserSession(WebSocketSession webSocketSession) {
-        return userConversations.get(webSocketSession.getId());
+        UserSession foundCurrentSession = userConversationsByConnectionId.get(webSocketSession.getId());
+        if (foundCurrentSession == null) {
+            String previousConversationId = (String) webSocketSession.getAttributes().get("conversationId");
+            if (previousConversationId != null) {
+                UserSession foundPreviousSession = getAllUserSessions().stream().
+                        filter(us -> us.getConversationId().equals(previousConversationId))
+                        .findFirst().orElse(null);
+                if (foundPreviousSession != null) {
+                    String oldConnectionId = foundPreviousSession.getConnectionId();
+                    foundPreviousSession.setConnectionId(webSocketSession.getId());
+                    userConversationsByConnectionId.remove(oldConnectionId);
+                    userConversationsByConnectionId.put(foundPreviousSession.getConnectionId(), foundPreviousSession);
+                }
+
+            }
+        }
+        return foundCurrentSession;
     }
 
     public Set<UserSession> getAllUserSessions(){
-        return new HashSet<>(userConversations.values());
+        return new HashSet<>(userConversationsByConnectionId.values());
     }
 
     public UserSessionSharedData getUserSessionSharedData(HttpSession httpSession) {
-        Set<UserSession> userSessions = userConversationsByHttpSessions.get(httpSession.getId());
-        if (userSessions != null) {
-            log.info("Found {} user sessions in http session {}", userSessions.size(), httpSession.getId());
-            return getUserSessionSharedData(httpSession.getId());
+        UserSessionSharedData sharedData = userSessionSharedDataByHttpSessionId.get(httpSession.getId());
+        if (sharedData != null) {
+            return sharedData;
         }else{
             log.warn("Can't get shared data for session due to http session with id {}", httpSession.getId());
             return null;
         }
     }
 
-    private UserSessionSharedData getUserSessionSharedData(String httpSessionId) {
-        Set<UserSession> userSessions = userConversationsByHttpSessions.get(httpSessionId);
-        if (userSessions != null) {
-            return userSessions.stream()
-                    .map(UserSession::getSharedData)
-                    .findFirst().orElse(new UserSessionSharedData(httpSessionId));
+    public UserSessionSharedData getUserSessionSharedData(String httpSessionId) {
+        return userSessionSharedDataByHttpSessionId.get(httpSessionId);
+    }
+    public void registerNewConversation(UserSession newConversation) {
+        UserSessionSharedData sharedData = newConversation.getSharedData();
+        userSessionSharedDataByHttpSessionId.computeIfAbsent(sharedData.getHttpSessionId(), k -> sharedData);
+        userConversationsByConnectionId.put(newConversation.getConnectionId(), newConversation);
+        putSessionInfo(sharedData.getHttpSessionId(), newConversation);
+    }
+
+    public int getHttpSessionCount() {
+        return userSessionSharedDataByHttpSessionId.size();
+    }
+
+    public Set<UserSessionSharedData> findSharedDataByUserName   (String userName) {
+        return userSessionSharedDataByHttpSessionId.values().stream()
+                .filter(sharedData -> sharedData.getSystemUser().getLogin().equals(userName))
+                .collect(Collectors.toSet());
+    }
+
+    public Collection<UserSessionSharedData> getAllSessionsSharedData() {
+        return Collections.unmodifiableCollection(userSessionSharedDataByHttpSessionId.values());
+    }
+
+    public UserSession getUserSession(SessionInfo sessionInfo) {
+        return userConversationsByConnectionId.get(sessionInfo.getConnectionId());
+    }
+
+    public UserSession getPreviousUserConversation(WebSocketSession webSocketSession){
+        UserSession foundCurrentSession = userConversationsByConnectionId.get(webSocketSession.getId());
+        if (foundCurrentSession == null) {
+            String previousConversationId = (String) webSocketSession.getAttributes().get("conversationId");
+            if (previousConversationId != null) {
+                return getAllUserSessions().stream().
+                        filter(us -> us.getConversationId().equals(previousConversationId))
+                        .findFirst().orElse(null);
+            }
+        }
+        return foundCurrentSession;
+    }
+
+    public void restorePreviousUsersSession(UserSession userSession, WebSocketSession newWebSocketSession) {
+        String newConnectionId = newWebSocketSession.getId();
+        if (!userConversationsByConnectionId.containsKey(newConnectionId)){
+            String oldConnectionId = userSession.getConnectionId();
+            userConversationsByConnectionId.remove(oldConnectionId);
+            userSession.setConnectionId(newConnectionId);
+            userConversationsByConnectionId.put(newConnectionId, userSession);
+            updateConnectionIdForSessionInfo(userSession);
         }else{
-            return null;
+            log.warn("Restoring was unnecessary - it already exist user conversation on connection {}", newConnectionId);
         }
     }
 }

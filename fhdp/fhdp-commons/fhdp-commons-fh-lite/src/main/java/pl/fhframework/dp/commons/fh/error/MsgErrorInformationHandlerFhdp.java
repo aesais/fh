@@ -110,9 +110,9 @@ public class MsgErrorInformationHandlerFhdp extends RunUseCaseHandler implements
     protected String buildFooterMessage() {
         UserSession userSession = SessionManager.getUserSession();
         String login = userSession.getSystemUser().getLogin();
-        String sessionUniqueId = userSession.getConversationUniqueId();
-        String defaultMsg = String.format("Current user is %s with session ID %s.", login, sessionUniqueId);
-        Object[] params = new Object[]{login, sessionUniqueId};
+        String conversationId = userSession.getConversationId();
+        String defaultMsg = String.format("Current user is %s with conversation ID %s.", login, conversationId);
+        Object[] params = new Object[]{login, conversationId};
         return this.getAllMessgages().getMessage("fh.core.toast.current_user_with_session", params, defaultMsg);
     }
 

@@ -18,7 +18,7 @@ public class WebSocketSessionRepository {
     private Map<String, WebSocketSession> sessions = new ConcurrentHashMap<>();
 
     public void onConnectionEstabilished(UserSession userSession, WebSocketSession session) {
-        sessions.put(userSession.getConversationUniqueId(), session);
+        sessions.put(userSession.getConnectionId(), session);
     }
 
     public void onConnectionClosed(WebSocketSession session) {
@@ -30,7 +30,7 @@ public class WebSocketSessionRepository {
     }
 
     public Optional<WebSocketSession> getSession(UserSession userSession) {
-        return Optional.ofNullable(sessions.get(userSession.getConversationUniqueId()));
+        return Optional.ofNullable(sessions.get(userSession.getConnectionId()));
     }
 
     @Async // must be async as closing other user's websocket session causes clears current user session context
@@ -40,5 +40,9 @@ public class WebSocketSessionRepository {
         } catch (Exception e) {
             FhLogger.error("Error while closing WebSocket session", e);
         }
+    }
+
+    public void removeOldConnection(String oldConnectionId) {
+        sessions.remove(oldConnectionId);
     }
 }

@@ -7,6 +7,7 @@ import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.stereotype.Service;
 import org.springframework.web.socket.WebSocketSession;
 import pl.fhframework.UserSession;
+import pl.fhframework.UserSessionSharedData;
 import pl.fhframework.WebSocketContext;
 import pl.fhframework.WebSocketSessionRepository;
 import pl.fhframework.core.logging.FhLogger;
@@ -15,6 +16,7 @@ import pl.fhframework.event.dto.ForcedLogoutEvent;
 import javax.servlet.http.HttpSession;
 import java.util.Collection;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
@@ -35,46 +37,40 @@ public class ForceLogoutService {
     private UserSessionRepository userSessionRepository;
     
     public boolean forceLogoutByUsername(String username, ForcedLogoutEvent.Reason reason) {
-        for (UserSession session : findUserSessionsByUsername(username)) {
-            forceLogout(session, reason);
+        Set<UserSessionSharedData> sharedDataSet = userSessionRepository.findSharedDataByUserName(username);
+        for (UserSessionSharedData sharedData : sharedDataSet) {
+            forceLogout(sharedData, reason);
         }
         return true;
     }
 
+    public boolean forceLogoutByHttpSessionId(String httpSessionId, ForcedLogoutEvent.Reason reason){
+        return forceLogout(userSessionRepository.getUserSessionSharedData(httpSessionId), reason);
+    }
     public boolean forceLogout(HttpSession httpSession, ForcedLogoutEvent.Reason reason){
+        UserSessionSharedData sharedData = userSessionRepository.getUserSessionSharedData(httpSession);
+        return forceLogout(sharedData, reason);
+    }
+
+    public boolean forceLogout(UserSessionSharedData userSessionSharedData, ForcedLogoutEvent.Reason reason) {
         final AtomicBoolean someUserSessionHasBeenLogout = new AtomicBoolean(false);
-        userSessionRepository.getAllUserSessions().stream()
-                .forEach(userSession -> {
-                    if (forceLogout(userSession, reason)) {
-                        someUserSessionHasBeenLogout.compareAndSet(false, true);
-                    }
-                });
+        userSessionSharedData.getConversations().forEach(userSession -> {
+            if (forceLogoutFromConversation(userSession, reason)){
+                someUserSessionHasBeenLogout.compareAndSet(false, true);
+            }
+        });
+        invalidateHttpSession(userSessionSharedData.getHttpSession());
+
         return someUserSessionHasBeenLogout.get();
     }
 
-    public boolean forceLogout(String sessionConversationUniqueId, ForcedLogoutEvent.Reason reason) {
-        return forceLogout(findUserSessionByConversationId(sessionConversationUniqueId), reason);
-    }
-//    public boolean forceLogoutSessionId(String sessionId, ForcedLogoutEvent.Reason reason) {
-//        return forceLogout(findUserSessionById(sessionId), reason);
-//    }
-
-//    public UserSession findUserSessionById(String sessionId) {
-//        for (UserSession userSession : userSessionRepository.getAllUserSessions()) {
-//            if (userSession.getHttpSession().getId().equals(sessionId)) {
-//                return userSession;
-//            }
-//        }
-//        return null;
-//    }
-
-    public boolean forceLogout(UserSession userSession, ForcedLogoutEvent.Reason reason) {
-        if (userSession == null) {
+    private boolean forceLogoutFromConversation(UserSession userSession, ForcedLogoutEvent.Reason reason) {
+        if (userSession == null || userSession.isClosed()) {
             return false;
         }
         try {
-            HttpSession httpSession = userSession.getHttpSession();
-            String httpSessionId = httpSession.getId();
+            //HttpSession httpSession = userSession.getHttpSession();
+            //String httpSessionId = httpSession.getId();
             try {
                 userSession.clearUseCaseStack();
             } catch (Exception e) {
@@ -91,17 +87,9 @@ public class ForceLogoutService {
                     FhLogger.error(e); // ignore - user will be logout on server side and will have to authenticate again
                 }
             }
+            userSession.setAsClosed();
 
-            SessionInformation si = sessionRegistry.getSessionInformation(httpSessionId);
-            if (si != null) {
-                si.expireNow();
-            }
-            try {
-                httpSession.invalidate();
-            } catch (IllegalStateException ise) {
-                // it can be simultanously invalidated from browser with logout timer
-                FhLogger.warn("Session " + httpSessionId + " was already invalidated");
-            }
+
             return true;
         } catch (Exception e) {
             FhLogger.error(e);
@@ -109,14 +97,21 @@ public class ForceLogoutService {
         }
     }
 
-    private UserSession findUserSessionByConversationId(String sessionConversationUniqueId) {
-        for (UserSession userSession : userSessionRepository.getAllUserSessions()) {
-            if (userSession.getConversationUniqueId().equals(sessionConversationUniqueId)) {
-                return userSession;
-            }
+    private void invalidateHttpSession(HttpSession httpSession){
+        String httpSessionId = httpSession.getId();
+        SessionInformation si = sessionRegistry.getSessionInformation(httpSessionId);
+        if (si != null) {
+            si.expireNow();
         }
-        return null;
+        try {
+            httpSession.invalidate();
+        } catch (IllegalStateException ise) {
+            // it can be simultanously invalidated from browser with logout timer
+            FhLogger.warn("Session " + httpSessionId + " hase been already invalidated");
+        }
     }
+
+
 
     private Collection<UserSession> findUserSessionsByUsername(String username) {
         return userSessionRepository.getAllUserSessions().stream()

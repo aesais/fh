@@ -38,17 +38,6 @@ public class HttpSessionUserSessionFinder implements IRestUserSessionFinder {
     }
 
     @Override
-    public Optional<UserSessionSharedData> getUserSessionSharedData(HttpServletRequest httpServletRequest) {
-        HttpSession httpSession = httpServletRequest.getSession(false);
-        if (httpSession != null) {
-            UserSessionSharedData userSessionSharedData = userSessionRepository.getUserSessionSharedData(httpSession);
-            return Optional.ofNullable(userSessionSharedData);
-        } else {
-            return Optional.empty();
-        }
-    }
-
-    @Override
     public Optional<UserSession> getUserSession(HttpServletRequest httpServletRequest) {
         HttpSession httpSession = httpServletRequest.getSession(false);
         if (httpSession != null) {
@@ -71,7 +60,7 @@ public class HttpSessionUserSessionFinder implements IRestUserSessionFinder {
 
                 if (webSocketSessionId != null) {
                     return conversationsInHttpSession.stream()
-                            .filter(userSession -> userSession.getConversationId().equals(webSocketSessionId))
+                            .filter(userSession -> userSession.getConnectionId().equals(webSocketSessionId))
                             .findFirst();
                 } else {
                     String conversationsIds = conversationsInHttpSession.stream().map(UserSession::getConversationId).reduce("", (a, b) -> a + ", " + b);
@@ -110,7 +99,7 @@ public class HttpSessionUserSessionFinder implements IRestUserSessionFinder {
             String webSocketSessionId = httpServletRequest.getHeader(UserSession.WEB_SOCKET_SESSION_ID);
             if (webSocketSessionId != null) {
                 Optional<UserSession> foundUserSession = userSessionRepository.getUserSessionsInHttpSession(httpSession).stream()
-                        .filter(userSession -> userSession.getConversationId().equals(webSocketSessionId))
+                        .filter(userSession -> userSession.getConnectionId().equals(webSocketSessionId))
                         .findFirst();
                 if (foundUserSession.isPresent()) {
                     return foundUserSession;

@@ -32,7 +32,7 @@ public class UserSessionBasedDiscriminator extends AbstractDiscriminator<ILoggin
         } else {
             return userFileName
                     .replace(ILogUtils.USER_TAG, userSession.getSystemUser().getLogin())
-                    .replace(ILogUtils.SESSION_TAG, userSession.getConversationUniqueId())
+                    .replace(ILogUtils.SESSION_TAG, userSession.getConversationId())
                     .replace(ILogUtils.CREATION_TIMESTAMP_TAG, userSession.getCreationTimestampString())
                     .replace(ILogUtils.CREATION_DATE_TAG, userSession.getCreationDateString());
         }

@@ -49,7 +49,7 @@ public class SessionInfoService {
         if (managementApiEnabled) {
             return sessionInfoAPIClient.getUserActiveFunctionality(sessionInfo);
         } else {
-            return userSessionService.getUserActiveFunctionality(sessionInfo.getSessionId());
+            return userSessionService.getUserActiveFunctionality(sessionInfo.getConversationId());
         }
     }
 
@@ -58,10 +58,10 @@ public class SessionInfoService {
         if (managementApiEnabled) {
             return sessionInfoAPIClient.sendMessage(nodeUrl, sessions, title, message);
         } else {
-            List<String> sessionIds = sessions.stream()
-                    .map(SessionInfo::getSessionId)
+            List<String> conversationIds = sessions.stream()
+                    .map(SessionInfo::getConversationId)
                     .collect(Collectors.toList());
-            return userSessionService.sendMessage(sessionIds, title, message);
+            return userSessionService.sendMessage(conversationIds, title, message);
         }
     }
 
@@ -70,7 +70,7 @@ public class SessionInfoService {
         if (managementApiEnabled) {
             return sessionInfoAPIClient.forceLogout(sessionInfo);
         } else {
-            return userSessionService.forceLogout(sessionInfo.getSessionId());
+            return userSessionService.forceLogout(sessionInfo.getHttpSessionId());
         }
     }
 
@@ -79,7 +79,7 @@ public class SessionInfoService {
         if (managementApiEnabled) {
             return sessionInfoAPIClient.donwloadUserLog(sessionInfo);
         } else {
-            return userSessionService.donwloadUserLog(sessionInfo.getSessionId());
+            return userSessionService.donwloadUserLog(sessionInfo);
         }
     }
 

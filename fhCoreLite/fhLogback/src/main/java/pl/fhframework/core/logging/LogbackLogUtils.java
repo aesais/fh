@@ -13,7 +13,7 @@ import java.nio.file.Paths;
 public class LogbackLogUtils implements ILogUtils {
     public URL getUserLogFile(UserSession userSession) {
         String fileName = FILE_MASK.replace(USER_TAG, userSession.getSystemUser().getLogin())
-                .replace(SESSION_TAG, userSession.getConversationUniqueId())
+                .replace(SESSION_TAG, userSession.getConversationId())
                 .replace(CREATION_TIMESTAMP_TAG, userSession.getCreationTimestampString())
                 .replace(CREATION_DATE_TAG, userSession.getCreationDateString());
 

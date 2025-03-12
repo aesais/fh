@@ -18,9 +18,9 @@ import java.util.function.Function;
 @Setter
 @EqualsAndHashCode
 public class SessionInfo implements Serializable {
-
-    private String sessionId;
+    private String conversationId;
     private String httpSessionId;
+    private String connectionId;
     private String userName;
     private Date logonTime;
     private String nodeUrl;

@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
+import pl.fhframework.NoUserSession;
 import pl.fhframework.aop.services.IFhSessionService;
 import pl.fhframework.aop.services.IFhTransactionListener;
 import pl.fhframework.core.FhConversationException;
@@ -61,11 +62,10 @@ public class FhSessionService implements IFhSessionService {
     public boolean onServiceStart(Method operation, Object owner, Object[] params) {
         if (SessionManager.getSession() == null) {
             SessionDescription description = new SessionDescription();
-            description.setConversationUniqueId(UUID.randomUUID().toString());
-            Session session = (Session) applicationContext.getBean("noUserSession", description);
-            FhLogger.log(LogLevel.DEBUG, "Started no user context session id '{}'", description.getConversationUniqueId());
+            Session session = applicationContext.getBean(NoUserSession.class, description);
+            FhLogger.log(LogLevel.DEBUG, "Started no user context session id '{}'", session.getConversationId());
 
-            sessions.put(description.getConversationUniqueId(), session);
+            sessions.put(session.getConversationId(), session);
 
             SessionManager.registerThreadSessionManager(new FhSessionManager(session));
 
@@ -84,7 +84,7 @@ public class FhSessionService implements IFhSessionService {
             }
             catch (Exception e) {
                 FhLogger.errorSuppressed(e);
-                sessions.remove(description.getConversationUniqueId());
+                sessions.remove(session.getConversationId());
                 SessionManager.unregisterThreadSessionManager();
             }
         }
@@ -140,7 +140,7 @@ public class FhSessionService implements IFhSessionService {
 
         for (String sessionId : expiredKeys) {
             Session session = sessions.remove(sessionId);
-            FhLogger.log(LogLevel.WARN, "Terminating no user context session id '{}' due to time out", session.getDescription().getConversationUniqueId());
+            FhLogger.log(LogLevel.WARN, "Terminating no user context session id '{}' due to time out", session.getConversationId());
         }
     }
 
@@ -164,9 +164,9 @@ public class FhSessionService implements IFhSessionService {
     private void clearSession() {
         Session session = SessionManager.getNoUserSession();
         SessionManager.unregisterThreadSessionManager();
-        FhLogger.log(LogLevel.DEBUG, "Stopped no user context session id '{}'", session.getDescription().getConversationUniqueId());
-        sessions.remove(session.getDescription().getConversationUniqueId());
-        FhLogger.log(LogLevel.DEBUG, "Released no user context session id '{}'", session.getDescription().getConversationUniqueId());
+        FhLogger.log(LogLevel.DEBUG, "Stopped no user context session id '{}'", session.getConversationId());
+        sessions.remove(session.getConversationId());
+        FhLogger.log(LogLevel.DEBUG, "Released no user context session id '{}'", session.getConversationId());
     }
 
     private boolean isNoUserSession() {

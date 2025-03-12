@@ -14,6 +14,4 @@ public interface IRestUserSessionFinder {
 
     Optional<UserSession> getUserSession(HttpServletRequest httpServletRequest);
     Set<UserSession> getUserConversationsForSameHttpSession(HttpServletRequest httpServletRequest);
-
-    Optional<UserSessionSharedData> getUserSessionSharedData(HttpServletRequest httpServletRequest);
 }

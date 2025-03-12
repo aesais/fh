@@ -15,6 +15,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
+import java.util.UUID;
 
 @Getter
 @Setter
@@ -24,6 +25,9 @@ public abstract class Session {
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
     private static final int ERROR_INFORMATION_LIMIT = 10;
+
+    // Unique conversation id, which determines single conversation (related to browser window) within a http session. It provides capability to maintain many conversations within one http session. Is stable and is not changing after reconnection
+    private String conversationId;
 
     protected SystemUser systemUser;
 
@@ -50,6 +54,7 @@ public abstract class Session {
     private AuthorizationManager authorizationManager;
 
     public Session(SessionDescription description) {
+        this.conversationId = "conversation_"+ UUID.randomUUID();
         this.description = description;
         creationTimestamp = Instant.now();
         creationTimestampString = TIMESTAMP_FORMATTER.format(LocalDateTime.ofInstant(creationTimestamp, ZoneId.systemDefault()));

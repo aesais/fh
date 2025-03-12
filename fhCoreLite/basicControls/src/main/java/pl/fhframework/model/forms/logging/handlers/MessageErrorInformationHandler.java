@@ -101,7 +101,7 @@ public class MessageErrorInformationHandler extends RunUseCaseHandler implements
         UserSession userSession = SessionManager.getUserSession();
 
         String login = userSession.getSystemUser().getLogin();
-        String sessionUniqueId = userSession.getConversationUniqueId();
+        String sessionUniqueId = userSession.getConnectionId();
 
         String defaultMsg = String.format("Current user is %s with session ID %s.", login, sessionUniqueId);
         Object[] params = {login, sessionUniqueId};

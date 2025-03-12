@@ -335,8 +335,9 @@ public abstract class FormsHandler {
         userSession.getUseCaseContainer().getFormsContainer().doForEachFullyManagedForm(form -> form.setShowingTimestamp(Instant.now()));
 
         if (sessionTimeoutManagerActive && !sessionNeverExpireForUser(userSession)) {
-            sessionTimeoutManager.registerConversation(userSession.getConversationUniqueId());
-            Session.TimeoutData timeoutData = sessionTimeoutManager.keepSessionAlive(userSession.getConversationUniqueId());
+            sessionTimeoutManager.initSessionTimeout(userSession.getSharedData());
+            //Send to client updated information about timeout for current session
+            Session.TimeoutData timeoutData = sessionTimeoutManager.keepSessionAlive(userSession.getSharedData());
             userSession.getUseCaseRequestContext().getEvents().add(new SessionTimeoutEvent(timeoutData));
         }
 
@@ -445,8 +446,11 @@ public abstract class FormsHandler {
 
         if (!userSession.isCloudPropagated() && sessionTimeoutManagerActive && !Objects.equals(Timer.ATTR_ON_TIMER, eventData.getEventType()) &&
                 !sessionNeverExpireForUser(userSession)) {
-            Session.TimeoutData timeoutData = sessionTimeoutManager.keepSessionAlive(userSession.getConversationUniqueId());
-            userSession.getUseCaseRequestContext().getEvents().add(new SessionTimeoutEvent(timeoutData));
+            //Send to client updated information about timeout for current session
+            Session.TimeoutData timeoutData = sessionTimeoutManager.keepSessionAlive(userSession.getSharedData());
+            if (timeoutData != null) {
+                userSession.getUseCaseRequestContext().getEvents().add(new SessionTimeoutEvent(timeoutData));
+            }
         }
 
         if (finishHandling) {

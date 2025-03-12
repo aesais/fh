@@ -10,6 +10,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.support.ReloadableResourceBundleMessageSource;
 import org.springframework.stereotype.Service;
 
+import pl.fhframework.UserSessionSharedData;
 import pl.fhframework.core.FhFrameworkException;
 import pl.fhframework.core.util.StringUtils;
 import pl.fhframework.SessionManager;
@@ -194,9 +195,9 @@ public class MessageService {
         }
 
         private Locale getUserLanguage() {
-            UserSession session = SessionManager.getUserSession();
-            if (session != null) {
-                return session.getLanguage();
+            UserSessionSharedData sessionSharedData = SessionManager.getUserSessionSharedData();
+            if (sessionSharedData != null) {
+                return sessionSharedData.getLanguage();
             } else {
                 return getLanguageOrDefault(null);
             }

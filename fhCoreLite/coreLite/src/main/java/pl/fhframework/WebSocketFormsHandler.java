@@ -92,21 +92,20 @@ public class WebSocketFormsHandler extends FormsHandler {
     }
 
     public void connect(WebSocketSession session) {
-        UserSession boundSession;
+        UserSession boundSession = WebSocketSessionManager.getPreviousUserSession(session);
         FhLogger.info(this.getClass(), "Connected: " + this.getConnectionId());
 
-        if (WebSocketSessionManager.hasUserSession()) {
-            boundSession = SessionManager.getUserSession();
-            logoutOtherBrowserWindows(boundSession, session);
+        if (boundSession != null) {
+            WebSocketSessionManager.restorePreviousUserSession(boundSession, session);
             UserSession finalBoundSession = boundSession;
             FhLogger.debug(this.getClass(), logger -> logger.log("User session bound: " + finalBoundSession));
         } else {
             try {
                 SystemUser systemUser = securityManager.buildSystemUser(session.getPrincipal());
                 boundSession = WebSocketSessionManager.issueNewConversation(systemUser, session);
-                boundSession.setHttpSession(WebSocketSessionManager.getHttpSession());
+                //boundSession.setHttpSession(WebSocketSessionManager.getHttpSession());
                 updateSessionAttributes(boundSession);
-                WebSocketSessionManager.setUserSession(boundSession);
+//                WebSocketSessionManager.setUserSession(boundSession);
                 sessionLogger.logUserSessionCreation(boundSession);
                 UserSession finalBoundSession1 = boundSession;
                 FhLogger.debug(this.getClass(), logger -> logger.log("User session created: " + finalBoundSession1));
@@ -115,8 +114,8 @@ public class WebSocketFormsHandler extends FormsHandler {
                 SystemUser systemUser = new SystemUser(session.getPrincipal());
                 systemUser.getBusinessRoles().add(new NoneBusinessRole());
                 boundSession = WebSocketSessionManager.issueNewConversation(systemUser, session);
-                boundSession.setHttpSession(WebSocketSessionManager.getHttpSession());
-                WebSocketSessionManager.setUserSession(boundSession);
+                //boundSession.setHttpSession(WebSocketSessionManager.getHttpSession());
+//                WebSocketSessionManager.setUserSession(boundSession);
                 boundSession.setException(e);
             } finally {
                 if (session.getPrincipal() != null) {

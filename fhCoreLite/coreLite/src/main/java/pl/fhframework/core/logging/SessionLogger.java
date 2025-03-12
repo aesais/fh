@@ -26,7 +26,7 @@ public class SessionLogger implements ISessionLogger{
                                 "Client info: %s\n" +
                                 "Client address: %s\n" +
                                 "Server address: %s\n",
-                        newSession.getDescription().getConversationUniqueId(),
+                        newSession.getConversationId(),
                         newSession.getSystemUser().getLogin(),
                         newSession.getSystemUser().getName(),
                         newSession.getSystemUser().getSurname(),
@@ -39,7 +39,7 @@ public class SessionLogger implements ISessionLogger{
                                 "Login: %s\n" +
                                 "Security roles: %s\n" +
                                 "Server address: %s\n",
-                        newSession.getDescription().getConversationUniqueId(),
+                        newSession.getConversationId(),
                         newSession.getSystemUser().getLogin(),
                         newSession.getSystemUser().getBusinessRoles().stream().map(role -> role.getRoleName()).collect(Collectors.toSet()).toString(),
                         newSession.getDescription().getServerAddress()));

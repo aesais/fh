@@ -12,6 +12,4 @@ import java.io.Serializable;
 @Setter
 public class SessionDescription implements Serializable {
     private String serverAddress;
-
-    private String conversationUniqueId;
 }
