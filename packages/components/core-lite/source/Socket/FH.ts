@@ -8,6 +8,7 @@ import {SocketOutputCommands} from "./SocketOutputCommands";
 
 import {FhContainer} from "../FhContainer";
 import {ServiceManager} from "../Devices/ServiceManager";
+import {ConnectionTypeEnum, ConversationHandler} from "./ConversationHandler";
 
 let {lazyInject} = getDecorators(FhContainer);
 
@@ -21,6 +22,8 @@ class FH {
     private socketHandler: SocketHandler;
     @multiInject("ServiceManager") @optional()
     protected serviceManagers: ServiceManager[];
+    @lazyInject("ConversationHandler")
+    protected conversationHandler: ConversationHandler;
 
     private applicationLocked: boolean;
     private ignoreNextHashChange: boolean;
@@ -32,7 +35,7 @@ class FH {
 
     public init() {
         this.socketHandler.selectBestConnector();
-        this.socketHandler.activeConnector.connect(function (request:any, connectionIdJson) {
+        this.socketHandler.activeConnector.connect(function (request: any, connectionIdJson) {
             this.socketHandler.connectionId = connectionIdJson.sessionId;
 
 
@@ -47,8 +50,7 @@ class FH {
                     }
                 }.bind(this));
             this.applicationLock.enable(requestId);
-
-            sessionStorage.setItem('fh_connection', JSON.stringify(connectionIdJson));
+            this.conversationHandler.setConnectionData(connectionIdJson, ConnectionTypeEnum.FH_CONNECTION);
 
         }.bind(this));
 
@@ -81,8 +83,7 @@ class FH {
                     }
                 }.bind(this));
             this.applicationLock.enable(requestId);
-
-            sessionStorage.setItem('fh_connection_external', JSON.stringify(connectionIdJson));
+            this.conversationHandler.setConnectionData(connectionIdJson, ConnectionTypeEnum.FH_CONNECTION_EXTERNAL);
 
         }.bind(this), socketUrl);
 

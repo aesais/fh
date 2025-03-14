@@ -44,6 +44,7 @@ import {LayoutHandler} from "./source/LayoutHandler";
 import {ChatEvent} from "./source/Events/ChatEvent"
 import {ScrollEvent} from "./source/Events/ScrollEvent";
 import {ChatListEvent} from "./source/Events/ChatListEvent";
+import {ConversationHandler} from "./source/Socket/ConversationHandler";
 
 
 class FormsHandler extends FhModule {
@@ -54,6 +55,7 @@ class FormsHandler extends FhModule {
         FhContainer.bind<LayoutHandler>('LayoutHandler').to(LayoutHandler).inSingletonScope();
         FhContainer.bind<FormsManager>('FormsManager').to(FormsManager).inSingletonScope();
         FhContainer.bind<SocketHandler>('SocketHandler').to(SocketHandler).inSingletonScope();
+        FhContainer.bind<ConversationHandler>('ConversationHandler').to(ConversationHandler).inSingletonScope();
         FhContainer.bind<ApplicationLock>('ApplicationLock').to(ApplicationLock).inSingletonScope();
         FhContainer.bind<FH>('FH').to(FH).inSingletonScope();
 

@@ -14,17 +14,17 @@ import java.util.UUID;
 public class OutMessageSessionMetadata extends AbstractMessage {
 
     private String sessionId;
-    private String converstaionId = UUID.randomUUID().toString();
+    private String conversationId = UUID.randomUUID().toString();
 
     public OutMessageSessionMetadata(String sessionId) {
         this();
         this.sessionId = sessionId;
     }
 
-    public OutMessageSessionMetadata(String sessionId, String converstaionId) {
+    public OutMessageSessionMetadata(String sessionId, String conversationId) {
         this();
         this.sessionId = sessionId;
-        this.converstaionId = converstaionId;
+        this.conversationId = conversationId;
     }
 
     public OutMessageSessionMetadata() {

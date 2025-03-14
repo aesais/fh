@@ -11,6 +11,8 @@ import {I18n} from "../I18n/I18n";
 
 import {FhContainer} from "../FhContainer";
 import * as Pako from "pako";
+import {ConnectionTypeEnum, ConversationHandler} from "./ConversationHandler";
+import {ConversationType} from "./ConversationType";
 
 declare const ENV_IS_DEVELOPMENT: boolean;
 
@@ -26,6 +28,8 @@ class Connector {
     private util: Util;
     @lazyInject('I18n')
     private i18n: I18n;
+    @lazyInject("ConversationHandler")
+    protected conversationHandler: ConversationHandler;
 
     private target: string;
     private reconnectCallback: any;
@@ -85,9 +89,9 @@ class Connector {
         }
 
         let conversationParam = "";
-        let sessionData:any = sessionStorage.getItem("fh_connection");
-        if(sessionData){
-            conversationParam = "?conversationId="+ JSON.parse(sessionData).converstaionId;
+        let sessionData:ConversationType = this.conversationHandler.getConnectionData(ConnectionTypeEnum.FH_CONNECTION)
+        if(sessionData && sessionData.conversationId){
+            conversationParam = "?conversationId="+ sessionData.conversationId;
         }
 
 
@@ -122,10 +126,9 @@ class Connector {
         }
 
         let conversationParam = "";
-        let sessionData:any = sessionStorage.getItem("fh_connection_external");
-        if(sessionData){
-
-            conversationParam = "?conversationId="+JSON.parse(sessionData).converstaionId;
+        let sessionData:ConversationType = this.conversationHandler.getConnectionData(ConnectionTypeEnum.FH_CONNECTION_EXTERNAL)
+        if(sessionData && sessionData.conversationId){
+            conversationParam = "?conversationId="+ sessionData.conversationId;
         }
 
         this.ws = new WebSocket(socketUrl + conversationParam);
