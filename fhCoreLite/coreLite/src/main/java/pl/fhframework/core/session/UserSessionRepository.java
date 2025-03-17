@@ -256,7 +256,7 @@ public class UserSessionRepository implements HttpSessionListener, ApplicationLi
             log.info("Found {} user conversations in http session {}", sharedData.getConversations().size(), httpSession.getId());
             return Collections.unmodifiableSet(sharedData.getConversations());
         }else{
-            log.warn("No user sessions in http session {}", httpSession.getId());
+            log.debug("No user sessions in http session {}", httpSession.getId());
             return Collections.emptySet();
         }
     }
@@ -290,7 +290,7 @@ public class UserSessionRepository implements HttpSessionListener, ApplicationLi
         if (sharedData != null) {
             return sharedData;
         }else{
-            log.warn("Can't get shared data for session due to http session with id {}", httpSession.getId());
+            log.debug("Can't get shared data for session due to http session with id {}", httpSession.getId());
             return null;
         }
     }
