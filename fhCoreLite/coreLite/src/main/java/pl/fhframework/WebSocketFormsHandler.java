@@ -109,6 +109,9 @@ public class WebSocketFormsHandler extends FormsHandler {
                 sessionLogger.logUserSessionCreation(boundSession);
                 UserSession finalBoundSession1 = boundSession;
                 FhLogger.debug(this.getClass(), logger -> logger.log("User session created: " + finalBoundSession1));
+                if (sessionClusterCoordinator.isPresent()){
+                    sessionClusterCoordinator.get().onConnect(boundSession);
+                }
             } catch (RuntimeException e) {
                 FhLogger.error("Error creating session", e);
                 SystemUser systemUser = new SystemUser(session.getPrincipal());
@@ -124,9 +127,6 @@ public class WebSocketFormsHandler extends FormsHandler {
             }
         }
         wssRepository.onConnectionEstabilished(boundSession, session);
-        if (sessionClusterCoordinator.isPresent()){
-            sessionClusterCoordinator.get().onConnect(boundSession);
-        }
     }
 
     private void updateSessionAttributes(UserSession userSession) {
@@ -154,6 +154,14 @@ public class WebSocketFormsHandler extends FormsHandler {
                 // ignore
             }
         }
+    }
+
+    private void logoutMyConversation(WebSocketSession currentWss) {
+            try {
+                sendInfoWithBlockedSession(currentWss, "SYSTEM");
+            } catch (Exception e) {
+                // ignore
+            }
     }
 
     private void transportError(WebSocketSession session, Throwable exception) throws IOException {
@@ -247,15 +255,14 @@ public class WebSocketFormsHandler extends FormsHandler {
                     userName = session.getPrincipal().getName();
                 }
 
-                // if it's the same http session id, then take over the session
                 if (loginLockManager.isLoggedInWithTheSameSession(userName, sessionId)) {
-                    logoutOtherBrowserWindows(userNames.get(userName), session);
+                    // if it's the same http session id, then OK - we are in multi window mode
                     userNames.put(userName, session);
                     connect(session);
-                } else {
-                    // if user is logged in with different session id, then block other session
-                    //logoutOtherBrowserWindows(userNames.get(userName), session);
-                    //loginLockManager.releaseUserLogin(userName, WebSocketSessionManager.getHttpSession(session).getId());
+                } else if (loginLockManager.isLoggedInWithDifferentSession(userName, sessionId)) {
+                    connect(session);
+                    logoutMyConversation(session);
+                }  else {
                     userNames.put(userName, session);
                     connect(session);
                     loginLockManager.assignUserLogin(userName, sessionId);
