@@ -24,19 +24,21 @@ public class SingleLoginLockManager {
     @Autowired
     FHConfiguration fhConfiguration;
 
-    @Value("${fh.single.login:true}")
-    private Boolean turnedOn;
+//    @Value("${fh.single.login:true}")
+//    private Boolean turnedOn;
 
-    public void assignUserLogin(String userName, String sessionId) {
-        if (isTrunedOn()) {
+    public String assignUserLogin(String userName, String sessionId) {
+//        if (isTrunedOn()) {
             synchronized (WebSocketSessionManager.getHttpSession()) {
-                if (!containsKey(userName)) {
+//                if (!containsKey(userName)) {
+                    String prevSessionId = singleLoginLockCache.get(userName);
                     singleLoginLockCache.update(userName, sessionId);
-                    return;
-                }
-                throw new RuntimeException("User is already logged");
+                    return prevSessionId;
+//                }
+//                throw new RuntimeException("User is already logged");
             }
-        }
+//        }
+//        return null;
     }
 
     private boolean containsKey(String userName) {
@@ -88,8 +90,9 @@ public class SingleLoginLockManager {
         }
     }
 
+    @Deprecated
     public boolean isTrunedOn() {
 //        return fhConfiguration.isProdModeActive() && turnedOn;
-        return turnedOn;
+        return true;
     }
 }

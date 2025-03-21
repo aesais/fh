@@ -5,7 +5,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Profile;
-import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.socket.CloseStatus;
@@ -19,6 +18,7 @@ import pl.fhframework.core.FhFrameworkException;
 import pl.fhframework.core.logging.FhLogger;
 import pl.fhframework.core.security.UserAttributesTempCache;
 import pl.fhframework.core.security.model.NoneBusinessRole;
+import pl.fhframework.core.session.UserSessionRepository;
 import pl.fhframework.core.websocket.HeartbeatWebSocketHandlerDecorator;
 import pl.fhframework.event.dto.RedirectEvent;
 import pl.fhframework.model.dto.AbstractMessage;
@@ -29,7 +29,6 @@ import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Service
@@ -53,6 +52,12 @@ public class WebSocketFormsHandler extends FormsHandler {
 
     @Autowired
     private WebSocketConfiguration webSocketConfiguration;
+
+    @Autowired
+    private WebSocketSessionRepository webSocketSessionRepository;
+
+    @Autowired
+    private UserSessionRepository userSessionRepository;
 
     @Autowired
     @Lazy
@@ -136,6 +141,7 @@ public class WebSocketFormsHandler extends FormsHandler {
         }
     }
 
+
     private void logoutOtherBrowserWindows(UserSession boundSession, WebSocketSession currentWss) {
         Optional<WebSocketSession> lastWssSession = wssRepository.getSession(boundSession);
         if (lastWssSession.isPresent() && lastWssSession.get().isOpen() && lastWssSession.get() != currentWss) {
@@ -154,14 +160,6 @@ public class WebSocketFormsHandler extends FormsHandler {
                 // ignore
             }
         }
-    }
-
-    private void logoutMyConversation(WebSocketSession currentWss) {
-            try {
-                sendInfoWithBlockedSession(currentWss, "SYSTEM");
-            } catch (Exception e) {
-                // ignore
-            }
     }
 
     private void transportError(WebSocketSession session, Throwable exception) throws IOException {
@@ -257,21 +255,35 @@ public class WebSocketFormsHandler extends FormsHandler {
 
                 if (loginLockManager.isLoggedInWithTheSameSession(userName, sessionId)) {
                     // if it's the same http session id, then OK - we are in multi window mode
-                    userNames.put(userName, session);
                     connect(session);
                 } else if (loginLockManager.isLoggedInWithDifferentSession(userName, sessionId)) {
                     connect(session);
-                    logoutMyConversation(session);
+                    String oldHTTPSessionId = loginLockManager.assignUserLogin(userName, sessionId);
+                    userNames.put(userName, session);
+                    logoutOtherBrowserWindows(oldHTTPSessionId);
                 }  else {
                     userNames.put(userName, session);
                     connect(session);
                     loginLockManager.assignUserLogin(userName, sessionId);
                 }
-            } catch (Throwable e) {
+            } catch (Exception e) {
                 FhLogger.errorSuppressed("Error during connection init", e);
                 throw e;
             } finally {
                 WebSocketSessionManager.setWebSocketSession(prev);
+            }
+        }
+
+        private void logoutOtherBrowserWindows(String oldHttpSessionId) {
+            UserSessionSharedData sharedData = userSessionRepository.getUserSessionSharedData(oldHttpSessionId);
+            userSessionRepository.onHttpSessionExpired(sharedData.getHttpSession());
+        }
+
+        private void logoutConversation(WebSocketSession currentWss) {
+            try {
+                sendInfoWithBlockedSession(currentWss, "SYSTEM");
+            } catch (Exception e) {
+                // ignore
             }
         }
 

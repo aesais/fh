@@ -32,6 +32,8 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Slf4j
 public class UserSessionRepository implements HttpSessionListener, ApplicationListener<ContextRefreshedEvent> {
+
+    @Autowired(required = false)
     private ForceLogoutService forceLogoutService;
 
     private final Map<String, UserSessionSharedData> userSessionSharedDataByHttpSessionId = new ConcurrentHashMap<>();
@@ -200,10 +202,12 @@ public class UserSessionRepository implements HttpSessionListener, ApplicationLi
         });
     }
 
-    private void onHttpSessionExpired(HttpSession httpSession) {
+    public void onHttpSessionExpired(HttpSession httpSession) {
         UserSessionSharedData sharedData = getUserSessionSharedData(httpSession);
         int noOfConversations = sharedData.getConversations().size();
-        forceLogoutService.forceLogout(sharedData, ForcedLogoutEvent.Reason.LOGOUT_TIMEOUT);
+        if(forceLogoutService != null) {
+            forceLogoutService.forceLogout(sharedData, ForcedLogoutEvent.Reason.LOGOUT_TIMEOUT);
+        }
         boolean result = removeHttpSessionWithAllConversations(httpSession);
         if (result) {
             FhLogger.info("Removed expired session for {} with id {} and {} conversations.", sharedData.getSystemUser().getLogin(), httpSession.getId(), noOfConversations);

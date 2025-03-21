@@ -22,7 +22,9 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.ModelAndView;
+import pl.fhframework.SessionManager;
 import pl.fhframework.UserSession;
+import pl.fhframework.UserSessionSharedData;
 import pl.fhframework.aspects.ApplicationContextHolder;
 import pl.fhframework.core.ResourceNotFoundException;
 import pl.fhframework.core.i18n.MessageService;
@@ -120,10 +122,16 @@ public class HttpMappings {
                 }
             }
         }
-
-        model.setViewName("login");
-
-        return model;
+        UserSessionRepository userSessionRepository = ApplicationContextHolder.getApplicationContext().getBean(UserSessionRepository.class);
+        HttpSession httpSession = request.getSession();
+        UserSessionSharedData sharedData = userSessionRepository.getUserSessionSharedData(httpSession);
+        if(sharedData != null) {
+            FhLogger.info("Session {} already authenticated. Redirecting to base URL " + httpSession.getId());
+            model.setViewName("redirect:/");
+        } else {
+            model.setViewName("login");
+        }
+      return model;
     }
 
     @RequestMapping(value = "/${browser.logout.path:logout}", method = RequestMethod.GET)
@@ -176,11 +184,8 @@ public class HttpMappings {
     public ModelAndView sessionUsed(HttpServletRequest request) {
 
         ModelAndView model = new ModelAndView();
-
         model.setViewName("sessionUsed");
-
         return model;
-
     }
 
     @RequestMapping(value = {"/", "/index"}, method = RequestMethod.GET)
