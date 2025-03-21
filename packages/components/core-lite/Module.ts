@@ -45,6 +45,7 @@ import {ChatEvent} from "./source/Events/ChatEvent"
 import {ScrollEvent} from "./source/Events/ScrollEvent";
 import {ChatListEvent} from "./source/Events/ChatListEvent";
 import {ConversationHandler} from "./source/Socket/ConversationHandler";
+import {CloseWindowEvent} from "./source/Events/CloseWindowEvent";
 
 
 class FormsHandler extends FhModule {
@@ -69,6 +70,7 @@ class FormsHandler extends FhModule {
         FhContainer.bind<BaseEvent>('Events.FileDownloadEvent').to(FileDownloadEvent).inRequestScope();
         FhContainer.bind<BaseEvent>('Events.NotificationEvent').to(NotificationEvent).inRequestScope();
         FhContainer.bind<BaseEvent>('Events.FocusEvent').to(FocusEvent).inRequestScope();
+        FhContainer.bind<BaseEvent>('Events.CloseWindowEvent').to(CloseWindowEvent).inRequestScope();
         FhContainer.bind<BaseEvent>('Events.ScrollEvent').to(ScrollEvent).inRequestScope();
         FhContainer.bind<BaseEvent>('Events.StylesheetChangeEvent').to(StylesheetChangeEvent).inRequestScope();
         FhContainer.bind<BaseEvent>('Events.LanguageChangeEvent').to(LanguageChangeEvent).inRequestScope();

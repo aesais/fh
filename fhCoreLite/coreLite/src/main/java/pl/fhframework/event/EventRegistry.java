@@ -101,6 +101,10 @@ public class EventRegistry {
         getEvents().add(new FocusEvent(containerId, formElementId));
     }
 
+    public void fireCloseWindowEvent() {
+        getEvents().add(new CloseWindowEvent());
+    }
+
     public void fireMessageEvent(String title, String message) {
         getEvents().add(new MessageEvent(title, message));
     }
