@@ -287,18 +287,18 @@ public class WebSocketFormsHandler extends FormsHandler {
                 SessionManager.getUserSession().getUseCaseContainer().clearUseCaseStack();
             }
             try {
-                String sessionId = WebSocketSessionManager.getHttpSession().getId();
-                String userName = sessionId; // for guests take sessionId as name, it provides proper function of windows session overtake
-                if (session.getPrincipal() != null) {
-                    userName = session.getPrincipal().getName();
-                }
-                WebSocketSession webSocketSession = userNames.get(userName);
-                // webSocketSession can be null when same login can be reused
-                if (webSocketSession != null && session.getId().equals(webSocketSession.getId())) {
-                    loginLockManager.releaseUserLogin(userName, WebSocketSessionManager.getHttpSession().getId());
-                    userNames.remove(userName);
-                    WebSocketSessionManager.sustainSession(session);
-                }
+//                String sessionId = WebSocketSessionManager.getHttpSession().getId();
+//                String userName = sessionId; // for guests take sessionId as name, it provides proper function of windows session overtake
+//                if (session.getPrincipal() != null) {
+//                    userName = session.getPrincipal().getName();
+//                }
+//                WebSocketSession webSocketSession = userNames.get(userName);
+//                // webSocketSession can be null when same login can be reused
+//                if (webSocketSession != null && session.getId().equals(webSocketSession.getId())) {
+//                    loginLockManager.releaseUserLogin(userName, WebSocketSessionManager.getHttpSession().getId());
+//                    userNames.remove(userName);
+//                    WebSocketSessionManager.sustainSession(session);
+//                }
             } catch (Throwable e) {
                 FhLogger.errorSuppressed("Error during connection closing", e);
             } finally {
