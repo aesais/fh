@@ -18,11 +18,13 @@ import javax.annotation.PreDestroy;
  */
 @Service
 public class SingleLoginLockManager {
-    @Autowired
-    private SingleLoginLockCache singleLoginLockCache;
 
-    @Autowired
-    FHConfiguration fhConfiguration;
+    private final SingleLoginLockCache singleLoginLockCache;
+
+    public SingleLoginLockManager(SingleLoginLockCache singleLoginLockCache) {
+        this.singleLoginLockCache = singleLoginLockCache;
+    }
+
 
 //    @Value("${fh.single.login:true}")
 //    private Boolean turnedOn;
@@ -39,6 +41,12 @@ public class SingleLoginLockManager {
             }
 //        }
 //        return null;
+    }
+
+    public void logout(String userName) {
+        synchronized (singleLoginLockCache) {
+            singleLoginLockCache.update(userName, null);
+        }
     }
 
     private boolean containsKey(String userName) {

@@ -22,6 +22,7 @@ public class SessionInfo implements Serializable {
     private String httpSessionId;
     private String connectionId;
     private String userName;
+    private boolean closed;
     private Date logonTime;
     private String nodeUrl;
     private Function<SessionInfo, String> activeUseCaseFunction;

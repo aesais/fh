@@ -18,7 +18,6 @@ import pl.fhframework.core.FhFrameworkException;
 import pl.fhframework.core.logging.FhLogger;
 import pl.fhframework.core.security.UserAttributesTempCache;
 import pl.fhframework.core.security.model.NoneBusinessRole;
-import pl.fhframework.core.session.UserSessionRepository;
 import pl.fhframework.core.websocket.HeartbeatWebSocketHandlerDecorator;
 import pl.fhframework.event.dto.RedirectEvent;
 import pl.fhframework.model.dto.AbstractMessage;
@@ -26,6 +25,8 @@ import pl.fhframework.model.dto.OutMessageEventHandlingResult;
 import pl.fhframework.model.security.SystemUser;
 
 import java.io.IOException;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -56,8 +57,6 @@ public class WebSocketFormsHandler extends FormsHandler {
     @Autowired
     private WebSocketSessionRepository webSocketSessionRepository;
 
-    @Autowired
-    private UserSessionRepository userSessionRepository;
 
     @Autowired
     @Lazy
@@ -82,7 +81,6 @@ public class WebSocketFormsHandler extends FormsHandler {
     public void handle(WebSocketSession session, TextMessage input) throws Exception {
         //Remember session handle in thread local
         WebSocketSessionManager.prepareSessionScope();
-
         //Calling proper service
         serviceRequest(input.getPayload(), WebSocketContext.fromThreadLocals());
     }
@@ -97,6 +95,7 @@ public class WebSocketFormsHandler extends FormsHandler {
     }
 
     public void connect(WebSocketSession session) {
+        clearClosedConversations(session.getPrincipal().getName());
         UserSession boundSession = WebSocketSessionManager.getPreviousUserSession(session);
         FhLogger.info(this.getClass(), "Connected: " + this.getConnectionId());
 
@@ -132,6 +131,18 @@ public class WebSocketFormsHandler extends FormsHandler {
             }
         }
         wssRepository.onConnectionEstabilished(boundSession, session);
+    }
+
+    private void clearClosedConversations(String userName) {
+        userSessionRepository.findSharedDataByUserName(userName);
+        Instant cutOff = Instant.now().minus(10, ChronoUnit.SECONDS);
+        for(UserSessionSharedData sharedData : userSessionRepository.findSharedDataByUserName(userName)) {
+            for (UserSession conversation: sharedData.getConversations()) {
+                if(conversation.isClosed() && conversation.getLastUsedTime().isBefore(cutOff)) {
+                    userSessionRepository.removeUserConversation(conversation);
+                }
+            }
+        }
     }
 
     private void updateSessionAttributes(UserSession userSession) {
@@ -247,7 +258,7 @@ public class WebSocketFormsHandler extends FormsHandler {
 
             WebSocketSession prev = WebSocketSessionManager.setWebSocketSession(session);
             try {
-                String sessionId = WebSocketSessionManager.getHttpSession().getId();
+                String sessionId = WebSocketSessionManager.getHttpSession(session).getId();
                 String userName = sessionId; // for guests take sessionId as name, it provides proper function of windows session overtake
                 if (session.getPrincipal() != null) {
                     userName = session.getPrincipal().getName();
@@ -276,7 +287,9 @@ public class WebSocketFormsHandler extends FormsHandler {
 
         private void logoutOtherBrowserWindows(String oldHttpSessionId) {
             UserSessionSharedData sharedData = userSessionRepository.getUserSessionSharedData(oldHttpSessionId);
-            userSessionRepository.onHttpSessionExpired(sharedData.getHttpSession());
+            if(sharedData != null) {
+                userSessionRepository.onHttpSessionExpired(sharedData.getHttpSession());
+            }
         }
 
         private void logoutConversation(WebSocketSession currentWss) {
@@ -299,18 +312,7 @@ public class WebSocketFormsHandler extends FormsHandler {
                 SessionManager.getUserSession().getUseCaseContainer().clearUseCaseStack();
             }
             try {
-//                String sessionId = WebSocketSessionManager.getHttpSession().getId();
-//                String userName = sessionId; // for guests take sessionId as name, it provides proper function of windows session overtake
-//                if (session.getPrincipal() != null) {
-//                    userName = session.getPrincipal().getName();
-//                }
-//                WebSocketSession webSocketSession = userNames.get(userName);
-//                // webSocketSession can be null when same login can be reused
-//                if (webSocketSession != null && session.getId().equals(webSocketSession.getId())) {
-//                    loginLockManager.releaseUserLogin(userName, WebSocketSessionManager.getHttpSession().getId());
-//                    userNames.remove(userName);
-//                    WebSocketSessionManager.sustainSession(session);
-//                }
+                userSessionRepository.closeConversation(session);
             } catch (Throwable e) {
                 FhLogger.errorSuppressed("Error during connection closing", e);
             } finally {

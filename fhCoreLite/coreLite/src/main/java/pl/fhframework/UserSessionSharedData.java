@@ -46,20 +46,15 @@ public class UserSessionSharedData {
         }
     }
 
-    public void clearConversations() {
-        conversations.forEach(conversation -> {
-            if (!conversation.isClosed()){
-                throw new IllegalStateException("Conversation " + conversation.getConversationId() + " is not closed and cannot be removed");
-            }
-        });
-        conversations.clear();
-    }
-
     public String getHttpSessionId(){
         return httpSession.getId();
     }
 
     public Set<UserSession> getConversations(){
         return Collections.unmodifiableSet(this.conversations);
+    }
+
+    public void changeHttpSession(HttpSession httpSession) {
+        this.httpSession = httpSession;
     }
 }

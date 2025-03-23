@@ -127,6 +127,7 @@ public class HttpMappings {
         UserSessionSharedData sharedData = userSessionRepository.getUserSessionSharedData(httpSession);
         if(sharedData != null) {
             FhLogger.info("Session {} already authenticated. Redirecting to base URL " + httpSession.getId());
+            model.clear();
             model.setViewName("redirect:/");
         } else {
             model.setViewName("login");

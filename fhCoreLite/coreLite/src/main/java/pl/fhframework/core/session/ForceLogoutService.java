@@ -1,22 +1,24 @@
 package pl.fhframework.core.session;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.core.session.SessionInformation;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.stereotype.Service;
 import org.springframework.web.socket.WebSocketSession;
-import pl.fhframework.UserSession;
-import pl.fhframework.UserSessionSharedData;
-import pl.fhframework.WebSocketContext;
-import pl.fhframework.WebSocketSessionRepository;
+import pl.fhframework.*;
 import pl.fhframework.core.logging.FhLogger;
 import pl.fhframework.event.dto.ForcedLogoutEvent;
 
 import javax.servlet.http.HttpSession;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Collection;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
@@ -25,6 +27,7 @@ import java.util.stream.Collectors;
  */
 @Service
 @Profile("app")
+@Slf4j
 public class ForceLogoutService {
 
     @Autowired
@@ -53,6 +56,9 @@ public class ForceLogoutService {
     }
 
     public boolean forceLogout(UserSessionSharedData userSessionSharedData, ForcedLogoutEvent.Reason reason) {
+        if(userSessionSharedData == null){
+            return true;
+        }
         final AtomicBoolean someUserSessionHasBeenLogout = new AtomicBoolean(false);
         userSessionSharedData.getConversations().forEach(userSession -> {
             if (forceLogoutFromConversation(userSession, reason)){
@@ -64,32 +70,36 @@ public class ForceLogoutService {
         return someUserSessionHasBeenLogout.get();
     }
 
-    private boolean forceLogoutFromConversation(UserSession userSession, ForcedLogoutEvent.Reason reason) {
-        if (userSession == null || userSession.isClosed()) {
+    private boolean forceLogoutFromConversation(UserSession userConversation, ForcedLogoutEvent.Reason reason) {
+        if (userConversation == null) {
             return false;
         }
         try {
-            //HttpSession httpSession = userSession.getHttpSession();
+            //HttpSession httpSession = userConversation.getHttpSession();
             //String httpSessionId = httpSession.getId();
             try {
-                userSession.clearUseCaseStack();
+                userConversation.clearUseCaseStack();
             } catch (Exception e) {
                 FhLogger.error(e); // ignore
             }
 
             // push info to client
-            Optional<WebSocketSession> wsSession = webSocketSessionRepository.getSession(userSession);
-            if (wsSession.isPresent() && wsSession.get().isOpen()) {
-                try {
-                    userSession.pushForcedLogoutInfo(WebSocketContext.from(userSession, wsSession.get()), reason);
-                    webSocketSessionRepository.closeSession(wsSession.get());
-                } catch (Exception e) {
-                    FhLogger.error(e); // ignore - user will be logout on server side and will have to authenticate again
+            Optional<WebSocketSession> wsSessionOptional = webSocketSessionRepository.getSession(userConversation);
+            wsSessionOptional.ifPresent(wsSession -> {
+                if (wsSession.isOpen()){
+                    try {
+                        log.info("Pushing shutdown info to web socket session {} related with conversation {}", wsSession.getId(), userConversation.getConversationId());
+                        userConversation.pushForcedLogoutInfo(WebSocketContext.from(userConversation, wsSession), reason);
+//                        userConversation.pushShutdownInfo(WebSocketContext.from(userConversation, wsSession), true);
+                    } catch (Exception e) {
+                        FhLogger.error(e); // ignore - user will be logout on server side and will have to authenticate again
+                    }
                 }
-            }
-            userSession.setAsClosed();
-
-
+                webSocketSessionRepository.closeSession(wsSession);
+            });
+            log.info("Removing conversation {} data", userConversation.getConversationId());
+            userConversation.setAsClosed();
+            userSessionRepository.removeUserConversation(userConversation);
             return true;
         } catch (Exception e) {
             FhLogger.error(e);
@@ -119,5 +129,10 @@ public class ForceLogoutService {
                 .collect(Collectors.toList());
     }
 
-
+    @Scheduled(fixedDelay = 5, initialDelay = 5, timeUnit = TimeUnit.SECONDS)
+    public void clearExpiredConversations() {
+//        FhLogger.info("Clearing expired conversations...");
+        Instant cutOff = Instant.now().minus(10, ChronoUnit.SECONDS);
+        userSessionRepository.getAllUserSessions().stream().filter(u -> u.isClosed() && u.getLastUsedTime().isBefore(cutOff)).forEach(userSessionRepository::removeUserConversation);
+    }
 }

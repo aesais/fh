@@ -29,6 +29,7 @@ import pl.fhframework.validation.IValidationResults;
 
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpSession;
+import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -46,6 +47,8 @@ public class UserSession extends Session {
 
     @Getter
     private boolean closed = false;
+
+    private Instant lastUsedTime = Instant.now();
 
     @Getter
     private UseCaseContainer useCaseContainer;
@@ -225,6 +228,10 @@ public class UserSession extends Session {
         formsHandler.sendOutMessage("SHUTDOWN", new ShutdownEvent(graceful), context);
     }
 
+    public void pushCloseWindowInfo(WebSocketContext context) {
+        formsHandler.sendOutMessage("CLOSE_WINDOW", new CloseWindowEvent(), context);
+    }
+
     public void pushForcedLogoutInfo(WebSocketContext context, ForcedLogoutEvent.Reason reason){
         formsHandler.sendOutMessage("FORCED_LOGOUT", new ForcedLogoutEvent(reason), context);
     }
@@ -255,7 +262,7 @@ public class UserSession extends Session {
     }
 
     public void setAsClosed(){
-        this.closed = false;
+        this.closed = true;
     }
 
     public SystemUser getSystemUser(){

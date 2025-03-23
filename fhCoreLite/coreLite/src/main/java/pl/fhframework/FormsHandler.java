@@ -13,6 +13,8 @@ import pl.fhframework.core.logging.*;
 import pl.fhframework.core.logging.handler.IErrorInformationHandler;
 import pl.fhframework.core.model.dto.client.InClientData;
 import pl.fhframework.core.security.AuthorizationManager;
+import pl.fhframework.core.security.model.SessionInfo;
+import pl.fhframework.core.session.UserSessionRepository;
 import pl.fhframework.core.uc.IUseCase;
 import pl.fhframework.core.uc.handlers.IOnEventHandleError;
 import pl.fhframework.core.uc.handlers.UseCaseErrorsHandler;
@@ -83,6 +85,9 @@ public abstract class FormsHandler {
 
     @Autowired(required = false)
     protected AuthorizationManager authorizationManager;
+
+    @Autowired
+    protected UserSessionRepository userSessionRepository;
 
     private Map<String, List<IClientDataHandler>> clientDataHandlerMap = new HashMap<>();
 
@@ -267,6 +272,16 @@ public abstract class FormsHandler {
             maybeWriteJSON(CLIENT_JSON_OUTPUT_FILE_FORMAT, inMessage.getCommand(), fullPayload);
             context.getRequestContext().setRequestId(requestId);
             serviceRequestImpl(inMessage, requestId, context);
+            UserSession session = context.getUserSession();
+            session.setClosed(false);
+            session.setLastUsedTime(Instant.now());
+            if(session.getSharedData().getConversations().stream().noneMatch(c -> c.equals(session))) {
+                session.getSharedData().addConversation(session);
+            }
+            SessionInfo sessionInfo = userSessionRepository.getSessionInfo(session);
+            if(sessionInfo == null) {
+                userSessionRepository.registerNewConversation(session);
+            }
         } catch (Throwable exc) {
             exception = exc;
             Optional<String> translatedError = errorTranslator.translateError(exc);

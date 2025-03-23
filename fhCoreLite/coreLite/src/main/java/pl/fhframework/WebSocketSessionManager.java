@@ -100,7 +100,7 @@ public class WebSocketSessionManager implements ISessionManagerImpl {
      * @param webSocketSession
      */
     public static void sustainSession(WebSocketSession webSocketSession) {
-        HttpSession sessionHttp = getHttpSession();
+        HttpSession sessionHttp = getHttpSession(webSocketSession);
         try {
             // include current inactive time - FH-7448
             int sustainTimeout = WebSocketSessionManager.getSustainTimeout();
@@ -175,7 +175,7 @@ public class WebSocketSessionManager implements ISessionManagerImpl {
     }
 
     public static UserSession issueNewConversation(SystemUser systemUser, WebSocketSession session) {
-        HttpSession httpSession = getHttpSession();
+        HttpSession httpSession = getHttpSession(session);
         //First we try take shared data from previous conversation - all conversations within the same http session share SharedData object.
         UserSessionSharedData sharedData = getUserSessionRepository().getUserSessionSharedData(httpSession);
         if (sharedData == null) {
