@@ -29,7 +29,7 @@ public class FhMultiWindowLogoutSuccessHandler extends SimpleUrlLogoutSuccessHan
         if(authentication != null && singleLoginLockManager.isTrunedOn()) {
             String userName = ((UserDetails) authentication.getPrincipal()).getUsername();
             singleLoginLockManager.logout(userName);
-            forceLogoutService.forceLogoutByUsername(userName, ForcedLogoutEvent.Reason.LOGOUT_FORCE);
+            forceLogoutService.forceLogoutByUsername(userName, ForcedLogoutEvent.Reason.LOGOUT_FORCE_LOGIN);
         }
         super.onLogoutSuccess(request, response, authentication);
     }

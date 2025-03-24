@@ -20,6 +20,8 @@ public class ForcedLogoutEvent extends EventDTO {
 
         LOGOUT_FORCE("force"),
 
+        LOGOUT_FORCE_LOGIN("force_login"),
+
         LOGOUT_TIMEOUT("timeout"),
 
         LOGOUT_ACCESS("access"),

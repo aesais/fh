@@ -235,7 +235,7 @@ public class UserSessionRepository implements HttpSessionListener, ApplicationLi
     public void onHttpSessionExpired(HttpSession httpSession) {
         UserSessionSharedData sharedData = getUserSessionSharedData(httpSession);
         int noOfConversations = sharedData.getConversations().size();
-        forceLogoutService.forceLogout(sharedData, ForcedLogoutEvent.Reason.LOGOUT_FORCE);
+        forceLogoutService.forceLogout(sharedData, ForcedLogoutEvent.Reason.LOGOUT_FORCE_LOGIN);
 //        boolean result = removeHttpSessionWithAllConversations(httpSession);
 //        if (result) {
 //            FhLogger.info("Removed expired session for {} with id {} and {} conversations.", sharedData.getSystemUser().getLogin(), httpSession.getId(), noOfConversations);
