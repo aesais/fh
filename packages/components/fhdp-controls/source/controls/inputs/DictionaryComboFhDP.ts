@@ -91,7 +91,7 @@ class DictionaryComboFhDP extends ComboFhDP implements LanguageChangeObserver {
         self.divTooltip.classList.add('hidden-popper');
         self.divTooltip.id = self.divTooltipId.toString();
 
-        const id = `FhDP-dictionary-combo-${+new Date()}`;
+        const id = `FhDP-dictionary-combo-${(Math.floor((Math.random() * 10000000)))}`;
         this.getInputGroupElement().id = id
         this.guuid = id;
 
@@ -211,7 +211,7 @@ class DictionaryComboFhDP extends ComboFhDP implements LanguageChangeObserver {
 
         if(lastValueText) {
             let group = document.createElement('div');
-            group.id = `FhDP-dictionary-combo-${+new Date()}-lastValue`;
+            group.id = `FhDP-dictionary-combo-${(Math.floor((Math.random() * 10000000)))}-lastValue`;
             group.classList.add('input-group-append');
 
             let groupSpan = document.createElement('span');
