@@ -89,6 +89,7 @@ public class ForceLogoutService {
                 if (wsSession.isOpen()){
                     try {
                         log.info("Pushing shutdown info to web socket session {} related with conversation {}", wsSession.getId(), userConversation.getConversationId());
+                        userConversation.pushCloseWindowInfo(WebSocketContext.from(userConversation, wsSession));
                         userConversation.pushForcedLogoutInfo(WebSocketContext.from(userConversation, wsSession), reason);
 //                        userConversation.pushShutdownInfo(WebSocketContext.from(userConversation, wsSession), true);
                     } catch (Exception e) {

@@ -32,12 +32,9 @@ public class SingleLoginLockManager {
     public String assignUserLogin(String userName, String sessionId) {
         if (isTrunedOn()) {
             synchronized (WebSocketSessionManager.getHttpSession()) {
-                if (!containsKey(userName)) {
-                    String prevSessionId = singleLoginLockCache.get(userName);
-                    singleLoginLockCache.update(userName, sessionId);
-                    return prevSessionId;
-                }
-                throw new RuntimeException("User is already logged");
+                String prevSessionId = singleLoginLockCache.get(userName);
+                singleLoginLockCache.update(userName, sessionId);
+                return prevSessionId;
             }
         }
         return null;
