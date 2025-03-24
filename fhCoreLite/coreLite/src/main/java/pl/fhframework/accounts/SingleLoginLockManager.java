@@ -26,21 +26,21 @@ public class SingleLoginLockManager {
     }
 
 
-//    @Value("${fh.single.login:true}")
-//    private Boolean turnedOn;
+    @Value("${fh.single.login:true}")
+    private Boolean turnedOn;
 
     public String assignUserLogin(String userName, String sessionId) {
-//        if (isTrunedOn()) {
+        if (isTrunedOn()) {
             synchronized (WebSocketSessionManager.getHttpSession()) {
-//                if (!containsKey(userName)) {
+                if (!containsKey(userName)) {
                     String prevSessionId = singleLoginLockCache.get(userName);
                     singleLoginLockCache.update(userName, sessionId);
                     return prevSessionId;
-//                }
-//                throw new RuntimeException("User is already logged");
+                }
+                throw new RuntimeException("User is already logged");
             }
-//        }
-//        return null;
+        }
+        return null;
     }
 
     public void logout(String userName) {
@@ -101,6 +101,6 @@ public class SingleLoginLockManager {
     @Deprecated
     public boolean isTrunedOn() {
 //        return fhConfiguration.isProdModeActive() && turnedOn;
-        return true;
+        return turnedOn;
     }
 }
