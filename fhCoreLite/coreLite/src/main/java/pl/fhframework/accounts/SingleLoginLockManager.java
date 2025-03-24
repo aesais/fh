@@ -98,7 +98,6 @@ public class SingleLoginLockManager {
         }
     }
 
-    @Deprecated
     public boolean isTrunedOn() {
 //        return fhConfiguration.isProdModeActive() && turnedOn;
         return turnedOn;

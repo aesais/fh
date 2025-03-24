@@ -26,7 +26,7 @@ public class FhMultiWindowLogoutSuccessHandler extends SimpleUrlLogoutSuccessHan
     @Override
     public void onLogoutSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
         log.info("FhMultiwindowLogoutSuccessHandler onLogoutSuccess. HTTPSessionId: {}", request.getSession().getId());
-        if(authentication != null) {
+        if(authentication != null && singleLoginLockManager.isTrunedOn()) {
             String userName = ((UserDetails) authentication.getPrincipal()).getUsername();
             singleLoginLockManager.logout(userName);
             forceLogoutService.forceLogoutByUsername(userName, ForcedLogoutEvent.Reason.LOGOUT_FORCE);
