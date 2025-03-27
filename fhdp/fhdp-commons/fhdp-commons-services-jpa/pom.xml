@@ -6,7 +6,7 @@
     <parent>
         <groupId>pl.fhframework.dp</groupId>
         <artifactId>fhdp-commons</artifactId>
-        <version>4.10.6.PL-SNAPSHOT</version>
+        <version>4.10.6.PL-OPT</version>
     </parent>
 
     <artifactId>fhdp-commons-services-jpa</artifactId>
