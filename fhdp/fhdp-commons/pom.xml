@@ -32,6 +32,8 @@
         <module>fhdp-commons-prints-fonts</module>
         <module>fhdp-commons-prints-rest</module>
         <module>fhdp-commons-els</module>
+        <module>fhdp-commons-services-jpa</module>
+        <module>fhdp-commons-services-mongo</module>
     </modules>
 
 

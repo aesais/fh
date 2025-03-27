@@ -52,5 +52,8 @@
   "dependencies": {
     "fhdp-charts": "4.10.6-PL-SNAPSHOT-1742828832888",
     "fhdp-fh-starter": "4.10.6-PL-SNAPSHOT-1742828832888"
+  },
+  "resolutions": {
+    "canvas": "3.1.0"
   }
 }
