@@ -3,6 +3,7 @@ package pl.fhframework.dp.commons.services.operations;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import pl.fhframework.dp.commons.model.dao.OperationStepDAO;
 import pl.fhframework.dp.commons.model.entities.OperationStep;
 import pl.fhframework.dp.commons.model.repositories.OperationStepJPARepository;
@@ -34,6 +35,7 @@ public class OperationStepDtoService implements IOperationStepDtoService {
     OperationStepDAO operationStepDAO;
 
 
+    @Transactional
     public void logOperationStepStart(String msgKey, String processID, String masterProcessId, String operationGUID, String stepID, Long docId) {
         OperationStepDto dto = findOperationStep(processID, operationGUID, stepID);
         if(dto == null) {
@@ -64,6 +66,7 @@ public class OperationStepDtoService implements IOperationStepDtoService {
         }
     }
 
+    @Transactional
     public void logOperationStepFinish(String processID, String operationGUID, String stepID) {
         long time = System.nanoTime();
         OperationStepDto dto = findOperationStep(processID, operationGUID, stepID);
