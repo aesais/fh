@@ -5,12 +5,17 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.search.sort.FieldSortBuilder;
+import org.elasticsearch.search.sort.NestedSortBuilder;
+import org.elasticsearch.search.sort.SortBuilder;
+import org.elasticsearch.search.sort.SortOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.elasticsearch.annotations.Document;
+import org.springframework.data.elasticsearch.annotations.FieldType;
 import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
 import org.springframework.data.elasticsearch.core.SearchHit;
 import org.springframework.data.elasticsearch.core.SearchHits;
@@ -29,6 +34,11 @@ import pl.fhframework.dp.transport.service.IDtoService;
 import java.lang.reflect.Method;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * @author <a href="mailto:jacek.borowiec@asseco.pl">Jacek Borowiec</a>
@@ -64,17 +74,26 @@ public abstract class GenericDtoService<ID,
         NativeSearchQueryBuilder searchQueryBuilder = new NativeSearchQueryBuilder()
                 .withQuery(queryBuilder);
         if(query.getFirstRow() != null && query.getSize() != null) {
-            Sort sort ;
-            if(query.getSortProperty() != null) {
-                sort = Sort.by((query.getAscending() != null && !query.getAscending())?Sort.Direction.DESC : Sort.Direction.ASC, query.getSortProperty());
-            } else {
-                sort = Sort.by(Sort.Direction.ASC, "id");
-            }
+            SortBuilder<?> sortWithNested = new FieldSortBuilder("id")
+                    .order(SortOrder.ASC)
+                    .setNestedSort(null);
+
             Pageable pageable;
+
+            pageable = PageRequest.of(query.getFirstRow()/query.getSize(), query.getSize());
+
             // bez sortowania jesli SortProperty = "0"
-            if (query.getSortProperty() != null && query.getSortProperty().equals("0")) pageable = PageRequest.of(query.getFirstRow()/query.getSize(), query.getSize());
-            else pageable = PageRequest.of(query.getFirstRow()/query.getSize(), query.getSize(), sort);
-            searchQueryBuilder = searchQueryBuilder.withPageable(pageable);
+            if(query.getSortProperty() != null) {
+                if (!query.getSortProperty().equals("0")) {
+                    String nestedPath = getNestedPath(dtoClazz, query.getSortProperty());
+                    sortWithNested = new FieldSortBuilder(query.getSortProperty())
+                            .order((query.getAscending() != null && !query.getAscending()) ? SortOrder.DESC : SortOrder.ASC)
+                            .setNestedSort(nestedPath != null ? new NestedSortBuilder(nestedPath) : null);
+                }
+            }
+
+
+            searchQueryBuilder = searchQueryBuilder.withPageable(pageable).withSorts(sortWithNested);
         }
         NativeSearchQuery searchQuery = searchQueryBuilder.build();
         List<LIST> list = new ArrayList<>();
@@ -238,4 +257,42 @@ public abstract class GenericDtoService<ID,
 //        }
 //        return null;
 //    }
+
+    public  String getNestedPath(Class<?> rootClass, String fullFieldPath) {
+        List<String> pathParts = new ArrayList<>(Arrays.asList(fullFieldPath.split("\\.")));
+        List<String> nestedPath = new ArrayList<>();
+        findNestedPath(rootClass, pathParts, nestedPath, new ArrayList<>());
+        return nestedPath.isEmpty() ? null : String.join(".", nestedPath);
+    }
+
+    private boolean findNestedPath(Class<?> clazz, List<String> remainingPath, List<String> nestedPath, List<String> currentPath) {
+        if (remainingPath.isEmpty()) {
+            return false;
+        }
+
+        String currentFieldName = remainingPath.remove(0);
+        currentPath.add(currentFieldName); // Dodajemy aktualne pole do ścieżki
+
+        for (Field field : clazz.getDeclaredFields()) {
+            if (field.getName().equals(currentFieldName)) {
+                if (field.isAnnotationPresent(org.springframework.data.elasticsearch.annotations.Field.class)) {
+                    org.springframework.data.elasticsearch.annotations.Field annotation = field.getAnnotation(org.springframework.data.elasticsearch.annotations.Field.class);
+                    if (annotation.type() == FieldType.Nested) {
+                        nestedPath.clear();
+                        nestedPath.addAll(new ArrayList<>(currentPath)); // Nadpisujemy nestedPath
+                    }
+                }
+
+                if (!remainingPath.isEmpty()) {
+                    return findNestedPath(field.getType(), remainingPath, nestedPath, currentPath);
+                }
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+
+
 }
