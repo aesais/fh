@@ -3,7 +3,7 @@ package pl.fhframework.dp.commons.services.auditlog;
 import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import pl.fhframework.dp.commons.els.repositories.AuditLogESRepository;
 import pl.fhframework.dp.commons.services.facade.GenericDtoService;
@@ -15,6 +15,7 @@ import pl.fhframework.dp.transport.service.IAuditLogDtoService;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author <a href="mailto:jacek.borowiec@asseco.pl">Jacek Borowiec</a>
@@ -25,11 +26,13 @@ import java.util.List;
 @Slf4j
 public class AuditLogDtoService extends GenericDtoService<String, AuditLogDto, AuditLogDto, AuditLogDtoQuery, AuditLogDto> implements IAuditLogDtoService {
 
-    @Autowired
-    AuditLogESRepository auditLogESRepository;
+    private final IAuditLogDao auditLogDao;
+    private final AuditLogESRepository auditLogESRepository;
 
-    public AuditLogDtoService() {
+    public AuditLogDtoService(IAuditLogDao auditLogDao, AuditLogESRepository auditLogESRepository) {
         super(AuditLogDto.class, AuditLogDto.class, AuditLogDto.class);
+        this.auditLogDao = auditLogDao;
+        this.auditLogESRepository = auditLogESRepository;
     }
 
     @Override
@@ -42,8 +45,31 @@ public class AuditLogDtoService extends GenericDtoService<String, AuditLogDto, A
 
     @Override
     public String persistDto(AuditLogDto auditLogDto) {
-        return auditLogESRepository.save(auditLogDto).getId();
+        return auditLogDao.persistDto(auditLogDto);
     }
+
+    @Override
+    public AuditLogDto getDto(String key) {
+        AuditLogDto ret = auditLogESRepository.findById(key).orElse(null);
+        if(ret == null) {
+            ret = auditLogDao.getDto(key);
+        }
+        return ret;
+    }
+
+    @Scheduled(initialDelay = 60, fixedDelay = 5, timeUnit = TimeUnit.SECONDS)
+    public void indexData() {
+        log.info("Start indexing auditLog...");
+        auditLogDao.indexData();
+    }
+
+
+    @Scheduled(cron = "0 30 23 * * *")
+    public void removeIndexedEntries() {
+        log.info("Removing indexed entries...");
+        auditLogDao.removeIndexedEntries();
+    }
+
 
     @Override
     protected BoolQueryBuilder extendQueryBuilder(BoolQueryBuilder builder, AuditLogDtoQuery query) {
@@ -119,41 +145,41 @@ public class AuditLogDtoService extends GenericDtoService<String, AuditLogDto, A
 
     }
 
-    @Deprecated
-    public void logOperationStepStart(String messageKey,
-                          String processID,
-                          String operationGUID,
-                          String stepID) {
-        AuditLogDto dto = new AuditLogDto(AuditLogTypeEnum.business,
-                SeverityEnum.info,
-                "operationSteps",
-                LocalDateTime.now(),
-                messageKey,
-                "start",
-                processID,
-                operationGUID,
-                stepID,
-                "system");
-        persistDto(dto);
-    }
-
-    @Deprecated
-    public void logOperationStepFinish(String processID,
-                                      String operationGUID,
-                                      String stepID) {
-        AuditLogDtoQuery query = new AuditLogDtoQuery();
-        query.setProcessID(processID);
-        query.setOperationGUID(operationGUID);
-        query.setStepID(stepID);
-        query.setCategory("operationSteps");
-        query.setAscending(false);
-        List<AuditLogDto> auditSteps = listDto(query);
-        if(!auditSteps.isEmpty()) {
-            AuditLogDto dto = auditSteps.get(0);
-            dto.setEndTime(LocalDateTime.now());
-            persistDto(dto);
-        }
-    }
+//    @Deprecated
+//    public void logOperationStepStart(String messageKey,
+//                          String processID,
+//                          String operationGUID,
+//                          String stepID) {
+//        AuditLogDto dto = new AuditLogDto(AuditLogTypeEnum.business,
+//                SeverityEnum.info,
+//                "operationSteps",
+//                LocalDateTime.now(),
+//                messageKey,
+//                "start",
+//                processID,
+//                operationGUID,
+//                stepID,
+//                "system");
+//        persistDto(dto);
+//    }
+//
+//    @Deprecated
+//    public void logOperationStepFinish(String processID,
+//                                      String operationGUID,
+//                                      String stepID) {
+//        AuditLogDtoQuery query = new AuditLogDtoQuery();
+//        query.setProcessID(processID);
+//        query.setOperationGUID(operationGUID);
+//        query.setStepID(stepID);
+//        query.setCategory("operationSteps");
+//        query.setAscending(false);
+//        List<AuditLogDto> auditSteps = listDto(query);
+//        if(!auditSteps.isEmpty()) {
+//            AuditLogDto dto = auditSteps.get(0);
+//            dto.setEndTime(LocalDateTime.now());
+//            persistDto(dto);
+//        }
+//    }
 
     public void logBusinessInfo(
                             String category,

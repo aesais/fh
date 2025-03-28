@@ -9,6 +9,6 @@ import pl.fhframework.dp.transport.auditlog.AuditLogDto;
  * @version $Revision:  $, $Date:  $
  * @created 2019-02-15
  */
-public interface AuditLogESRepository extends ElasticsearchRepository<AuditLogDto, String> {
+public interface AuditLogESRepository extends ElasticsearchRepository<AuditLogDto, String>, CustomAuditLogCrudRepository<AuditLogDto> {
 
 }

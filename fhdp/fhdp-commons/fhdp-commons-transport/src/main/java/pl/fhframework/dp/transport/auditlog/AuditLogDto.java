@@ -17,7 +17,6 @@ import java.time.LocalDateTime;
  * @created 15/09/2020
  */
 @Document(indexName = "#{@indexNamePrefix}_audit_log", createIndex = false)
-@Setting(settingPath = "/settings/settings.json")
 @Getter
 @Setter
 @NoArgsConstructor

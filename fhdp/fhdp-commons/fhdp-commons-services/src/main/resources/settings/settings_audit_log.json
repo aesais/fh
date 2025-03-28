@@ -1,0 +1,16 @@
+{
+  "index": {
+    "number_of_shards": "3",
+    "analysis": {
+      "analyzer": {
+        "default": {
+          "type": "custom",
+          "filter": [
+            "lowercase"
+          ],
+          "tokenizer": "whitespace"
+        }
+      }
+    }
+  }
+}
