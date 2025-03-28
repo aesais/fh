@@ -57,7 +57,7 @@ public class AuditLogDtoService extends GenericDtoService<String, AuditLogDto, A
         return ret;
     }
 
-    @Scheduled(initialDelay = 60, fixedDelay = 5, timeUnit = TimeUnit.SECONDS)
+    @Scheduled(initialDelay = 60, fixedDelay = 1, timeUnit = TimeUnit.SECONDS)
     public void indexData() {
         log.info("Start indexing auditLog...");
         auditLogDao.indexData();
