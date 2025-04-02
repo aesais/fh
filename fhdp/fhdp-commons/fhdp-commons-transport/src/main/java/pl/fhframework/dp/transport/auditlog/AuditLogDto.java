@@ -39,6 +39,9 @@ public class AuditLogDto implements IPersistentObject<String> {
     private String operationGUID;
     private String userLogin;
     private Long docId;
+    private String docType;
+    private String docNumberLocal;
+    private String docNumberFormal;
     private Object opData;
     private Object opResult;
 

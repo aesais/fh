@@ -37,6 +37,9 @@ public class AuditLogIndexingQueue implements Comparable<AuditLogIndexingQueue>,
     private String opData;
     @Column(columnDefinition="TEXT")
     private String opResult;
+    private String docType;
+    private String docNumberLocal;
+    private String docNumberFormal;
     // Exclusive for entity
     private boolean indexed = false;
     private Long indexingLag;
