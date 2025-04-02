@@ -33,9 +33,16 @@ public class AuditLogIndexingQueue implements Comparable<AuditLogIndexingQueue>,
     private String operationGUID;
     private String userLogin;
     private Long docId;
+    @Column(columnDefinition="TEXT")
+    private String opData;
+    @Column(columnDefinition="TEXT")
+    private String opResult;
     // Exclusive for entity
     private boolean indexed = false;
     private Long indexingLag;
+//    @Column(columnDefinition = "bytea", nullable = true)
+//    private byte [] media;
+
 
 
     @Override
