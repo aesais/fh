@@ -2,6 +2,7 @@ package pl.fhframework.dp.commons.services.auditlog;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -22,6 +23,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Component
+@Slf4j
 public class AuditLogTemplateInitializer {
     private static final String TEMPLATE_NAME = "_audit_log";
     private static final String TEMPLATE_PATTERN = "_audit_log_*";
@@ -36,7 +38,10 @@ public class AuditLogTemplateInitializer {
     @PostConstruct
     public void setup() {
         IndexOperations indexOps =  operations.indexOps(AuditLogDto.class);
-
+        if(indexOps.exists()) {
+            log.info("***** *** Deleting obsolete index {}", indexOps.getIndexCoordinates().getIndexName());
+            indexOps.delete();
+        }
         if (!indexOps.existsTemplate(indexNamePrefix + TEMPLATE_NAME)) {
             Document mapping = indexOps.createMapping();
             AliasActions aliasActions = new AliasActions().add(
