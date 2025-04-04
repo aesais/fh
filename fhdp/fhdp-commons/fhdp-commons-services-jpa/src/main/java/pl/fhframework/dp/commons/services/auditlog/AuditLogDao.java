@@ -30,7 +30,6 @@ import java.util.*;
 @Slf4j
 public class AuditLogDao implements IAuditLogDao {
     private static final NumberFormat numberFormat = new DecimalFormat("\t#.#### [s]");
-    private static final String PARAM_NAME = "auditLog.keepDeclarationInOpData";
 
     @Autowired
     private AuditLogIndexingQueueJPARepository auditLogIndexingQueueRepository;
@@ -49,7 +48,7 @@ public class AuditLogDao implements IAuditLogDao {
             throw new AppException("Can not convert audit log to entity! AuditLogDto: " + BeanConversionUtil.toPrettyJson(auditLogDto));
         }
         if(auditLogDto.getOpData() != null) {
-            entity.setOpDataText(BeanConversionUtil.toJson(auditLogDto.getOpData()));
+            entity.setOpDataText(auditLogDto.getOpData());
         }
         if(auditLogDto.getOpResult() != null) {
             entity.setOpResultText(BeanConversionUtil.toJson(auditLogDto.getOpResult()));
@@ -120,6 +119,13 @@ public class AuditLogDao implements IAuditLogDao {
     public AuditLogDto getDto(String key) {
         AuditLogIndexingQueue entity = auditLogIndexingQueueRepository.findById(key).orElse(null);
         return entity == null? null: BeanConversionUtil.mapObject(entity, false, AuditLogDto.class);
+    }
+
+    @Override
+    public String getOpdata(String key, String opData) {
+        AuditLogIndexingQueue entity = auditLogIndexingQueueRepository.findById(key).orElse(null);
+        //TODO: if s3 available then take opdata from S3
+        return entity == null? null: entity.getOpDataText();
     }
 
     @Override

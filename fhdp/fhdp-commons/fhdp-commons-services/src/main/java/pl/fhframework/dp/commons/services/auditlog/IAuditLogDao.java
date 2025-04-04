@@ -10,4 +10,6 @@ public interface IAuditLogDao {
     AuditLogDto getDto(String key);
 
     void removeIndexedEntries();
+
+    String getOpdata(String key, String opData);
 }

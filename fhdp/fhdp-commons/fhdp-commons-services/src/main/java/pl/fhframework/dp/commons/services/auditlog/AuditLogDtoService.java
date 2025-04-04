@@ -2,6 +2,7 @@ package pl.fhframework.dp.commons.services.auditlog;
 
 import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.index.query.BoolQueryBuilder;
+import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -53,6 +54,8 @@ public class AuditLogDtoService extends GenericDtoService<String, AuditLogDto, A
         AuditLogDto ret = auditLogESRepository.findById(key).orElse(null);
         if(ret == null) {
             ret = auditLogDao.getDto(key);
+        } else {
+            ret.setOpData(auditLogDao.getOpdata(key, ret.getOpData()));
         }
         return ret;
     }
@@ -74,13 +77,13 @@ public class AuditLogDtoService extends GenericDtoService<String, AuditLogDto, A
     @Override
     protected BoolQueryBuilder extendQueryBuilder(BoolQueryBuilder builder, AuditLogDtoQuery query) {
         if(query.getType() != null) {
-            builder.must(QueryBuilders.termsQuery("type.keyword", query.getType().name()));
+            builder.must(QueryBuilders.termQuery("type.keyword", query.getType().name()));
         }
         if(query.getSeverity() != null) {
-            builder.must(QueryBuilders.termsQuery("severity.keyword", query.getSeverity().name()));
+            builder.must(QueryBuilders.termQuery("severity.keyword", query.getSeverity().name()));
         }
         if(query.getCategory() != null) {
-            builder.must(QueryBuilders.termsQuery("category.keyword", query.getCategory()));
+            builder.must(QueryBuilders.termQuery("category.keyword", query.getCategory()));
         }
         if(query.getMessageKey() != null) {
             builder.must(QueryBuilders.wildcardQuery("messageKey", query.getMessageKey() + "*"));
@@ -89,16 +92,28 @@ public class AuditLogDtoService extends GenericDtoService<String, AuditLogDto, A
             builder.must(QueryBuilders.wildcardQuery("comment", query.getComment() + "*"));
         }
         if(query.getProcessID() != null) {
-            builder.must(QueryBuilders.termsQuery("processID.keyword", query.getProcessID()));
+            builder.must(QueryBuilders.termQuery("processID.keyword", query.getProcessID()));
         }
         if(query.getStepID() != null) {
-            builder.must(QueryBuilders.termsQuery("stepID.keyword", query.getStepID()));
+            builder.must(QueryBuilders.termQuery("stepID.keyword", query.getStepID()));
         }
         if(query.getOperationGUID() != null) {
-            builder.must(QueryBuilders.termsQuery("operationGUID.keyword", query.getOperationGUID()));
+            builder.must(QueryBuilders.termQuery("operationGUID.keyword", query.getOperationGUID()));
         }
         if(query.getUserLogin() != null) {
             builder.must(QueryBuilders.wildcardQuery("userLogin", query.getUserLogin() + "*"));
+        }
+        if(query.getDocId() != null) {
+            builder.must(QueryBuilders.termQuery("docId.keyword", query.getDocId()));
+        }
+        if(query.getDocType() != null) {
+            builder.must(QueryBuilders.termQuery("docType.keyword", query.getDocType()));
+        }
+        if(query.getDocNumberLocal() != null) {
+            builder.must(QueryBuilders.termQuery("docNumberLocal.keyword", query.getDocNumberLocal()));
+        }
+        if(query.getDocNumberFormal() != null) {
+            builder.must(QueryBuilders.termQuery("docNumberFormal.keyword", query.getDocNumberFormal()));
         }
         LocalDateTime dateFrom = query.getEventTimeFrom();
         LocalDateTime dateTo = query.getEventTimeTo();

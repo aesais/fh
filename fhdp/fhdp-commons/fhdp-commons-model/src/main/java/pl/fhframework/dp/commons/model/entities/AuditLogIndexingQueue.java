@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "fhdp_audit_log_indexing_queue",
-        indexes = {@Index(name = "idx_audit_log_indexing_queue_indexed",  columnList="indexed", unique = false)})
+        indexes = {@Index(name = "idx_audit_log_indexing_queue_indexed",  columnList="indexed,node", unique = false)})
 @Data
 @NoArgsConstructor
 public class AuditLogIndexingQueue implements Comparable<AuditLogIndexingQueue>, IPersistentObject<String> {
@@ -44,8 +44,7 @@ public class AuditLogIndexingQueue implements Comparable<AuditLogIndexingQueue>,
     private String opResultText;
     private boolean indexed = false;
     private Long indexingLag;
-//    @Column(columnDefinition = "bytea", nullable = true)
-//    private byte [] media;
+    private String node;
 
 
 
