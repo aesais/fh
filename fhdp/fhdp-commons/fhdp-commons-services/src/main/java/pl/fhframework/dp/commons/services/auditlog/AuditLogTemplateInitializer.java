@@ -38,11 +38,11 @@ public class AuditLogTemplateInitializer {
     @PostConstruct
     public void setup() {
         IndexOperations indexOps =  operations.indexOps(AuditLogDto.class);
-        if(indexOps.exists()) {
-            log.info("***** *** Deleting obsolete index {}", indexOps.getIndexCoordinates().getIndexName());
-            indexOps.delete();
-        }
         if (!indexOps.existsTemplate(indexNamePrefix + TEMPLATE_NAME)) {
+            if(indexOps.exists()) {
+                log.info("***** *** Deleting obsolete index {}", indexOps.getIndexCoordinates().getIndexName());
+                indexOps.delete();
+            }
             Document mapping = indexOps.createMapping();
             AliasActions aliasActions = new AliasActions().add(
                     new AliasAction.Add(AliasActionParameters.builderForTemplate()

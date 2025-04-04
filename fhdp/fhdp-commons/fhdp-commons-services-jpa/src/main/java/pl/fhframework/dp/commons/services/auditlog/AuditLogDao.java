@@ -30,6 +30,7 @@ import java.util.*;
 @Slf4j
 public class AuditLogDao implements IAuditLogDao {
     private static final NumberFormat numberFormat = new DecimalFormat("\t#.#### [s]");
+    private static final String PARAM_NAME = "auditLog.keepDeclarationInOpData";
 
     @Autowired
     private AuditLogIndexingQueueJPARepository auditLogIndexingQueueRepository;
@@ -46,6 +47,12 @@ public class AuditLogDao implements IAuditLogDao {
         AuditLogIndexingQueue entity = BeanConversionUtil.mapObject(auditLogDto, false, AuditLogIndexingQueue.class);
         if(entity == null) {
             throw new AppException("Can not convert audit log to entity! AuditLogDto: " + BeanConversionUtil.toPrettyJson(auditLogDto));
+        }
+        if(auditLogDto.getOpData() != null) {
+            entity.setOpDataText(BeanConversionUtil.toJson(auditLogDto.getOpData()));
+        }
+        if(auditLogDto.getOpResult() != null) {
+            entity.setOpResultText(BeanConversionUtil.toJson(auditLogDto.getOpResult()));
         }
         if(entity.getId() == null) {
             entity.setId(UUID.randomUUID().toString());
@@ -67,6 +74,13 @@ public class AuditLogDao implements IAuditLogDao {
                 AuditLogDto dto = BeanConversionUtil.mapObject(entity, false, AuditLogDto.class);
                 if (dto == null) {
                     throw new AppException("Can not convert metadata for AuditLogIndexingQueue entity : " + entity.getId());
+                }
+                //TODO: store information to S3 storage, if available
+//                if(entity.getOpDataText() != null) {
+//                    dto.setOpData(BeanConversionUtil.getFromJson(entity.getOpDataText(), Object.class));
+//                }
+                if(entity.getOpResultText() != null) {
+                    dto.setOpResult(BeanConversionUtil.getFromJson(entity.getOpResultText(), Object.class));
                 }
                 addIndexData(dto, queriesMap);
                 entity.setIndexed(true);
