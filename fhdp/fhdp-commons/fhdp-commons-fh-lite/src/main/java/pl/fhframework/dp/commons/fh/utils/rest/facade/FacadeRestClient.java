@@ -239,6 +239,6 @@ public class FacadeRestClient {
                 .toUriString();
             ResponseEntity<Heartbeat> ret = FacadeRestTemplateConfig.
                     restTemplate.getForEntity(uri,  Heartbeat.class);
-            log.info("Heartbeat response: {}", ret.getBody());
+//            log.info("Heartbeat response: {}", ret.getBody());
     }
 }
