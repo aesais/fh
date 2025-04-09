@@ -12,4 +12,8 @@ public interface IAuditLogDao {
     void removeIndexedEntries();
 
     String getOpdata(String key, String opData);
+
+    void markForIndexing();
+
+    String getInstanceName();
 }

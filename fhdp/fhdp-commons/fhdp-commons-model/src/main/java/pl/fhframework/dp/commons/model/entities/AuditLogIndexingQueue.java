@@ -43,7 +43,7 @@ public class AuditLogIndexingQueue implements Comparable<AuditLogIndexingQueue>,
     @Column(columnDefinition="TEXT")
     private String opResultText;
     private boolean indexed = false;
-    private Long indexingLag;
+    private LocalDateTime indexingTime;
     private String node;
 
 

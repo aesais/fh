@@ -13,16 +13,17 @@ import org.springframework.data.elasticsearch.core.query.IndexQuery;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import pl.fhframework.csrf.CsrfTokenFilter;
 import pl.fhframework.dp.commons.base.exception.AppException;
 import pl.fhframework.dp.commons.model.entities.AuditLogIndexingQueue;
 import pl.fhframework.dp.commons.model.repositories.AuditLogIndexingQueueJPARepository;
+import pl.fhframework.dp.commons.services.facade.FacadeServiceCtl;
 import pl.fhframework.dp.commons.utils.conversion.BeanConversionUtil;
 import pl.fhframework.dp.transport.auditlog.AuditLogDto;
 
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
 import java.util.*;
 
 
@@ -36,9 +37,12 @@ public class AuditLogDao implements IAuditLogDao {
     @Autowired
     private ElasticsearchOperations elasticsearchOperations;
 
+    private String instanceName;
+
     @Getter
     @Value("${elasticSearch.indexNamePrefix:}")
     private String indexNamePrefix;
+
 
     @Override
     @Transactional(propagation = Propagation.REQUIRES_NEW)
@@ -61,38 +65,56 @@ public class AuditLogDao implements IAuditLogDao {
     }
 
     @Override
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void markForIndexing() {
+        auditLogIndexingQueueRepository.markForIndexing(instanceName);
+    }
+
+    @Override
+    public String getInstanceName() {
+        if(instanceName == null) {
+            instanceName = System.getProperty(CsrfTokenFilter.FH_INSTANCE_NAME);
+        }
+        return instanceName;
+    }
+
+    @Override
     @Transactional
     public void indexData() {
         long millis = System.currentTimeMillis();
+        int pageNo = 0;
         try {
-            LocalDateTime now = LocalDateTime.now();
-            Map<String, List<IndexQuery>> queriesMap = new HashMap<>();
-            Pageable pageable = PageRequest.of(0, 300);
-            Page<AuditLogIndexingQueue> page = auditLogIndexingQueueRepository.findByIndexed(false, pageable);
-            page.getContent().forEach(entity -> {
-                AuditLogDto dto = BeanConversionUtil.mapObject(entity, false, AuditLogDto.class);
-                if (dto == null) {
-                    throw new AppException("Can not convert metadata for AuditLogIndexingQueue entity : " + entity.getId());
-                }
-                //TODO: store information to S3 storage, if available
+            Pageable pageable = PageRequest.of(pageNo, 300);
+            Page<AuditLogIndexingQueue> page = auditLogIndexingQueueRepository.findByIndexedAndNode(false, instanceName, pageable);
+            do {
+                Map<String, List<IndexQuery>> queriesMap = new HashMap<>();
+                page.getContent().forEach(entity -> {
+                    AuditLogDto dto = BeanConversionUtil.mapObject(entity, false, AuditLogDto.class);
+                    if (dto == null) {
+                        throw new AppException("Can not convert metadata for AuditLogIndexingQueue entity : " + entity.getId());
+                    }
+                    //TODO: store information to S3 storage, if available
 //                if(entity.getOpDataText() != null) {
 //                    dto.setOpData(BeanConversionUtil.getFromJson(entity.getOpDataText(), Object.class));
 //                }
-                if(entity.getOpResultText() != null) {
-                    dto.setOpResult(BeanConversionUtil.getFromJson(entity.getOpResultText(), Object.class));
-                }
-                addIndexData(dto, queriesMap);
-                entity.setIndexed(true);
-                Long lag = ChronoUnit.MILLIS.between(entity.getEventTime(), now);
-                entity.setIndexingLag(lag);
-                auditLogIndexingQueueRepository.save(entity);
-            });
-            queriesMap.keySet().forEach(key -> {
-                List<IndexQuery> queries = queriesMap.get(key);
-                if (!queries.isEmpty()) {
-                    elasticsearchOperations.bulkIndex(queries, IndexCoordinates.of(key));
-                }
-            });
+                    if (entity.getOpResultText() != null) {
+                        dto.setOpResult(BeanConversionUtil.getFromJson(entity.getOpResultText(), Object.class));
+                    }
+                    addIndexData(dto, queriesMap);
+//                    entity.setIndexed(true);
+//                    Long lag = ChronoUnit.MILLIS.between(entity.getEventTime(), now);
+//                    entity.setIndexingLag(lag);
+//                    auditLogIndexingQueueRepository.save(entity);
+                });
+                queriesMap.keySet().forEach(key -> {
+                    List<IndexQuery> queries = queriesMap.get(key);
+                    if (!queries.isEmpty()) {
+                        elasticsearchOperations.bulkIndex(queries, IndexCoordinates.of(key));
+                    }
+                });
+                page = auditLogIndexingQueueRepository.findByIndexedAndNode(true, instanceName, pageable.next());
+            } while (!page.isEmpty());
+            auditLogIndexingQueueRepository.updateIndexed(instanceName, LocalDateTime.now());
         } finally {
             millis = System.currentTimeMillis() - millis;
             if(millis > 1000) {

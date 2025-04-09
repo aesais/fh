@@ -5,10 +5,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.util.UriComponentsBuilder;
 import pl.fhframework.SessionManager;
 import pl.fhframework.core.util.StringUtils;
+import pl.fhframework.dp.commons.base.model.Heartbeat;
 import pl.fhframework.dp.commons.rest.*;
 import pl.fhframework.dp.transport.dto.commons.*;
 import pl.fhframework.event.EventRegistry;
@@ -19,6 +21,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
 /**
@@ -224,5 +227,18 @@ public class FacadeRestClient {
             eventRegistry.fireNotificationEvent(NotificationEvent.Level.ERROR, response.getMessage());
 //            eventRegistry.fireNotificationEvent(NotificationEvent.Level.ERROR, response.getMessageKey());
         }
+    }
+
+    @Scheduled( fixedDelay = 1, timeUnit = TimeUnit.SECONDS)
+    public void heartbeat() {
+        String uri = UriComponentsBuilder
+                .fromUriString(url)
+                .pathSegment( "heartbeat")
+                .queryParam("name", "app")
+                .encode()
+                .toUriString();
+            ResponseEntity<Heartbeat> ret = FacadeRestTemplateConfig.
+                    restTemplate.getForEntity(uri,  Heartbeat.class);
+            log.info("Heartbeat response: {}", ret.getBody());
     }
 }

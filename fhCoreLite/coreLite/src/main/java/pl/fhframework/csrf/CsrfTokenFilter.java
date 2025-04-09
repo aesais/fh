@@ -1,5 +1,6 @@
 package pl.fhframework.csrf;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -16,9 +17,15 @@ import javax.servlet.http.HttpServletResponse;
 
 @Component
 public class CsrfTokenFilter extends OncePerRequestFilter {
+    public static final String FH_INSTANCE_NAME = "fh.instanceName";
+
+    @Value("${server.servlet.context-path:}")
+    private String contextPath;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+
+
         CsrfToken csrf = (CsrfToken) request.getAttribute(CsrfToken.class.getName());
 
         if (csrf != null) {
@@ -32,6 +39,16 @@ public class CsrfTokenFilter extends OncePerRequestFilter {
 
                 response.addCookie(cookie);
             }
+        }
+        if(System.getProperty(FH_INSTANCE_NAME) == null) {
+            String instanceNamePrefix = contextPath;
+            if(instanceNamePrefix == null) {
+                instanceNamePrefix = "instance";
+            } else {
+                instanceNamePrefix = instanceNamePrefix.replace("/", "");
+            }
+            String instanceName = String.format("%s-%s-%d", instanceNamePrefix, request.getLocalAddr(), request.getLocalPort());
+            System.setProperty(FH_INSTANCE_NAME, instanceName);
         }
 
         filterChain.doFilter(request, response);
