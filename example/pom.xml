@@ -14,7 +14,6 @@
     <artifactId>example</artifactId>
 
     <properties>
-        <fh.version>4.10.6.PL-SNAPSHOT</fh.version>
         <maven.compiler.source>8</maven.compiler.source>
         <maven.compiler.target>8</maven.compiler.target>
     </properties>
@@ -23,17 +22,17 @@
         <dependency>
             <groupId>pl.fhframework</groupId>
             <artifactId>defaultApplication</artifactId>
-            <version>${fh.version}</version>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>pl.fhframework.core.security.permission</groupId>
             <artifactId>permissionProvider-jdbc</artifactId>
-            <version>${fh.version}</version>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>pl.fhframework</groupId>
             <artifactId>fhLogback</artifactId>
-            <version>${fh.version}</version>
+            <version>${project.version}</version>
         </dependency>
     </dependencies>
 

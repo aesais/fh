@@ -23,7 +23,7 @@
             <dependency>
                 <groupId>pl.fhframework.dp</groupId>
                 <artifactId>fhdp-bom</artifactId>
-                <version>${fh.version}</version>
+                <version>${project.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
@@ -43,27 +43,27 @@
         <dependency>
             <groupId>pl.fhframework</groupId>
             <artifactId>fh-compiler</artifactId>
-            <version>${fh.version}</version>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>pl.fhframework</groupId>
             <artifactId>coreApplication</artifactId>
-            <version>${fh.version}</version>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>pl.fhframework.core.security.provider</groupId>
             <artifactId>securityDataProvider-jdbc</artifactId>
-            <version>${fh.version}</version>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>pl.fhframework.core.security.permission</groupId>
             <artifactId>permissionProvider-jdbc</artifactId>
-            <version>${fh.version}</version>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>pl.fhframework</groupId>
             <artifactId>fhLogback</artifactId>
-            <version>${fh.version}</version>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>ch.qos.logback</groupId>
