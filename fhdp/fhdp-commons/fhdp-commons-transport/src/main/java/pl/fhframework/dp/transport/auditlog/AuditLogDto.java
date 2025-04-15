@@ -46,6 +46,7 @@ public class AuditLogDto implements IPersistentObject<String> {
     private String opData;
     private Object opResult;
     private Long duration;
+    private String server;
 
     public void setEndTime(LocalDateTime endTime) {
         this.endTime = endTime;

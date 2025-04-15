@@ -114,4 +114,9 @@ public class OperationStepDtoService implements IOperationStepDtoService {
         OperationStep operationStep = BeanConversionUtil.mapObject(operationStepDto, false, OperationStep.class);
         return operationStepRepository.save(operationStep).getId();
     }
+
+    @Transactional
+    public void deleteByOperationGuid(String opGuid) {
+        operationStepRepository.deleteByOperationGUID(opGuid);
+    }
 }

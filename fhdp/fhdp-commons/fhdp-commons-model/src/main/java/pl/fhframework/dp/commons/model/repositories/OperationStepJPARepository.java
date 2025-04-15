@@ -7,4 +7,6 @@ import pl.fhframework.dp.commons.model.entities.OperationStep;
 
 @Repository
 public interface OperationStepJPARepository extends JpaRepository<OperationStep, String> {
+
+    public void deleteByOperationGUID(String operationGUID);
 }

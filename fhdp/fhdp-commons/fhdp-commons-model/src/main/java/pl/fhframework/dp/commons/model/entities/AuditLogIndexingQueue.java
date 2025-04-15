@@ -37,6 +37,7 @@ public class AuditLogIndexingQueue implements Comparable<AuditLogIndexingQueue>,
     private String docNumberLocal;
     private String docNumberFormal;
     private Long duration;
+    private String server;
     // Exclusive for entity
     @Column(columnDefinition="TEXT")
     private String opDataText;

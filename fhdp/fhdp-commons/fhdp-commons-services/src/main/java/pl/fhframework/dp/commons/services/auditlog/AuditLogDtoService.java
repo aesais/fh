@@ -55,6 +55,7 @@ public class AuditLogDtoService extends GenericDtoService<String, AuditLogDto, A
     @Override
     public String persistDto(AuditLogDto auditLogDto) {
         if(isAuditLogEnabled()) {
+            auditLogDto.setServer(auditLogDao.getInstanceName());
             return auditLogDao.persistDto(auditLogDto);
         }
         else return UUID.randomUUID().toString();
@@ -117,7 +118,7 @@ public class AuditLogDtoService extends GenericDtoService<String, AuditLogDto, A
             builder.must(QueryBuilders.wildcardQuery("userLogin", query.getUserLogin() + "*"));
         }
         if(query.getDocId() != null) {
-            builder.must(QueryBuilders.termQuery("docId.keyword", query.getDocId()));
+            builder.must(QueryBuilders.termQuery("docId", query.getDocId()));
         }
         if(query.getDocType() != null) {
             builder.must(QueryBuilders.termQuery("docType.keyword", query.getDocType()));
