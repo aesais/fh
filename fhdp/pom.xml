@@ -4,13 +4,13 @@
     <parent>
         <groupId>pl.fhframework</groupId>
         <artifactId>fh-compile-bom</artifactId>
-        <version>4.10.5.PL-SNAPSHOT</version>
+        <version>4.10.5.PL.15</version>
         <relativePath>../bom-project-lite/fh-compile-bom</relativePath>
     </parent>
     <groupId>pl.fhframework.dp</groupId>
     <artifactId>fhdp</artifactId>
     <packaging>pom</packaging>
-    <version>4.10.5.PL-SNAPSHOT</version>
+    <version>4.10.5.PL.15</version>
 
     <name>fhdp</name>
 
@@ -174,7 +174,7 @@
         <module>bom</module>
         <module>fhdp-commons</module>
         <module>fhdp-components</module>
-        <module>fhdp-example</module>
+        <!-- <module>fhdp-example</module> -->
     </modules>
 
 </project>
