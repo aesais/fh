@@ -246,6 +246,38 @@ public class OutlineService {
         return null;
     }
 
+    public TreeElement<ElementCT> findLeftMenuElementByTreeElement(TreeElement element, List<TreeElement<ElementCT>> menu){
+        TreeElement<ElementCT> parent = null;
+        for (TreeElement<ElementCT> el : menu) {
+            if (element instanceof GroupTreeElement && el instanceof GroupTreeElement) {
+                GroupTreeElement<ElementCT> elementIndexed = (GroupTreeElement<ElementCT>) element;
+                GroupTreeElement<ElementCT> elIndexed = (GroupTreeElement<ElementCT>) el;
+                if(Objects.equals(elementIndexed.getStart(), elIndexed.getStart()) && elementIndexed.getObj().getId().equals(elIndexed.getObj().getId()) && Objects.equals(elementIndexed.getEnd(), elIndexed.getEnd()) &&
+                        elementIndexed.getGroupedObjectName().equals(elIndexed.getGroupedObjectName())) {
+                    parent = elIndexed;
+                } else {
+                    parent = findLeftMenuElementByTreeElement(element, el.getChildren());
+                }
+            } else if (element instanceof IndexedTreeElement && el instanceof IndexedTreeElement) {
+                IndexedTreeElement<ElementCT> elementIndexed = (IndexedTreeElement<ElementCT>) element;
+                IndexedTreeElement<ElementCT> elIndexed = (IndexedTreeElement<ElementCT>) el;
+                if(elementIndexed.getIndex() == elIndexed.getIndex() && elementIndexed.getObj().getId().equals(elIndexed.getObj().getId()) && elementIndexed.getParentIndexIndex() == elIndexed.getParentIndexIndex() &&
+                elementIndexed.getIndexedObjectName().equals(elIndexed.getIndexedObjectName())) {
+                    parent = elIndexed;
+                } else {
+                    parent = findLeftMenuElementByTreeElement(element, el.getChildren());
+                }
+
+            } else {
+                parent = findLeftMenuElementByTreeElement(element, el.getChildren());
+            }
+            if (parent != null){
+                return parent;
+            }
+        }
+        return null;
+    }
+
     public TreeElement<ElementCT> findLeftMenuElementByIndex(int index, List<TreeElement<ElementCT>> menu){
         TreeElement<ElementCT> parent;
         for (TreeElement<ElementCT> el : menu) {
@@ -285,6 +317,10 @@ public class OutlineService {
         }
         return null;
     }
+
+
+
+
 
     protected String translateLabel(String label) {
         if (label != null && label.length() > 2 && label.startsWith("$.")) {

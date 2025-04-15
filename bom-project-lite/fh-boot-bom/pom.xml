@@ -28,7 +28,7 @@
         <version.roaster>2.20.0.Final</version.roaster>
 
         <fh.version>${project.version}</fh.version>
-        <fh.version.display>${fh.version}</fh.version.display>
+        <fh.version.display>${project.version}</fh.version.display>
         <springboot.version>2.7.18</springboot.version>
         <hibernate.version>5.6.7.Final</hibernate.version>
         <aspectj.version>1.9.4</aspectj.version>
@@ -233,7 +233,7 @@
                 <dependency>
                     <groupId>pl.fhframework</groupId>
                     <artifactId>fhJpa-jee</artifactId>
-                    <version>${fh.version}</version>
+                    <version>${project.version}</version>
                 </dependency>
                 <dependency>
                     <groupId>org.springframework.security</groupId>
@@ -299,7 +299,7 @@
                 <dependency>
                     <groupId>pl.fhframework</groupId>
                     <artifactId>fhJpa-jee</artifactId>
-                    <version>${fh.version}</version>
+                    <version>${project.version}</version>
                 </dependency>
                 <dependency>
                     <groupId>javax</groupId>
