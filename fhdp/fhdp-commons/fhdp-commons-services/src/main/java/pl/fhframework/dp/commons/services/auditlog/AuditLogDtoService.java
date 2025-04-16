@@ -56,6 +56,9 @@ public class AuditLogDtoService extends GenericDtoService<String, AuditLogDto, A
     public String persistDto(AuditLogDto auditLogDto) {
         if(isAuditLogEnabled()) {
             auditLogDto.setServer(auditLogDao.getInstanceName());
+            if(auditLogDto.getComment() != null && auditLogDto.getComment().length() > 255) {
+                auditLogDto.setComment(auditLogDto.getComment().substring(0, 254));
+            }
             return auditLogDao.persistDto(auditLogDto);
         }
         else return UUID.randomUUID().toString();

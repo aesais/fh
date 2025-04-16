@@ -27,6 +27,7 @@ public class AuditLogIndexingQueue implements Comparable<AuditLogIndexingQueue>,
     private LocalDateTime eventTime;
     private LocalDateTime endTime;
     private String messageKey;
+    @Column(length = 4096)
     private String comment;
     private String stepID;
     private String processID;
