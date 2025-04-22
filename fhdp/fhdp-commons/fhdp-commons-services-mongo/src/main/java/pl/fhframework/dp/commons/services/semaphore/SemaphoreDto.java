@@ -1,4 +1,4 @@
-package pl.fhframework.dp.commons.services.semaphore.mongo;
+package pl.fhframework.dp.commons.services.semaphore;
 
 import java.time.LocalDateTime;
 

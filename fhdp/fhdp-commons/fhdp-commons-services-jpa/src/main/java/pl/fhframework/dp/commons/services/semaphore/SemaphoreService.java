@@ -3,7 +3,6 @@ package pl.fhframework.dp.commons.services.semaphore;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import pl.fhframework.dp.commons.base.semafor.ISemaphoreService;
 import pl.fhframework.dp.commons.base.semafor.SemaphoreStatusEnum;

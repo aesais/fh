@@ -1,19 +1,25 @@
 package pl.fhframework.dp.commons.services.operations;
 
 import lombok.extern.slf4j.Slf4j;
-import org.elasticsearch.index.query.BoolQueryBuilder;
-import org.elasticsearch.index.query.QueryBuilders;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import pl.fhframework.dp.commons.els.repositories.OperationStepESRepository;
-import pl.fhframework.dp.commons.services.facade.GenericDtoService;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+import pl.fhframework.dp.commons.model.dao.OperationStepDAO;
+import pl.fhframework.dp.commons.model.entities.OperationStep;
+import pl.fhframework.dp.commons.model.repositories.OperationStepJPARepository;
+import pl.fhframework.dp.commons.utils.conversion.BeanConversionUtil;
 import pl.fhframework.dp.transport.dto.commons.OperationStepDto;
 import pl.fhframework.dp.transport.dto.operations.OperationStepDtoQuery;
 import pl.fhframework.dp.transport.service.IOperationStepDtoService;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * @author <a href="mailto:jacek.borowiec@asseco.pl">Jacek Borowiec</a>
@@ -22,14 +28,15 @@ import java.util.UUID;
  */
 @Service
 @Slf4j
-public class OperationStepDtoService extends GenericDtoService<String, OperationStepDto, OperationStepDto, OperationStepDtoQuery, OperationStepDto> implements IOperationStepDtoService {
+public class OperationStepDtoService implements IOperationStepDtoService {
     @Autowired
-    OperationStepESRepository operationStepESRepository;
+    OperationStepJPARepository operationStepRepository;
 
-    public OperationStepDtoService() {
-        super(OperationStepDto.class, OperationStepDto.class, OperationStepDto.class);
-    }
+    @Autowired
+    OperationStepDAO operationStepDAO;
 
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void logOperationStepStart(String msgKey, String processID, String masterProcessId, String operationGUID, String stepID, Long docId) {
         OperationStepDto dto = findOperationStep(processID, operationGUID, stepID);
         if(dto == null) {
@@ -60,51 +67,57 @@ public class OperationStepDtoService extends GenericDtoService<String, Operation
         }
     }
 
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void logOperationStepFinish(String processID, String operationGUID, String stepID) {
+        long time = System.nanoTime();
         OperationStepDto dto = findOperationStep(processID, operationGUID, stepID);
         if(dto == null) {
             log.error("Can not find operation step for OpGuid: {}, processId :{}, stepId: {}", operationGUID, processID, stepID);
         } else {
             dto.setFinished(LocalDateTime.now());
+            if(dto.getStarted() != null && dto.getFinished() != null) {
+                long diff = ChronoUnit.MILLIS.between(dto.getStarted(), dto.getFinished());
+                dto.setDuration((float) diff /1000);
+            }
             persistDto(dto);
+        }
+        BigDecimal duration = new BigDecimal((System.nanoTime() - time) / (1000.0 * 1000 * 1000)).setScale(3, RoundingMode.HALF_UP);
+        if(duration.compareTo(BigDecimal.valueOf(3L)) > 0) {
+            log.warn("***** logOperationStepFinish for step {} in operation {} in process {} took {}s !", stepID, operationGUID, processID,  duration);
         }
     }
 
     @Override
     public List<OperationStepDto> listDto(OperationStepDtoQuery query) {
-        if(query.getSortProperty() == null) {
-            query.setSortProperty("id.keyword");
-        }
-        return super.listDto(query);
+        List<OperationStep> list = operationStepDAO.findByQuery(query);
+        return list.stream().map(x -> BeanConversionUtil.mapObject(x, true, OperationStepDto.class)).collect(Collectors.toList());
     }
 
     @Override
-    protected BoolQueryBuilder extendQueryBuilder(BoolQueryBuilder builder, OperationStepDtoQuery query) {
-        if(query.getOperationGUID() != null) {
-            builder.must(QueryBuilders.termsQuery("operationGUID.keyword", query.getOperationGUID()));
-        }
-        if(query.getDocID() != null) {
-            builder.must(QueryBuilders.termQuery("docID", query.getDocID()));
-        }
-        if(query.getMasterProcessId() != null) {
-            builder.must(QueryBuilders.termsQuery("masterProcessId.keyword", query.getMasterProcessId()));
-        }
-        if(query.getProcessId() != null) {
-            builder.must(QueryBuilders.termsQuery("processId.keyword", query.getProcessId()));
-        }
-        if(query.getStepId() != null) {
-            builder.must(QueryBuilders.termsQuery("stepId.keyword", query.getStepId()));
-        }
-        return builder;
+    public Long listCount(OperationStepDtoQuery query) {
+    	return operationStepDAO.countByQuery(query);
     }
+
+
 
     @Override
     public OperationStepDto getDto(String key) {
-        return operationStepESRepository.findById(key).orElse(null);
+        OperationStep operationStep = operationStepRepository.findById(key).orElse(null);
+        if(operationStep == null) {
+            return null;
+        } else {
+            return BeanConversionUtil.mapObject(operationStep, false, OperationStepDto.class);
+        }
     }
 
     @Override
     public String persistDto(OperationStepDto operationStepDto) {
-        return operationStepESRepository.save(operationStepDto).getId();
+        OperationStep operationStep = BeanConversionUtil.mapObject(operationStepDto, false, OperationStep.class);
+        return operationStepRepository.save(operationStep).getId();
+    }
+
+    @Transactional
+    public void deleteByOperationGuid(String opGuid) {
+        operationStepRepository.deleteByOperationGUID(opGuid);
     }
 }

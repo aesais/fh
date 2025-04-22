@@ -10,6 +10,7 @@ import pl.fhframework.dp.transport.converters.CustomZonedDateTimeConverter;
 import pl.fhframework.dp.transport.dto.document.SeverityEnum;
 
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 
 /**
  * @author <a href="mailto:jacek.borowiec@asseco.pl">Jacek Borowiec</a>
@@ -17,7 +18,6 @@ import java.time.LocalDateTime;
  * @created 15/09/2020
  */
 @Document(indexName = "#{@indexNamePrefix}_audit_log", createIndex = false)
-@Setting(settingPath = "/settings/settings.json")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -40,6 +40,20 @@ public class AuditLogDto implements IPersistentObject<String> {
     private String operationGUID;
     private String userLogin;
     private Long docId;
+    private String docType;
+    private String docNumberLocal;
+    private String docNumberFormal;
+    private String opData;
+    private Object opResult;
+    private Long duration;
+    private String server;
+
+    public void setEndTime(LocalDateTime endTime) {
+        this.endTime = endTime;
+        if(endTime != null && eventTime != null) {
+            setDuration(ChronoUnit.MILLIS.between(eventTime, this.endTime));
+        }
+    }
 
     public AuditLogDto(AuditLogTypeEnum type,
                        SeverityEnum severity,

@@ -67,7 +67,8 @@ public class SessionTimeoutManager {
     public synchronized void serverSideInactiveSessionsLogout() {
         if (active) {
             userSessionRepository.getAllSessionsSharedData().forEach(sharedData -> {
-                if (Instant.now().isAfter(sharedData.getActivityLimitDate())) {
+                //TODO: check why sharedData.getActivityLimitDate() could be null.
+                if (sharedData.getActivityLimitDate() != null && Instant.now().isAfter(sharedData.getActivityLimitDate())) {
                     forceLogoutService.forceLogout(sharedData, ForcedLogoutEvent.Reason.LOGOUT_TIMEOUT);
                 }
             });
