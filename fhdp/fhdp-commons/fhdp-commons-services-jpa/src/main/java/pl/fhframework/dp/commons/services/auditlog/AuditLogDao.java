@@ -113,7 +113,7 @@ public class AuditLogDao implements IAuditLogDao {
                     }
                 });
                 pageable = pageable.next();
-                page = auditLogIndexingQueueRepository.findByIndexedAndNode(true, instanceName, pageable);
+                page = auditLogIndexingQueueRepository.findByIndexedAndNode(false, instanceName, pageable);
             } while (!page.isEmpty());
             auditLogIndexingQueueRepository.updateIndexed(instanceName, LocalDateTime.now());
         } finally {
