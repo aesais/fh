@@ -112,7 +112,8 @@ public class AuditLogDao implements IAuditLogDao {
                         elasticsearchOperations.bulkIndex(queries, IndexCoordinates.of(key));
                     }
                 });
-                page = auditLogIndexingQueueRepository.findByIndexedAndNode(true, instanceName, pageable.next());
+                pageable = pageable.next();
+                page = auditLogIndexingQueueRepository.findByIndexedAndNode(false, instanceName, pageable);
             } while (!page.isEmpty());
             auditLogIndexingQueueRepository.updateIndexed(instanceName, LocalDateTime.now());
         } finally {
