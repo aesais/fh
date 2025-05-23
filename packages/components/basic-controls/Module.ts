@@ -70,6 +70,7 @@ import {Anchor} from "./source/controls/Anchor";
 import {DropdownDivider} from "./source/controls/Dropdown/DropdownDivider";
 import {EmbedPage} from "./source/controls/EmbedPage";
 import {PanelGroupWrapper} from "./source/controls/PanelGroupWrapper";
+import { AceEditor } from './source/controls/Inputs/AceEditor';
 
 class BasicControls extends FhModule {
     protected registerComponents() {
@@ -488,6 +489,13 @@ class BasicControls extends FhModule {
                 };
             });
 
+        FhContainer.bind<(componentObj: any, parent: any) => AceEditor>("AceEditor")
+            .toFactory<AceEditor>(() => {
+                return (componentObj: any, parent: any) => {
+                    return new AceEditor(componentObj, parent);
+                };
+            });
+
     }
 }
 
@@ -550,5 +558,6 @@ export {
     FhModule,
     MarkdownGrid,
     HtmlView,
-    DropdownDivider
+    DropdownDivider,
+    AceEditor
 };
