@@ -38,9 +38,10 @@ public class OperationStepDtoService implements IOperationStepDtoService {
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void logOperationStepStart(String msgKey, String processID, String masterProcessId, String operationGUID, String stepID, Long docId) {
-        OperationStepDto dto = findOperationStep(processID, operationGUID, stepID);
-        if(dto == null) {
-            dto = new OperationStepDto();
+        // OperationStepDto dto = findOperationStep(processID, operationGUID, stepID);
+        // if(dto == null)
+        {
+            OperationStepDto dto = new OperationStepDto();
             dto.setDescription(msgKey);
             dto.setProcessId(processID);
             dto.setMasterProcessId(masterProcessId);
@@ -54,11 +55,8 @@ public class OperationStepDtoService implements IOperationStepDtoService {
     }
 
     public OperationStepDto findOperationStep(String processID, String operationGUID, String stepID) {
-        OperationStepDtoQuery query = new OperationStepDtoQuery();
-        query.setProcessId(processID);
-        query.setOperationGUID(operationGUID);
-        query.setStepId(stepID);
-        List<OperationStepDto> list = listDto(query);
+        List<OperationStepDto> list = findOperationStepList(processID, operationGUID, stepID);
+
         if(list.isEmpty()) {
             return null;
         } else {
@@ -67,19 +65,31 @@ public class OperationStepDtoService implements IOperationStepDtoService {
         }
     }
 
+    public List<OperationStepDto> findOperationStepList(String processID, String operationGUID, String stepID) {
+        OperationStepDtoQuery query = new OperationStepDtoQuery();
+        query.setProcessId(processID);
+        query.setOperationGUID(operationGUID);
+        query.setStepId(stepID);
+        List<OperationStepDto> list = listDto(query);
+        return list;
+    }
+
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void logOperationStepFinish(String processID, String operationGUID, String stepID) {
         long time = System.nanoTime();
-        OperationStepDto dto = findOperationStep(processID, operationGUID, stepID);
-        if(dto == null) {
+        List<OperationStepDto> dtoList = findOperationStepList(processID, operationGUID, stepID);
+        if(dtoList == null || dtoList.size() == 0) {
             log.error("Can not find operation step for OpGuid: {}, processId :{}, stepId: {}", operationGUID, processID, stepID);
         } else {
-            dto.setFinished(LocalDateTime.now());
-            if(dto.getStarted() != null && dto.getFinished() != null) {
-                long diff = ChronoUnit.MILLIS.between(dto.getStarted(), dto.getFinished());
-                dto.setDuration((float) diff /1000);
-            }
-            persistDto(dto);
+            dtoList.forEach(dto -> {
+                dto.setFinished(LocalDateTime.now());
+                if(dto.getStarted() != null && dto.getFinished() != null) {
+                    long diff = ChronoUnit.MILLIS.between(dto.getStarted(), dto.getFinished());
+                    dto.setDuration((float) diff /1000);
+                }
+                persistDto(dto);
+
+            });
         }
         BigDecimal duration = new BigDecimal((System.nanoTime() - time) / (1000.0 * 1000 * 1000)).setScale(3, RoundingMode.HALF_UP);
         if(duration.compareTo(BigDecimal.valueOf(3L)) > 0) {

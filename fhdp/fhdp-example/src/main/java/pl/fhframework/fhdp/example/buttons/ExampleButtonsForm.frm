@@ -14,6 +14,10 @@
         <Button id="buttonCode6_6" width="md-3" label="Warning" style="warning" onClick="test"/>
     </Row>
     <Button id="buttonCode6_7" label="Danger" style="danger" onClick="test"/>
+
+
+    <AceEditor width="md-12" src="{testContent}" label="Ace Editor" mode="{testMode}" />
+
     <PanelGroup label="TimerFhDP">
         <TimerFhDP timeout="2000" onInterval="handleInterval()"/>
         <OutputLabel width="md-12" value="This is interval counter: {getInterText()}"/>
