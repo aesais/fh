@@ -66,7 +66,13 @@ public class AuditLogDtoService extends GenericDtoService<String, AuditLogDto, A
 
     @Override
     public AuditLogDto getDto(String key) {
-        AuditLogDto ret = auditLogESRepository.findById(key).orElse(null);
+        AuditLogDtoQuery query = new AuditLogDtoQuery();
+        query.setId(key);
+        List<AuditLogDto> list = listDto(query);
+        AuditLogDto ret = null;
+        if(!list.isEmpty()) {
+            ret = list.get(0);
+        }
         if(ret == null) {
             ret = auditLogDao.getDto(key);
         } else {
@@ -93,6 +99,9 @@ public class AuditLogDtoService extends GenericDtoService<String, AuditLogDto, A
 
     @Override
     protected BoolQueryBuilder extendQueryBuilder(BoolQueryBuilder builder, AuditLogDtoQuery query) {
+        if(query.getId() != null) {
+            builder.must(QueryBuilders.termQuery("id.keyword", query.getId()));
+        }
         if(query.getType() != null) {
             builder.must(QueryBuilders.termQuery("type.keyword", query.getType().name()));
         }

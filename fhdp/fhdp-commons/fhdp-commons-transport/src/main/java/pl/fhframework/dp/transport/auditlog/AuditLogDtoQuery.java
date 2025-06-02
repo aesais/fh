@@ -14,6 +14,7 @@ import java.time.LocalDateTime;
  */
 @Getter @Setter
 public class AuditLogDtoQuery extends BaseDtoQuery {
+    private String id;
     private AuditLogTypeEnum type;
     private SeverityEnum severity;
     private String category;
