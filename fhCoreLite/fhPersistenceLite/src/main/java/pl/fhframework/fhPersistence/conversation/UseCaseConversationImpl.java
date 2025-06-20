@@ -7,6 +7,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.context.annotation.ScopedProxyMode;
 import org.springframework.stereotype.Component;
 import pl.fhframework.aspects.conversation.IUseCaseConversation;
+import pl.fhframework.core.logging.FhLogger;
 import pl.fhframework.core.session.scope.SessionScope;
 import pl.fhframework.fhPersistence.anotation.Approve;
 import pl.fhframework.fhPersistence.anotation.Cancel;
@@ -23,6 +24,8 @@ import java.util.Map;
 public class UseCaseConversationImpl implements IUseCaseConversation {
     @Autowired
     ConversationManager conversationManager;
+
+    private boolean closed = false;
 
     Map<Object, ConversationParams> conversationParams = new HashMap<>();
 
@@ -59,11 +62,20 @@ public class UseCaseConversationImpl implements IUseCaseConversation {
     @Override
     public void usecaseEnded(Object owner) {
         ConversationParams cp = getOrCreate(owner);
-        conversationParams.remove(owner);
+        removeConversationParam(owner);
         if (cp.isCancel()) {
             conversationManager.withdraw(owner);
         } else {
             conversationManager.complete(owner);
+        }
+        closed = true;
+    }
+
+    private void removeConversationParam(Object owner) {
+        FhLogger.debug("Removing conversation params for owner {}. {} left.", owner, conversationParams.size());
+        ConversationParams ret = conversationParams.remove(owner);
+        if(ret == null) {
+            FhLogger.warn("***** *** usecaseEnded Object {} not removed from conversationParams!", owner);
         }
     }
 
@@ -95,12 +107,16 @@ public class UseCaseConversationImpl implements IUseCaseConversation {
             conversationParams.remove(owner);
             saveChnages(owner);
         }
+        else if(closed) {
+            removeConversationParam(owner);
+        }
     }
 
     private ConversationParams getOrCreate(final Object owner) {
         ConversationParams cp = conversationParams.get(owner);
         if (cp == null) {
             cp = new ConversationParams();
+            FhLogger.debug("Creating conversationParams for owner {}", owner);
             conversationParams.put(owner, cp);
         }
 
