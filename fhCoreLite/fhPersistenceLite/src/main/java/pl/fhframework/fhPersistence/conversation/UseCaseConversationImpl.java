@@ -25,8 +25,6 @@ public class UseCaseConversationImpl implements IUseCaseConversation {
     @Autowired
     ConversationManager conversationManager;
 
-    private boolean closed = false;
-
     Map<Object, ConversationParams> conversationParams = new HashMap<>();
 
     public void saveChnages(Object owner) {
@@ -61,14 +59,13 @@ public class UseCaseConversationImpl implements IUseCaseConversation {
 
     @Override
     public void usecaseEnded(Object owner) {
-        ConversationParams cp = getOrCreate(owner);
+        ConversationParams cp = getOrCreate(owner, true);
         removeConversationParam(owner);
         if (cp.isCancel()) {
             conversationManager.withdraw(owner);
         } else {
             conversationManager.complete(owner);
         }
-        closed = true;
     }
 
     private void removeConversationParam(Object owner) {
@@ -88,36 +85,36 @@ public class UseCaseConversationImpl implements IUseCaseConversation {
     @Override
     public void processAnnotationsBeforeAction(final Method transition, final Object owner) {
         if (transition.getDeclaredAnnotation(Cancel.class) != null) {
-            ConversationParams cp = getOrCreate(owner);
+            ConversationParams cp = getOrCreate(owner,true);
             cp.setCancel(true);
         }
         else if (transition.getDeclaredAnnotation(Approve.class) != null) {
-            ConversationParams cp = getOrCreate(owner);
+            ConversationParams cp = getOrCreate(owner, true);
             cp.setApprove(true);
         }
     }
 
     @Override
     public void processAnnotationsAfterAction(final Method transition, final Object owner) {
-        if (getOrCreate(owner).isCancel()) {
+        if (getOrCreate(owner, false).isCancel()) {
             conversationParams.remove(owner);
             cancelChanges(owner);
         }
-        else if (getOrCreate(owner).isApprove()) {
+        else if (getOrCreate(owner, false).isApprove()) {
             conversationParams.remove(owner);
             saveChnages(owner);
         }
-        else if(closed) {
-            removeConversationParam(owner);
-        }
     }
 
-    private ConversationParams getOrCreate(final Object owner) {
+    private ConversationParams getOrCreate(final Object owner, boolean put) {
         ConversationParams cp = conversationParams.get(owner);
         if (cp == null) {
             cp = new ConversationParams();
             FhLogger.debug("Creating conversationParams for owner {}", owner);
-            conversationParams.put(owner, cp);
+
+            if (put == true) {
+                conversationParams.put(owner, cp);
+            }
         }
 
         return cp;
