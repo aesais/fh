@@ -85,7 +85,7 @@ public class UseCaseConversationImpl implements IUseCaseConversation {
     @Override
     public void processAnnotationsBeforeAction(final Method transition, final Object owner) {
         if (transition.getDeclaredAnnotation(Cancel.class) != null) {
-            ConversationParams cp = getOrCreate(owner,true);
+            ConversationParams cp = getOrCreate(owner, true);
             cp.setCancel(true);
         }
         else if (transition.getDeclaredAnnotation(Approve.class) != null) {
