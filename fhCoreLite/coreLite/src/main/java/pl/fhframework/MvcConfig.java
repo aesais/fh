@@ -7,6 +7,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.core.annotation.Order;
+import org.springframework.core.convert.ConversionService;
 import org.springframework.security.web.session.HttpSessionEventPublisher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -14,6 +15,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.i18n.CookieLocaleResolver;
 import org.springframework.web.servlet.i18n.LocaleChangeInterceptor;
+import pl.fhframework.format.FhConversionService;
 
 import java.util.List;
 import java.util.Locale;
@@ -63,4 +65,11 @@ public class MvcConfig {
         source.registerCorsConfiguration("/**", configuration);
         return source;
     }
+
+    @Bean
+    @Primary
+    ConversionService conversionService() {
+        return new FhConversionService();
+    }
+
 }
