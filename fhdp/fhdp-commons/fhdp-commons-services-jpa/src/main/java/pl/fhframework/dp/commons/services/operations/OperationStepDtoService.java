@@ -79,7 +79,7 @@ public class OperationStepDtoService implements IOperationStepDtoService {
         long time = System.nanoTime();
         List<OperationStepDto> dtoList = findOperationStepList(processID, operationGUID, stepID);
         if(dtoList == null || dtoList.size() == 0) {
-            log.error("Can not find operation step for OpGuid: {}, processId :{}, stepId: {}", operationGUID, processID, stepID);
+            log.warn("Can not find operation step for OpGuid: {}, processId :{}, stepId: {}", operationGUID, processID, stepID);
         } else {
             dtoList.forEach(dto -> {
                 dto.setFinished(LocalDateTime.now());
