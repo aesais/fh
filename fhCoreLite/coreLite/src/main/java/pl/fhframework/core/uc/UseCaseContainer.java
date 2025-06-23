@@ -93,6 +93,7 @@ public class UseCaseContainer implements Serializable {
     @Autowired
     private ShutdownState shutdownState;
 
+    @Getter
     @Autowired(required = false)
     private IUseCaseConversation useCaseConversation;
 
@@ -154,6 +155,7 @@ public class UseCaseContainer implements Serializable {
     @Getter
     private final FormsContainer formsContainer = new FormsContainer();
 
+    @Getter
     private final Deque<UseCaseContext> runningUseCasesStack = new ArrayDeque<>();
 
     private final Set<String> postponedCloudStackCleaning = new TreeSet<>();
