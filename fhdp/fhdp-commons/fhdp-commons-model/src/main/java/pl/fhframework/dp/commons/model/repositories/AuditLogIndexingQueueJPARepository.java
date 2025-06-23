@@ -10,19 +10,14 @@ import org.springframework.stereotype.Repository;
 import pl.fhframework.dp.commons.model.entities.AuditLogIndexingQueue;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 
 @Repository
 public interface AuditLogIndexingQueueJPARepository extends JpaRepository<AuditLogIndexingQueue, String> {
-    Page<AuditLogIndexingQueue> findByIndexedAndNode(boolean indexed, String nodeId, Pageable pageable);
+
+    @Query(value = "select * from fhdp_audit_log_indexing_queue where indexed is false and node is null for update skip locked limit :limit", nativeQuery = true)
+    List<AuditLogIndexingQueue> findAuditLogEntriesToProcess(int limit);
 
     void deleteByIndexedTrue();
-
-    @Modifying
-    @Query(value = "UPDATE fhdp_audit_log_indexing_queue SET node = :node WHERE id IN (SELECT id FROM fhdp_audit_log_indexing_queue WHERE indexed = false ORDER BY eventtime LIMIT 300)", nativeQuery = true)
-    void markForIndexing(@Param("node") String nodeId);
-
-    @Modifying
-    @Query(value = "update fhdp_audit_log_indexing_queue set indexed = true, indexingTime = :now where indexed = false and node = :node", nativeQuery = true)
-    void updateIndexed(@Param("node") String nodeId, @Param("now") LocalDateTime now);
 }

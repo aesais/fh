@@ -65,12 +65,6 @@ public class AuditLogDao implements IAuditLogDao {
     }
 
     @Override
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void markForIndexing() {
-        auditLogIndexingQueueRepository.markForIndexing(instanceName);
-    }
-
-    @Override
     public String getInstanceName() {
         if(instanceName == null) {
             instanceName = System.getProperty(CsrfTokenFilter.FH_INSTANCE_NAME);
@@ -79,43 +73,46 @@ public class AuditLogDao implements IAuditLogDao {
     }
 
     @Override
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void indexData() {
         long millis = System.currentTimeMillis();
-        int pageNo = 0;
+
         try {
-            Pageable pageable = PageRequest.of(pageNo, 300);
-            Page<AuditLogIndexingQueue> page = auditLogIndexingQueueRepository.findByIndexedAndNode(false, instanceName, pageable);
-            do {
-                Map<String, List<IndexQuery>> queriesMap = new HashMap<>();
-                page.getContent().forEach(entity -> {
-                    AuditLogDto dto = BeanConversionUtil.mapObject(entity, false, AuditLogDto.class);
-                    if (dto == null) {
-                        throw new AppException("Can not convert metadata for AuditLogIndexingQueue entity : " + entity.getId());
-                    }
-                    //TODO: store information to S3 storage, if available
+            List<AuditLogIndexingQueue> auditLogEntriesToProcessList = auditLogIndexingQueueRepository.findAuditLogEntriesToProcess(300);
+
+            Map<String, List<IndexQuery>> queriesMap = new HashMap<>();
+            auditLogEntriesToProcessList.forEach(entity -> {
+                AuditLogDto dto = BeanConversionUtil.mapObject(entity, false, AuditLogDto.class);
+                if (dto == null) {
+                    throw new AppException("Can not convert metadata for AuditLogIndexingQueue entity : " + entity.getId());
+                }
+                //TODO: store information to S3 storage, if available
 //                if(entity.getOpDataText() != null) {
 //                    dto.setOpData(BeanConversionUtil.getFromJson(entity.getOpDataText(), Object.class));
 //                }
-                    if (entity.getOpResultText() != null) {
-                        dto.setOpResult(BeanConversionUtil.getFromJson(entity.getOpResultText(), Object.class));
-                    }
-                    addIndexData(dto, queriesMap);
+                if (entity.getOpResultText() != null) {
+                    dto.setOpResult(BeanConversionUtil.getFromJson(entity.getOpResultText(), Object.class));
+                }
+                addIndexData(dto, queriesMap);
 //                    entity.setIndexed(true);
 //                    Long lag = ChronoUnit.MILLIS.between(entity.getEventTime(), now);
 //                    entity.setIndexingLag(lag);
 //                    auditLogIndexingQueueRepository.save(entity);
-                });
-                queriesMap.keySet().forEach(key -> {
-                    List<IndexQuery> queries = queriesMap.get(key);
-                    if (!queries.isEmpty()) {
-                        elasticsearchOperations.bulkIndex(queries, IndexCoordinates.of(key));
-                    }
-                });
-                pageable = pageable.next();
-                page = auditLogIndexingQueueRepository.findByIndexedAndNode(false, instanceName, pageable);
-            } while (!page.isEmpty());
-            auditLogIndexingQueueRepository.updateIndexed(instanceName, LocalDateTime.now());
+
+                entity.setIndexed(true);
+                entity.setIndexingTime(LocalDateTime.now());
+
+                if (instanceName != null) {
+                    entity.setNode(instanceName.trim());
+                }
+            });
+            queriesMap.keySet().forEach(key -> {
+                List<IndexQuery> queries = queriesMap.get(key);
+                if (!queries.isEmpty()) {
+                    elasticsearchOperations.bulkIndex(queries, IndexCoordinates.of(key));
+                }
+            });
+
         } finally {
             millis = System.currentTimeMillis() - millis;
             if(millis > 1000) {
