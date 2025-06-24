@@ -24,9 +24,12 @@ import java.util.Map;
 public class UseCaseConversationImpl implements IUseCaseConversation {
     @Autowired
     ConversationManager conversationManager;
-
     Map<Object, ConversationParams> conversationParams = new HashMap<>();
 
+    @Override
+    public long getConversationParamsSize() {
+        return conversationParams.size();
+    }
     public void saveChnages(Object owner) {
         conversationManager.approve(owner);
     }
