@@ -3,6 +3,7 @@ package pl.fhframework.dp.commons.fh.utils.objects.init;
 import pl.fhframework.core.logging.FhLogger;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.Set;
 
 /**
@@ -44,7 +45,10 @@ public class PojoInitializer {
             }
             fieldValue = field.get(object);
             field.setAccessible(isAccessible);
-            recursiveInitialize(fieldValue, skipByType, skipByLocation, fieldLocation, recursionDepth + 1);
+            int modifiers = field.getModifiers();
+            if (!Modifier.isStatic(modifiers)) {
+                recursiveInitialize(fieldValue, skipByType, skipByLocation, fieldLocation, recursionDepth + 1);
+            }
         }
     }
 }
