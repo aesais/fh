@@ -21,4 +21,6 @@ public interface IUseCaseConversation {
     void registerOutputParams(Object owner, Object[] args);
 
     boolean isContextValid();
+
+    long getConversationParamsSize();
 }
