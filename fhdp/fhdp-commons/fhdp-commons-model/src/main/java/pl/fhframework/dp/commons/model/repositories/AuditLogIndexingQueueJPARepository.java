@@ -19,5 +19,7 @@ public interface AuditLogIndexingQueueJPARepository extends JpaRepository<AuditL
     @Query(value = "select * from fhdp_audit_log_indexing_queue where indexed is false and node is null for update skip locked limit :limit", nativeQuery = true)
     List<AuditLogIndexingQueue> findAuditLogEntriesToProcess(int limit);
 
-    void deleteByIndexedTrue();
+    @Modifying
+    @Query(value = "delete from fhdp_audit_log_indexing_queue where indexed is true and node = :node", nativeQuery = true)
+    void deleteByIndexedTrue(String node);
 }
