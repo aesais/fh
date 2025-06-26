@@ -102,8 +102,8 @@ public class AuditLogDao implements IAuditLogDao {
                 entity.setIndexed(true);
                 entity.setIndexingTime(LocalDateTime.now());
 
-                if (instanceName != null) {
-                    entity.setNode(instanceName.trim());
+                if (getInstanceName() != null) {
+                    entity.setNode(getInstanceName().trim());
                 }
             });
             queriesMap.keySet().forEach(key -> {
@@ -152,6 +152,6 @@ public class AuditLogDao implements IAuditLogDao {
     @Transactional
     public void removeIndexedEntries() {
         log.info("Removing indexed entries...");
-        auditLogIndexingQueueRepository.deleteByIndexedTrue();
+        auditLogIndexingQueueRepository.deleteByIndexedTrue(getInstanceName());
     }
 }
