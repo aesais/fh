@@ -47,6 +47,8 @@ public class UserSessionRepository implements HttpSessionListener, ApplicationLi
     private final SessionInfoCache sessionInfoCache;
     @Autowired
     private SessionInfoAPIClient sessionInfoAPIClient;
+    @Autowired
+    private LeakedSessionRemoverCron leakedSessionRemoverCron;
 
     @Value("${fhframework.managementApi.enabled:false}")
     private boolean managementApiEnabled;
@@ -197,7 +199,7 @@ public class UserSessionRepository implements HttpSessionListener, ApplicationLi
 
     @Override
     public void sessionCreated(HttpSessionEvent httpSessionEvent) {
-        // ignore
+        leakedSessionRemoverCron.startManuallyScheduler();
     }
 
     @Override
@@ -229,7 +231,10 @@ public class UserSessionRepository implements HttpSessionListener, ApplicationLi
     }
 
     private void removeHttpSession(HttpSession httpSession) {
-        userSessionSharedDataByHttpSessionId.remove(httpSession.getId());
+        UserSessionSharedData sharedData = userSessionSharedDataByHttpSessionId.remove(httpSession.getId());
+        if (sharedData != null) {
+            sharedData.removeAllValuesBeforeSessionRemove();
+        }
     }
 
     public void onHttpSessionExpired(HttpSession httpSession) {
