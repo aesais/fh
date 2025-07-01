@@ -2021,6 +2021,7 @@ public class UseCaseContainer implements Serializable {
 
         if (executionType == UseCaseExecutionType.INITIAL_USECASE) {
             clearUseCaseStack();
+            useCaseConversation.clearAllParams();
             if (shutdownState.isDuringShutdown()) {
                 eventRegistry.fireShutdownEvent(false);
                 return;
