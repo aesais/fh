@@ -1,6 +1,7 @@
 package pl.fhframework.core.session;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -24,10 +25,11 @@ import java.util.concurrent.TimeUnit;
  */
 @Lazy(false)
 @Component
-@RequiredArgsConstructor
 public class LeakedSessionRemoverCron {
-    private final UserSessionRepository userSessionRepository;
-    private final ForceLogoutService forceLogoutService;
+    @Autowired
+    private UserSessionRepository userSessionRepository;
+    @Autowired
+    private ForceLogoutService forceLogoutService;
 
     /**
      * Controls whether the emergency removal of inactive user sessions is enabled.
