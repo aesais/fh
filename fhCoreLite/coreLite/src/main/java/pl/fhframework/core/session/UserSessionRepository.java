@@ -47,7 +47,7 @@ public class UserSessionRepository implements HttpSessionListener, ApplicationLi
     private final SessionInfoCache sessionInfoCache;
     @Autowired
     private SessionInfoAPIClient sessionInfoAPIClient;
-    @Autowired
+    @Autowired(required = false)
     private LeakedSessionRemoverCron leakedSessionRemoverCron;
 
     @Value("${fhframework.managementApi.enabled:false}")
@@ -199,7 +199,9 @@ public class UserSessionRepository implements HttpSessionListener, ApplicationLi
 
     @Override
     public void sessionCreated(HttpSessionEvent httpSessionEvent) {
-        leakedSessionRemoverCron.startManuallyScheduler();
+        if (leakedSessionRemoverCron != null) {
+            leakedSessionRemoverCron.startManuallyScheduler();
+        }
     }
 
     @Override
