@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.context.annotation.Profile;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import pl.fhframework.UserSessionSharedData;
@@ -25,6 +26,7 @@ import java.util.concurrent.TimeUnit;
  */
 @Lazy(false)
 @Component
+@Profile("app")
 public class LeakedSessionRemoverCron {
     @Autowired
     private UserSessionRepository userSessionRepository;
