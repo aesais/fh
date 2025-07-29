@@ -7,7 +7,6 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Profile;
 import org.springframework.context.annotation.Scope;
-import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.socket.WebSocketSession;
@@ -22,13 +21,11 @@ import pl.fhframework.event.dto.*;
 import pl.fhframework.events.ActionContext;
 import pl.fhframework.events.IActionContext;
 import pl.fhframework.events.UseCaseRequestContext;
-import pl.fhframework.io.TemporaryResource;
 import pl.fhframework.model.dto.InMessageEventData;
 import pl.fhframework.model.security.SystemUser;
 import pl.fhframework.validation.IValidationResults;
 
 import javax.annotation.PostConstruct;
-import javax.servlet.http.HttpSession;
 import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -115,6 +112,7 @@ public class UserSession extends Session {
     }
 
     void handleEvent(InMessageEventData eventData) {
+        sharedData.refreshLastUsageTime();
         useCaseContainer.handleEvent(eventData);
     }
 
@@ -267,5 +265,22 @@ public class UserSession extends Session {
 
     public SystemUser getSystemUser(){
         return sharedData.getSystemUser();
+    }
+
+    public void removeAllValuesBeforeConversationRemove() {
+        this.useCaseContainer = null;
+        this.useCaseRequestContext = null;
+        this.actionContext = null;
+        this.awaitingErrorInformations = null;
+        this.errorInformationProcessors = null;
+        this.formsHandler = null;
+        this.applicationContext = null;
+        this.eventRegistry = null;
+        this.attributes = null;
+        this.cloudServersSessionIds = null;
+        this.resourcesUrlPrefix = null;
+        this.propagatedAuthentication = null;
+        this.validationResults = null;
+        this.exception = null;
     }
 }

@@ -80,6 +80,14 @@ public class UseCaseConversationImpl implements IUseCaseConversation {
     }
 
     @Override
+    public void clearAllParams() {
+        if (conversationParams != null && !conversationParams.isEmpty()) {
+            conversationParams.clear();
+            FhLogger.warn("***** *** conversationParams cleared!");
+        }
+    }
+
+    @Override
     public void usecaseTerminated(final Object owner) {
         conversationParams.remove(owner);
         conversationManager.withdraw(owner);
@@ -115,7 +123,7 @@ public class UseCaseConversationImpl implements IUseCaseConversation {
             cp = new ConversationParams();
             FhLogger.debug("Creating conversationParams for owner {}", owner);
 
-            if (put == true) {
+            if (put) {
                 conversationParams.put(owner, cp);
             }
         }

@@ -8,6 +8,8 @@ import pl.fhframework.model.security.SystemUser;
 
 import javax.servlet.http.HttpSession;
 import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -25,6 +27,11 @@ public class UserSessionSharedData {
     @Setter
     private Instant activityLimitDate;
 
+    /**
+     * This field seems redundant with {@link #activityLimitDate} but let us when user has been active what is very useful for emergency session removal
+     */
+    private long lastUsageMoment = System.currentTimeMillis();
+
     public UserSessionSharedData(HttpSession httpSession, SystemUser systemUser) {
         this.systemUser = systemUser;
         this.httpSession = httpSession;
@@ -39,22 +46,43 @@ public class UserSessionSharedData {
     }
 
     public void removeConversation(UserSession conversation) {
-        if (conversation.isClosed()){
-        conversations.remove(conversation);
+        if (conversation.isClosed()) {
+            if (conversations.remove(conversation)){
+                conversation.removeAllValuesBeforeConversationRemove();
+            }
         } else {
             throw new IllegalStateException("Conversation is not closed and cannot be removed");
         }
     }
 
-    public String getHttpSessionId(){
+    public String getHttpSessionId() {
         return httpSession.getId();
     }
 
-    public Set<UserSession> getConversations(){
+    public Set<UserSession> getConversations() {
         return Collections.unmodifiableSet(this.conversations);
     }
 
     public void changeHttpSession(HttpSession httpSession) {
         this.httpSession = httpSession;
+    }
+
+    void refreshLastUsageTime() {
+        lastUsageMoment = System.currentTimeMillis();
+        getHttpSession().setAttribute("lastUsageTime", lastUsageMoment);
+        getHttpSession().setAttribute("lastUsageTimeStr", LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+    }
+
+    public boolean hasNotBeenUsedIn(long amountOfTimeSinceLastUsageInMillis) {
+        return getHowLongIsUnusedInMillis() > amountOfTimeSinceLastUsageInMillis;
+    }
+
+    public long getHowLongIsUnusedInMillis() {
+        return System.currentTimeMillis() - lastUsageMoment;
+    }
+
+    public void removeAllValuesBeforeSessionRemove() {
+        this.uploadFileIndexes.clear();
+        this.downloadFileIndexes.clear();
     }
 }
