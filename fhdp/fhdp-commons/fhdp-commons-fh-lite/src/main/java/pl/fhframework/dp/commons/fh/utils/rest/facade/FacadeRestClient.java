@@ -1,5 +1,7 @@
 package pl.fhframework.dp.commons.fh.utils.rest.facade;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -7,6 +9,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpStatusCodeException;
+import org.springframework.web.client.ResourceAccessException;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.util.UriComponentsBuilder;
 import pl.fhframework.SessionManager;
 import pl.fhframework.core.util.StringUtils;
@@ -115,7 +120,7 @@ public class FacadeRestClient {
         request.setDtoClass(sClass); //TODO: is needed?
         request.setToken(token);
         EntityRestResponse response = doRequest("getCode", request);
-        return (NameValueDto) validateResponseAndReturn(response, () -> response.getList() != null ? getFromObjectList(response.getList()).get(0) : null, () -> null);
+        return validateResponseAndReturn(response, () -> response.getList() != null ? getFromObjectList(response.getList()).get(0) : null, () -> null);
     }
 
     public Object performOperation(OperationDto operation, Class operationDtoServiceClass) {
@@ -129,17 +134,71 @@ public class FacadeRestClient {
                 .pathSegment("performOperation")
                 .encode()
                 .toUriString();
-        ResponseEntity<OperationRestResponse> ret = FacadeRestTemplateConfig.
-                restTemplate.postForEntity(uri, request, OperationRestResponse.class);
+        ResponseEntity<OperationRestResponse> ret = postForEntity(uri, request, OperationRestResponse.class);
         OperationRestResponse response = ret.getBody();
-        if(response.isValid()) {
+        if(response != null && response.isValid()) {
             return response.getOperationResultDto();
         } else {
             OperationResultBaseDto errorResponse = new OperationResultBaseDto();
             errorResponse.setOk(false);
-            errorResponse.setResultMessage(response.getMessage());
+            errorResponse.setResultMessage(response == null ? "response == null" : response.getMessage());
             return errorResponse;
         }
+    }
+
+    @Getter @Setter
+    public static class MiniTimer {
+        private static final long NANO_2_MILIS = 1000000L;
+        private long startTime = System.nanoTime();
+        private long endTime;
+        private long durationMilis;
+        public void stop() {
+            durationMilis = (System.nanoTime() - startTime) / NANO_2_MILIS;
+        }
+    }
+
+    private ResponseEntity postForEntity(String uri, Object request, Class operationClass) {
+        MiniTimer timer = new MiniTimer();
+        ResponseEntity ret;
+        boolean withError = false;
+        try{
+             ret = FacadeRestTemplateConfig.restTemplate.postForEntity(uri, request, operationClass);
+        } catch (Exception e) {
+            withError = true;
+            if (e instanceof HttpStatusCodeException) {
+                HttpStatusCodeException e1 = (HttpStatusCodeException) e;
+                log.error("HTTP error: Status {}, Body: {}", e1.getStatusCode(), e1.getResponseBodyAsString(), e);
+            } else if (e instanceof ResourceAccessException) {
+                log.error("I/O error (e.g., timeout): {}", e.getMessage(), e);
+            } else if (e instanceof RestClientException) {
+                log.error("General RestClient error: {}", e.getMessage(), e);
+            } else {
+                log.error("Unexpected error: {}", e.getMessage(), e);
+            }
+            throw e;
+        } finally {
+            timer.stop();
+            boolean withInfo = FacadeRestTemplateConfig.timeInfo < timer.getDurationMilis();
+            if (FacadeRestTemplateConfig.logHelperMapper != null && request != null &&
+                (log.isDebugEnabled() || withError || withInfo)) {
+                try {
+                    String bodyAsJson = FacadeRestTemplateConfig.logHelperMapper.writeValueAsString(request);
+                    if (withError) {
+                        log.warn("Request body: {}", bodyAsJson);
+                        log.warn("Request duration: {} ms", timer.getDurationMilis());
+                    } else if (withInfo) {
+                        log.info("Request body: {}", bodyAsJson);
+                        log.info("Request duration: {} ms", timer.getDurationMilis());
+                    } else {
+                        log.debug("Request body: {}", bodyAsJson);
+                        log.debug("Request duration: {} ms", timer.getDurationMilis());
+                    }
+                } catch (JsonProcessingException e) {
+                    log.error("Error while serializing request body: {}", e.getMessage(), e);
+                }
+            }
+        }
+        return ret;
     }
 
     public Object getOperationData(Long id, HashMap<String, String> paramsMap, Class operationDtoServiceClass) {
@@ -153,8 +212,7 @@ public class FacadeRestClient {
                 .pathSegment("getOperationData")
                 .encode()
                 .toUriString();
-        ResponseEntity<OperationDataRestResponse> ret = FacadeRestTemplateConfig.
-                restTemplate.postForEntity(uri, request, OperationDataRestResponse.class);
+        ResponseEntity<OperationDataRestResponse> ret = postForEntity(uri, request, OperationDataRestResponse.class);
         OperationDataRestResponse response = ret.getBody();
         return response.getObject();
     }
@@ -168,8 +226,7 @@ public class FacadeRestClient {
                 .pathSegment("getOperationState")
                 .encode()
                 .toUriString();
-        ResponseEntity<OperationStateRestResponse> ret = FacadeRestTemplateConfig.
-                restTemplate.postForEntity(uri, request, OperationStateRestResponse.class);
+        ResponseEntity<OperationStateRestResponse> ret = postForEntity(uri, request, OperationStateRestResponse.class);
         OperationStateRestResponse response = ret.getBody();
         if(response.isValid()) {
             return response.getOperationStateResponseDto();
@@ -187,8 +244,7 @@ public class FacadeRestClient {
                 .pathSegment(pathSegment)
                 .encode()
                 .toUriString();
-        ResponseEntity<EntityRestResponse> ret = FacadeRestTemplateConfig.
-                restTemplate.postForEntity(uri, request, EntityRestResponse.class);
+        ResponseEntity<EntityRestResponse> ret = postForEntity(uri, request, EntityRestResponse.class);
         return ret.getBody();
     }
 
@@ -237,8 +293,10 @@ public class FacadeRestClient {
                 .queryParam("name", "app")
                 .encode()
                 .toUriString();
-            ResponseEntity<Heartbeat> ret = FacadeRestTemplateConfig.
-                    restTemplate.getForEntity(uri,  Heartbeat.class);
-//            log.info("Heartbeat response: {}", ret.getBody());
+        try {
+            FacadeRestTemplateConfig.restTemplate.getForEntity(uri, Heartbeat.class);
+        } catch (Exception e){
+            log.warn("Heart beat failed: {}", e.getMessage());
+        }
     }
 }
