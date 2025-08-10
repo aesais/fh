@@ -3,6 +3,7 @@ package pl.fhframework.dp.commons.fh.wrapper;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.beanutils.NestedNullException;
 import org.apache.commons.beanutils.PropertyUtils;
 
 import java.io.Serializable;
@@ -67,13 +68,15 @@ public class Wrapper<T> implements Serializable {
         try {
             if (PropertyUtils.isReadable(container, prop)) {
                 Object propertyObject = PropertyUtils.getNestedProperty(container, prop);
-                if(propertyObject != null) {
+                if (propertyObject != null) {
                     result = propertyObject.toString();
                 }
             }
+        } catch (NestedNullException nex){
+            log.debug("extractProperty: prop: {} for class: {} has problem: {}", prop,
+                      container.getClass(), nex.getMessage());
         } catch (Exception e) {
-            log.error("extractProperty: Problem with extracting prop: {} from class: {}", prop, container.getClass());
-            e.printStackTrace();
+            log.error("extractProperty: Problem with extracting prop: {} from class: {}", prop, container.getClass(),e);
         }
         return result;
     }
