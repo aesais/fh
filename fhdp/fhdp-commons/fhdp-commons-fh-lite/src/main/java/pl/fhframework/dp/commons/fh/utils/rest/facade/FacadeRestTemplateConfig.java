@@ -1,5 +1,6 @@
 package pl.fhframework.dp.commons.fh.utils.rest.facade;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
@@ -38,6 +39,7 @@ import java.util.function.Supplier;
 public class FacadeRestTemplateConfig {
 
     public static RestTemplate restTemplate;
+    public static ObjectMapper logHelperMapper = null;
 
     @Value("${rest.username:}")
     private String username;
@@ -45,6 +47,10 @@ public class FacadeRestTemplateConfig {
     private String password;
     @Value("${rest.timeout:6000}")
     int timeout;
+    @Value("${rest.time.warning:10000}")
+    int timeInfoParam;
+
+    public static int timeInfo;
 
     @Value("${ssl.keystoreLocation:}")
     private String keystore;
@@ -55,6 +61,7 @@ public class FacadeRestTemplateConfig {
     public void postConstruct() throws UnrecoverableKeyException, CertificateException, NoSuchAlgorithmException,
                                        KeyStoreException, IOException, KeyManagementException {
         createRestTemplate();
+        timeInfo = timeInfoParam;
     }
 
     public void createRestTemplate() throws UnrecoverableKeyException, CertificateException, NoSuchAlgorithmException,
