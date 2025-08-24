@@ -337,6 +337,7 @@ class TablePaged extends Table {
         firstLink.innerHTML = '&lt;&lt;';
         if (this.currentPage == 0) {
             first.classList.add('disabled');
+            first.style.visibility = 'hidden';
         } else if (this.onPageChange) {
             first.dataset.pageNumber = '0';
             firstLink.addEventListener('click', this.onPaginatorClick.bind(this));
@@ -354,6 +355,7 @@ class TablePaged extends Table {
         previousLink.innerHTML = '&lt;';
         if (this.currentPage == 0) {
             previous.classList.add('disabled');
+            previous.style.visibility = 'hidden';
         } else if (this.onPageChange) {
             previous.dataset.pageNumber = (this.currentPage - 1).toString();
             previousLink.addEventListener('click', this.onPaginatorClick.bind(this));
@@ -362,10 +364,20 @@ class TablePaged extends Table {
         previous.appendChild(previousLink);
         list.appendChild(previous);
 
-        for (let start = Math.max(0, this.currentPage - this.paginatorOffset),
-                 end = Math.min(this.totalPages, this.currentPage + this.paginatorOffset + 1);
-             start < end; start++
-        ) {
+        let start = this.currentPage - this.paginatorOffset;
+        let end = this.currentPage + this.paginatorOffset + 1;
+        if (start<0){
+            end = end - start;
+            start = 0;
+        }
+        if (end > this.totalPages){
+            start = start - (end - this.totalPages);
+            end = this.totalPages;
+        }
+        if (start<0){
+            start=0
+        }
+        for (; start < end; start++) {
             let item = document.createElement('li');
             item.classList.add('page-item');
             item.dataset.pageNumber = start.toString();
@@ -396,6 +408,7 @@ class TablePaged extends Table {
         nextLink.innerHTML = '&gt;';
         if (this.currentPage >= this.totalPages - 1) {
             next.classList.add('disabled');
+            next.style.visibility = 'hidden';
         } else if (this.onPageChange) {
             next.dataset.pageNumber = this.currentPage + 1;
             nextLink.addEventListener('click', this.onPaginatorClick.bind(this));
@@ -415,6 +428,8 @@ class TablePaged extends Table {
             last.classList.add('disabled');
             if (this.totalRows < 0) {
                 lastLink.innerHTML = '...';
+            } else {
+                last.style.visibility = 'hidden';
             }
         } else if (this.onPageChange) {
             last.dataset.pageNumber = (this.totalPages - 1).toString();
