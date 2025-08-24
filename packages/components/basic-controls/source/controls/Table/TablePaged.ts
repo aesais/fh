@@ -283,13 +283,14 @@ class TablePaged extends Table {
 
         let recordsFrom: number = (this.pageSize * this.currentPage);
 
-        if (this.totalRows > 0) {
+        let absTotalRows = Math.abs(this.totalRows);
+        if (absTotalRows > 0) {
             recordsFrom += 1;
         }
 
         let recordsTo = (this.pageSize * this.currentPage) + this.pageSize;
 
-        if (this.totalRows < recordsTo) {
+        if (absTotalRows < recordsTo) {
             recordsTo = this.totalRows;
         }
 
@@ -302,7 +303,11 @@ class TablePaged extends Table {
         let recordsFromLabel = this.__('records_from');
 
         let counterRight = document.createElement('span');
-        counterRight.innerText = this.totalRows.toString();
+        if (this.totalRows < 0) {
+            counterRight.innerText = '...';
+        } else {
+            counterRight.innerText = this.totalRows.toString();
+        }
 
         pageInfo.appendChild(recordsLabel);
         pageInfo.appendChild(counterLeft);
@@ -408,6 +413,9 @@ class TablePaged extends Table {
         lastLink.innerHTML = '&gt;&gt;';
         if (this.currentPage >= this.totalPages - 1) {
             last.classList.add('disabled');
+            if (this.totalRows < 0) {
+                lastLink.innerHTML = '...';
+            }
         } else if (this.onPageChange) {
             last.dataset.pageNumber = (this.totalPages - 1).toString();
             lastLink.addEventListener('click', this.onPaginatorClick.bind(this));
