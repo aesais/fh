@@ -87,7 +87,7 @@ const _switchLerna = (MAIN_PATH, disable) => {
 class Runtime {
   constructor() {
     const nodeV = process.version.match(/^v(\d+)/)[1];
-    if (nodeV !== '18') {
+    if (nodeV !== '18' && nodeV !== '22') {
       throw new Error('Please use node js in version 18!');
     }
   }
