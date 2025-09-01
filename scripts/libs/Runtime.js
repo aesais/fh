@@ -182,9 +182,9 @@ class Runtime {
 
             let tag;
             if (isSnapshot) {
-              tag = 'next';
+              tag = 'snapshot-pl';
             } else if (isProd) {
-              tag = 'latest';
+              tag = 'release-pl';
             }
 
             utils.runProcess(`npm run build`, verbose);
