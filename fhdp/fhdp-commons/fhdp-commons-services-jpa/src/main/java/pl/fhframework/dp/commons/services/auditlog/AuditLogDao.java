@@ -90,7 +90,7 @@ public class AuditLogDao implements IAuditLogDao {
 //                if(entity.getOpDataText() != null) {
 //                    dto.setOpData(BeanConversionUtil.getFromJson(entity.getOpDataText(), Object.class));
 //                }
-                if (entity.getOpResultText() != null) {
+                if (entity.getOpResultText() != null && entity.getOpResultText().length() < 256000L) {
                     dto.setOpResult(BeanConversionUtil.getFromJson(entity.getOpResultText(), Object.class));
                 }
                 addIndexData(dto, queriesMap);
