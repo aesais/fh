@@ -1,6 +1,11 @@
 {
   "index": {
     "number_of_shards": "3",
+    "mapping": {
+      "total_fields": {
+        "limit": "3000"
+      }
+    },
     "analysis": {
       "analyzer": {
         "default": {
