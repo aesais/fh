@@ -1,8 +1,0 @@
-<component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="publish to npm" type="NodeJSConfigurationType" path-to-node="node" node-parameters="cli.js deploy --fhVer=4.10.7-PL-12 --verbose --prod" path-to-js-file="cli.js" working-dir="$PROJECT_DIR$/scripts">
-<!--    <envs>-->
-<!--      <env name="XREGISTRY_PATH" value="http://172.26.20.61:8873/" />-->
-<!--    </envs>-->
-    <method v="2" />
-  </configuration>
-</component>
