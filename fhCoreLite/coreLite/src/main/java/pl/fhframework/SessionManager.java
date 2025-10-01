@@ -1,6 +1,7 @@
 package pl.fhframework;
 
 
+import pl.fhframework.core.session.SessionHoldingSessionManager;
 import pl.fhframework.model.security.SystemUser;
 import java.util.Set;
 
@@ -23,6 +24,9 @@ public abstract class SessionManager {
 
     public static UserSession getUserSession() {
         ISessionManagerImpl instance = THREAD_SESSION_MANAGER.get();
+        if (instance instanceof SessionHoldingSessionManager) {
+            return null;
+        }
         return instance != null && instance.getSession() instanceof UserSession ? (UserSession) instance.getSession() : null;
     }
 
