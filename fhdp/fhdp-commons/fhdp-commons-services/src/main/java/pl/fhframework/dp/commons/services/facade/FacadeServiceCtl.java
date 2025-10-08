@@ -11,17 +11,18 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
 import pl.fhframework.core.i18n.MessageService;
-import pl.fhframework.core.uc.handlers.INoFormHandler;
-import pl.fhframework.dp.commons.base.exception.AppMsgRuntimeException;
 import pl.fhframework.dp.commons.base.exception.IAppMsgException;
 import pl.fhframework.dp.commons.base.model.IPersistentObject;
 import pl.fhframework.dp.commons.rest.*;
 import pl.fhframework.dp.commons.utils.xml.TextUtils;
+import pl.fhframework.dp.transport.dto.commons.BaseDtoQuery;
 import pl.fhframework.dp.transport.dto.commons.NameValueDto;
 import pl.fhframework.dp.transport.dto.commons.OperationDto;
 import pl.fhframework.dp.transport.dto.commons.OperationStateResponseDto;
 import pl.fhframework.dp.transport.service.IDtoService;
 import pl.fhframework.dp.transport.service.IOperationDtoService;
+import pl.fhframework.dp.transport.service.SearchRequestExtended;
+import pl.fhframework.dp.transport.service.SearchResultExtended;
 
 import javax.persistence.PersistenceException;
 import java.beans.Introspector;
@@ -51,8 +52,18 @@ public class FacadeServiceCtl implements IFacadeService {
             if (request != null && request.getQuery() != null && request.getDtoName() != null && request.getToken() != null) {
                 IDtoService iDtoService = this.getServiceFromDto(request.getDtoName());
                 if (iDtoService != null) {
-                    List list = iDtoService.listDto(request.getQuery());
-                    retList.setList(list);
+                    if (request.getTrackTotalHitsUpTo() != null){
+                        SearchRequestExtended sre = new SearchRequestExtended();
+                        sre.setQuery((BaseDtoQuery) request.getQuery());
+                        sre.setLimit(request.getTrackTotalHitsUpTo());
+                        SearchResultExtended resExt = iDtoService.listDtoExtended(sre);
+                        retList.setList(resExt.getList());
+                        retList.setTotalHits(resExt.getTotalHits());
+                        retList.setTotalHitsRelation(resExt.getHitsRelation());
+                    } else {
+                        List list = iDtoService.listDto(request.getQuery());
+                        retList.setList(list);
+                    }
                 } else {
                     retList.setValid(false);
                     retList.setMessage("Can't find service for DTO: " + request.getDtoName());

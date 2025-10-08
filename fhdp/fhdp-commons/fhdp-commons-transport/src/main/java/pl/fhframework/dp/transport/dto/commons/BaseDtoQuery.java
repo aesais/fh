@@ -30,6 +30,8 @@ public class BaseDtoQuery implements Serializable{
     private String  sortProperty;
     private Boolean ascending;
 
+    private Integer trackTotalHitsUpTo;
+
     //Obiekt do konstrukcji zapytania na podstawie szablonu
     private List<SearchTemplateForQuery> searchTemplateForQuery;
 

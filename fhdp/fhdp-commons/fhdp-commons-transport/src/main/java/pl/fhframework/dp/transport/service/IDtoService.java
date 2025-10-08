@@ -29,6 +29,17 @@ public interface IDtoService<ID, DTO extends IPersistentObject, LIST extends IPe
     }
 
     /**
+     * Odczyt listy z ograniczeniem wyników
+     *
+     * @param query - obiekt query
+
+     * @return - lista obiektów Dto dla listy
+     */
+    default SearchResultExtended<LIST> listDtoExtended(SearchRequestExtended searchRequestExtended) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
      * Pobranie ilości elementów dla listy
      *
      * @param query - obiekt query

@@ -18,6 +18,8 @@ import pl.fhframework.core.util.StringUtils;
 import pl.fhframework.dp.commons.base.model.Heartbeat;
 import pl.fhframework.dp.commons.rest.*;
 import pl.fhframework.dp.transport.dto.commons.*;
+import pl.fhframework.dp.transport.service.SearchRequestExtended;
+import pl.fhframework.dp.transport.service.SearchResultExtended;
 import pl.fhframework.event.EventRegistry;
 import pl.fhframework.event.dto.NotificationEvent;
 
@@ -54,6 +56,20 @@ public class FacadeRestClient {
         request.setDtoName(listDtoClass.getSimpleName());
         EntityRestResponse response = doRequest("list", request);
         return validateResponseAndReturn(response, () -> response.getList() != null ? response.getList() : new ArrayList<>(), ArrayList::new);
+    }
+    public SearchResultExtended listExtended(SearchRequestExtended searchRequest, Class listDtoClass) {
+        EntityRestRequest request = new EntityRestRequest();
+        request.setToken(token);
+        request.setQuery(searchRequest.getQuery());
+        request.setTrackTotalHitsUpTo(searchRequest.getLimit());
+        request.setDtoName(listDtoClass.getSimpleName());
+        EntityRestResponse response = doRequest("listExtended", request);
+        SearchResultExtended res = new SearchResultExtended();
+        List<Object> list = validateResponseAndReturn(response, () -> response.getList() != null ? response.getList() : new ArrayList<>(), ArrayList::new);
+        res.setList(list);
+        res.setHitsRelation(response.getTotalHitsRelation());
+        res.setTotalHits(response.getTotalHits());
+        return res;
     }
 
     public Long count(Object query, Class listDtoClass) {
@@ -251,7 +267,6 @@ public class FacadeRestClient {
     private List<NameValueDto> getFromObjectList(List<?> objectList) {
         return (List<NameValueDto>) objectList;
     }
-
 
     private <RET> RET validateResponseAndReturn(EntityRestResponse response, Supplier<RET> whenValid, Supplier<RET> whenInvalid) {
         if (response.isValid()) {
