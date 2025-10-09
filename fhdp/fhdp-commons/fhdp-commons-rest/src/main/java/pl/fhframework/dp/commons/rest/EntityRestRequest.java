@@ -13,6 +13,7 @@ public class EntityRestRequest<ENTITY extends Object, QUERY extends Object, KEY 
     private RestObject<QUERY> restQueryObject;
     private RestObject<KEY> restEntityKeyObject;
     private String dtoName;
+    private Integer trackTotalHitsUpTo;
 
    @JsonIgnore
     public QUERY getQuery() {
@@ -30,6 +31,14 @@ public class EntityRestRequest<ENTITY extends Object, QUERY extends Object, KEY 
 
     public void setEntityKey(KEY entityKey) {
         getRestEntityKeyObject().setData(entityKey);
+    }
+
+    public Integer getTrackTotalHitsUpTo() {
+       return trackTotalHitsUpTo;
+    }
+
+    public void setTrackTotalHitsUpTo(Integer limit) {
+       this.trackTotalHitsUpTo = limit;
     }
 
     public OperationTypeEnum getOperationType() {

@@ -10,12 +10,16 @@ import pl.fhframework.dp.commons.base.model.IPersistentObject;
 import pl.fhframework.dp.transport.dto.commons.BaseDtoQuery;
 import pl.fhframework.dp.transport.dto.commons.NameValueDto;
 import pl.fhframework.dp.transport.service.IDtoService;
+import pl.fhframework.dp.transport.service.SearchRequestExtended;
+import pl.fhframework.dp.transport.service.SearchResultExtended;
 import pl.fhframework.model.forms.PageModel;
 
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+
+import static pl.fhframework.dp.transport.service.TotalHitsRelationFH.GREATER_THAN_OR_EQUAL_TO;
 
 /**
  * @author <a href="mailto:jacek.borowiec@asseco.pl">Jacek Borowiec</a>
@@ -63,8 +67,6 @@ public class GenericFacadeService<ID, DTO extends IPersistentObject, LIST extend
         return ret;
     }
 
-
-
     public Long countCodeList(String code, String text, LocalDate onDate, Map params) {
         IDtoService service = clientFactory.createServiceProxy(serviceClazz);
         return service.countCodeList(code, text, onDate, params);
@@ -79,14 +81,30 @@ public class GenericFacadeService<ID, DTO extends IPersistentObject, LIST extend
         return restService.listDto(query);
     }
 
+    @Override
+    public SearchResultExtended<LIST> listDtoExtended(SearchRequestExtended searchRequestExtended) {
+        if(searchRequestExtended == null) {
+            throw new RuntimeException("query can not be null");
+        }
+        IDtoService restService = clientFactory.createServiceProxy(serviceClazz);
+        return restService.listDtoExtended(searchRequestExtended);
+    }
+
     public PageModel<LIST> listDtoPaged(QUERY query) {
+        return listDtoPagedExtended(query, null);
+    }
+
+    public PageModel<LIST> listDtoPagedExtended(QUERY query, Integer limit) {
         if(query == null) {
             throw new RuntimeException("query can not be null");
         }
-        long total = listCount(query);
+        final long totalCount = limit == null ? listCount(query) : 0L ;
         query.setFirstRow(0);
         query.setSize(10);
-        return new PageModel<LIST>(pageable -> loadRegisterHFPage(pageable, query, total));
+        return new PageModel<>(pageable -> limit == null ?
+                                           loadRegisterHFPage(pageable, query, totalCount)
+                                                         :
+                                           loadRegisterHFPageWithLimit(pageable, query, limit));
     }
 
     public List<LIST> listDtoPageable(Pageable pageable, QUERY query) {
@@ -98,10 +116,36 @@ public class GenericFacadeService<ID, DTO extends IPersistentObject, LIST extend
         return restService.listDto(query);
     }
 
-    public Page<LIST> loadRegisterHFPage(Pageable pageable, QUERY query, long total) {
-        IDtoService restService = clientFactory.createServiceProxy(serviceClazz);
+    /**
+     * Loads a paginated list of DTOs based on the given query and pageable parameters.
+     * The method updates the query with pagination details, sends a request to the service to
+     * fetch the data, and returns the result wrapped in a Page object with information
+     * regarding the pagination and total hits.
+     * <p>
+     * This version does not require calculation of total elements - one call less.
+     *
+     * @param pageable provides pagination and sorting information, including page number,
+     *                 page size, and sort order.
+     * @param query the query object containing filters and criteria to fetch the desired data.
+     * @return a Page object containing the fetched DTOs, pagination metadata, and whether the
+     *         configured limit was reached.
+     */
+    public Page<LIST> loadRegisterHFPageWithLimit(Pageable pageable, QUERY query, Integer limit) {
         updateQuery(query, pageable);
-        return new PageImpl<LIST>(listDtoPageable(pageable, query), pageable, total);
+        IDtoService restService = clientFactory.createServiceProxy(serviceClazz);
+        SearchRequestExtended<QUERY> sre = new SearchRequestExtended<>();
+        sre.setQuery(query);
+
+        sre.setLimit(limit);
+
+        SearchResultExtended res = restService.listDtoExtended(sre);
+        return new PageImplWithLimit(res.getList(), pageable, res.getTotalHits(),
+                                                     res.getHitsRelation() == GREATER_THAN_OR_EQUAL_TO);
+    }
+
+    public Page<LIST> loadRegisterHFPage(Pageable pageable, QUERY query, long total) {
+        updateQuery(query, pageable);
+        return new PageImpl<>(listDtoPageable(pageable, query), pageable, total);
     }
 
     private void updateQuery(QUERY query, Pageable pageable) {

@@ -13,12 +13,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.elasticsearch.annotations.Document;
 import org.springframework.data.elasticsearch.annotations.FieldType;
 import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
 import org.springframework.data.elasticsearch.core.SearchHit;
 import org.springframework.data.elasticsearch.core.SearchHits;
+import org.springframework.data.elasticsearch.core.TotalHitsRelation;
 import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
 import org.springframework.data.elasticsearch.core.query.IndexQuery;
 import org.springframework.data.elasticsearch.core.query.NativeSearchQuery;
@@ -30,15 +30,15 @@ import pl.fhframework.dp.commons.els.config.ElasticSearchParams;
 import pl.fhframework.dp.commons.utils.conversion.BeanConversionUtil;
 import pl.fhframework.dp.transport.dto.commons.BaseDtoQuery;
 import pl.fhframework.dp.transport.service.IDtoService;
-
-import java.lang.reflect.Method;
-import java.util.*;
-import java.util.stream.Collectors;
+import pl.fhframework.dp.transport.service.SearchRequestExtended;
+import pl.fhframework.dp.transport.service.SearchResultExtended;
+import pl.fhframework.dp.transport.service.TotalHitsRelationFH;
 
 import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.lang.reflect.Method;
+import java.util.*;
+
+import static java.util.stream.Collectors.toList;
 
 /**
  * @author <a href="mailto:jacek.borowiec@asseco.pl">Jacek Borowiec</a>
@@ -69,14 +69,16 @@ public abstract class GenericDtoService<ID,
     }
 
     @Override
-    public List<LIST> listDto(QUERY query) {
+    public SearchResultExtended<LIST> listDtoExtended(SearchRequestExtended searchRequestExtended) {
+        QUERY query = (QUERY)searchRequestExtended.getQuery();
+        Integer trackTotalHitsUpTo = searchRequestExtended.getLimit();
         BoolQueryBuilder queryBuilder = createQueryBuilderInternal(query);
         NativeSearchQueryBuilder searchQueryBuilder = new NativeSearchQueryBuilder()
-                .withQuery(queryBuilder);
+              .withQuery(queryBuilder);
         if(query.getFirstRow() != null && query.getSize() != null) {
             SortBuilder<?> sortWithNested = new FieldSortBuilder("id")
-                    .order(SortOrder.ASC)
-                    .setNestedSort(null);
+                  .order(SortOrder.ASC)
+                  .setNestedSort(null);
 
             Pageable pageable;
 
@@ -87,8 +89,8 @@ public abstract class GenericDtoService<ID,
                 if (!query.getSortProperty().equals("0")) {
                     String nestedPath = getNestedPath(dtoClazz, query.getSortProperty());
                     sortWithNested = new FieldSortBuilder(query.getSortProperty())
-                            .order((query.getAscending() != null && !query.getAscending()) ? SortOrder.DESC : SortOrder.ASC)
-                            .setNestedSort(nestedPath != null ? new NestedSortBuilder(nestedPath) : null);
+                          .order((query.getAscending() != null && !query.getAscending()) ? SortOrder.DESC : SortOrder.ASC)
+                          .setNestedSort(nestedPath != null ? new NestedSortBuilder(nestedPath) : null);
                 }
             }
 
@@ -96,15 +98,47 @@ public abstract class GenericDtoService<ID,
             searchQueryBuilder = searchQueryBuilder.withPageable(pageable).withSorts(sortWithNested);
         }
         NativeSearchQuery searchQuery = searchQueryBuilder.build();
-        List<LIST> list = new ArrayList<>();
+        if (trackTotalHitsUpTo !=null) {
+            searchQuery.setTrackTotalHitsUpTo(trackTotalHitsUpTo);
+        }
+
+        SearchResultExtended<LIST> ret = new SearchResultExtended<>();
         try {
             IndexCoordinates indexCoordinates = elasticsearchTemplate.getIndexCoordinatesFor(listClazz);
+
             SearchHits<LIST> res = elasticsearchTemplate.search(searchQuery, listClazz, indexCoordinates);
-            list = res.getSearchHits().stream().map(SearchHit::getContent).collect(Collectors.toList());
+            List<LIST> list = res.getSearchHits().stream().map(SearchHit::getContent).collect(toList());
+            ret.setList(list);
+            ret.setTotalHits(res.getTotalHits());
+            ret.setHitsRelation(mapTotalHitsRelation2FH(res.getTotalHitsRelation()));
         } catch (Exception e) {
+            // for compatibility - in case of error empty list is returned
+            ret.setList(new ArrayList<>());
             log.warn("{}", ExceptionUtils.getStackTrace(e));
         }
-        return list;
+        return ret;
+    }
+
+    public static TotalHitsRelationFH mapTotalHitsRelation2FH(TotalHitsRelation totalHitsRelation) {
+        if (totalHitsRelation == null) {
+            return null;
+        }
+        switch (totalHitsRelation) {
+            case EQUAL_TO:
+                return TotalHitsRelationFH.EQUAL_TO;
+            case GREATER_THAN_OR_EQUAL_TO:
+                return TotalHitsRelationFH.GREATER_THAN_OR_EQUAL_TO;
+            default:
+                return TotalHitsRelationFH.OFF;
+        }
+    }
+
+    @Override
+    public List<LIST> listDto(QUERY query) {
+        SearchRequestExtended searchRequestExtended = new SearchRequestExtended();
+        searchRequestExtended.setQuery(query);
+        SearchResultExtended<LIST> res = listDtoExtended(searchRequestExtended);
+        return res.getList();
     }
 
     protected BoolQueryBuilder createQueryBuilderInternal(QUERY query) {
@@ -205,7 +239,7 @@ public abstract class GenericDtoService<ID,
     }
 
     public List<String> escapeSpecialCharacters(List<String> arg){
-        return arg.stream().map(item -> escapeSpecialCharacters(item)).collect(Collectors.toList());
+        return arg.stream().map(item -> escapeSpecialCharacters(item)).collect(toList());
     }
 
     public JpaRepository<ENTITY, ID> getJpaRepository(){
@@ -234,7 +268,7 @@ public abstract class GenericDtoService<ID,
     protected List<DTO> mapEntityToDtoForBulkReindex(List<ENTITY> entities) {
         return entities.stream()
                 .map(entity -> mapEntityToDto(entity, false))
-                .collect(Collectors.toList()
+                .collect(toList()
                 );
     }
 

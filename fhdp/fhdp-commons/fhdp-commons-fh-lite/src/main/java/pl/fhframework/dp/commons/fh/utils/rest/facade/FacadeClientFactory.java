@@ -11,6 +11,7 @@ import pl.fhframework.dp.transport.dto.commons.OperationDto;
 import pl.fhframework.dp.transport.dto.commons.OperationStateRequestDto;
 import pl.fhframework.dp.transport.service.IDtoService;
 import pl.fhframework.dp.transport.service.IOperationDtoService;
+import pl.fhframework.dp.transport.service.SearchRequestExtended;
 
 import java.lang.reflect.Proxy;
 import java.time.LocalDate;
@@ -30,6 +31,8 @@ public class FacadeClientFactory {
                 (proxy, method, methodArgs) -> {
                     if (method.getName().equals("listDto")) {
                         return facadeRestClient.list(methodArgs[0], iDtoService);
+                    } else if (method.getName().equals("listDtoExtended")) {
+                        return facadeRestClient.listExtended((SearchRequestExtended)methodArgs[0], iDtoService);
                     } else if (method.getName().equals("listCount")) {
                         return facadeRestClient.count(methodArgs[0], iDtoService);
                     } else if (method.getName().equals("getDto")) {

@@ -2,6 +2,7 @@ package pl.fhframework.dp.commons.rest;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import pl.fhframework.dp.transport.service.TotalHitsRelationFH;
 
 import java.io.Serializable;
 import java.util.List;
@@ -15,7 +16,8 @@ public class BaseRestResponse<E,F> implements Serializable {
     private RestObject<E> restObject;
     private RestListOfObjects<F> restList;
     private Long count;
-
+    private TotalHitsRelationFH totalHitsRelation;
+    private Long totalHits;
 
     public Long getCount() {
         return count;
@@ -23,6 +25,21 @@ public class BaseRestResponse<E,F> implements Serializable {
 
     public void setCount(Long count) {
         this.count = count;
+    }
+
+    public TotalHitsRelationFH getTotalHitsRelation() {
+        return totalHitsRelation;
+    }
+    public void setTotalHitsRelation(TotalHitsRelationFH totalHitsRelation) {
+        this.totalHitsRelation = totalHitsRelation;
+    }
+
+    public Long getTotalHits() {
+        return totalHits;
+    }
+
+    public void setTotalHits(Long totalHits) {
+        this.totalHits = totalHits;
     }
 
     /**

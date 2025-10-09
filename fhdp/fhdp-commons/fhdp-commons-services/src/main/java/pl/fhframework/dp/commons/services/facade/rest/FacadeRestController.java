@@ -10,7 +10,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import pl.fhframework.dp.commons.base.model.Heartbeat;
 import pl.fhframework.dp.commons.rest.*;
-import pl.fhframework.dp.commons.rest.*;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -44,6 +43,11 @@ public class FacadeRestController {
     }
 
     @PostMapping(path = "/list", consumes = "application/json", produces = "application/json")
+    @ResponseBody
+    public EntityRestResponse listExtended( @RequestBody EntityRestRequest request) {
+        return facadeServiceCtl.list(request);
+    }
+    @PostMapping(path = "/listExtended", consumes = "application/json", produces = "application/json")
     @ResponseBody
     public EntityRestResponse list( @RequestBody EntityRestRequest request) {
         return facadeServiceCtl.list(request);
