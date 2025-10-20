@@ -362,8 +362,8 @@ class TablePaged extends Table {
         previous.appendChild(previousLink);
         list.appendChild(previous);
 
-        let start = this.currentPage - this.paginatorOffset;
-        let end = this.currentPage + this.paginatorOffset + 1;
+        let start = this.toInt(this.currentPage) - this.paginatorOffset;
+        let end = this.toInt(this.currentPage) + this.paginatorOffset + 1;
         if (start<0){
             end = end - start;
             start = 0;
