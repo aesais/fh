@@ -16,8 +16,11 @@ import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.csrf.InvalidCsrfTokenException;
+import org.springframework.security.web.csrf.MissingCsrfTokenException;
 import org.springframework.security.web.firewall.FirewalledRequest;
 import org.springframework.security.web.firewall.HttpFirewall;
 import org.springframework.security.web.firewall.RequestRejectedException;
@@ -107,6 +110,12 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
         if (!csrfProtection){
             http.csrf().disable();
+        } else {
+            http.csrf()
+                .ignoringRequestMatchers(new AntPathRequestMatcher("/login"))
+                  .and()
+                .exceptionHandling()
+                .accessDeniedHandler(csrfRedirectAccessDeniedHandler());
         }
         if (!xssProtection) {
             http.headers().xssProtection().disable();
@@ -182,6 +191,17 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Bean
     public SessionRegistry sessionRegistry() {
         return new SessionRegistryImpl();
+    }
+
+    @Bean
+    AccessDeniedHandler csrfRedirectAccessDeniedHandler() {
+        return (request, response, ex) -> {
+            if (ex instanceof InvalidCsrfTokenException) {
+                response.sendRedirect(request.getContextPath() + "/login?error");
+            } else {
+                response.sendError(HttpServletResponse.SC_FORBIDDEN, ex.getMessage());
+            }
+        };
     }
 
     @Bean
