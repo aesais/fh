@@ -5,19 +5,19 @@ import {NotificationEvent} from "fh-forms-handler";
 import {FhContainer} from "fh-forms-handler";
 
 class FileUpload extends HTMLFormComponent {
-    private onUpload: string;
+    private readonly onUpload: string;
     private fileIds: String[];
-    private readonly extensions: String;
-    private readonly fileNames: String[];
-    private readonly label: string;
+    private extensions: String;
+    private fileNames: String[];
+    private label: string;
     private readonly inputHeight: number;
     private readonly multiple: boolean;
     private labelHidden: boolean;
     private progressBar: HTMLElement;
     private labelSpanElement: HTMLElement;
-    private readonly pendingUploadHandle: any;
+    private pendingUploadHandle: any;
     private inputFileButton: HTMLAnchorElement;
-    private readonly style: any;
+    private style: any;
     public input: any;
 
     constructor(componentObj: any, parent: HTMLFormComponent) {
@@ -92,17 +92,15 @@ class FileUpload extends HTMLFormComponent {
 
         if (this.extensions) {
             let accept = '';
-            if (this.extensions != null) {
-                let extensionsArray = this.extensions.split(',');
-                for (let i = 0, len = extensionsArray.length; i < len; i++) {
-                    if (accept != '') {
-                        accept += ',';
-                    }
-                    if (!(<any>extensionsArray[i]).startsWith('.')) {
-                        accept += '.';
-                    }
-                    accept += extensionsArray[i];
+            let extensionsArray = this.extensions.split(',');
+            for (let i = 0, len = extensionsArray.length; i < len; i++) {
+                if (accept != '') {
+                    accept += ',';
                 }
+                if (!(<any>extensionsArray[i]).startsWith('.')) {
+                    accept += '.';
+                }
+                accept += extensionsArray[i];
             }
             inputFile.accept = accept;
         }
@@ -137,13 +135,13 @@ class FileUpload extends HTMLFormComponent {
         this.input = inputFile;
         this.component = fileUpload;
         this.focusableComponent = this.inputFileButton;
-
-        inputFile.addEventListener('change', function (event) {
+        inputFile.addEventListener('change', async (event)=> {
             if (!this.formsManager.ensureFunctionalityUnavailableDuringShutdown()) {
                 return;
             }
-            if (event.target.files.length > 0) {
-                let files: FileList = event.target.files;
+            const eventTarget = event.target as HTMLInputElement;
+            if (eventTarget.files.length > 0) {
+                let files: FileList = eventTarget.files;
                 let formData = new FormData();
                 $.each(files, function (i, file) {
                     formData.append('file', file);
@@ -154,9 +152,8 @@ class FileUpload extends HTMLFormComponent {
 
                 let error = false;
 
-
-                for (let i = 0; i < event.target.files.length; i++) {
-                    let file = event.target.files[i];
+                for (let i = 0; i < eventTarget.files.length; i++) {
+                    let file = eventTarget.files[i];
 
                     let fileNameSplit = file.name.split('.');
 
@@ -180,6 +177,19 @@ class FileUpload extends HTMLFormComponent {
                             });
                             error = true;
                         }
+
+                        const xmlExpected = allowedExtensions.indexOf('xml') !== -1;
+                        if (!error && xmlExpected && sentFileExtension === 'xml') {
+                            const ok = await this.isLikelyXmlFile(file);
+                            if (!ok) {
+                                console.log(" checking if it is xml failed - returning with error");
+                                FhContainer.get<NotificationEvent>('Events.NotificationEvent').fire({
+                                    level: 'error',
+                                    message: this.__('file is not valid xml', [file.name]).innerText
+                                });
+                                error = true;
+                            }
+                        }
                     }
 
                     if (file.size > this.componentObj.maxSize) {
@@ -189,7 +199,6 @@ class FileUpload extends HTMLFormComponent {
                         });
                         error = true;
                     }
-
                 }
 
                 if (error) {
@@ -235,7 +244,7 @@ class FileUpload extends HTMLFormComponent {
                         this.setEffectiveLabelAndColor();
                     }.bind(this));
             }
-        }.bind(this));
+        });
 
         $(inputFile).on('dragover', function dragover(e) {
             e.stopPropagation();
@@ -260,7 +269,6 @@ class FileUpload extends HTMLFormComponent {
         if (this.component.classList.contains('listButton')) {
             this.htmlElement.classList.add('listButtonWrapper');
         }
-
     };
 
     update(change) {
@@ -370,6 +378,25 @@ class FileUpload extends HTMLFormComponent {
         return parseFloat((size / Math.pow(1024, i)).toFixed(2)) + ' ' + sizes[i];
     };
 
+    private async isLikelyXmlFile(file: File): Promise<boolean> {
+        // Read only the beginning to avoid heavy work for big files
+        const head = await file.slice(0, 64 * 1024).text();
+
+        // Remove UTF-8 BOM and leading whitespace
+        let s = head.replace(/^\uFEFF/, "");
+        s = s.replace(/^[\s\u00A0]+/, "");
+
+        if (!s.startsWith("<")) return false;
+
+        // Optional: quick reject common non-XML (HTML doctype)
+        if (/^<!doctype\s+html/i.test(s)) return false;
+
+        const doc = new DOMParser().parseFromString(s, "application/xml");
+
+        // Many browsers expose parse errors as <parsererror>
+        return doc.getElementsByTagName("parsererror").length <= 0;
+    }
+
     setAccessibility(accessibility: string) {
         super.setAccessibility(accessibility);
 
@@ -395,7 +422,6 @@ class FileUpload extends HTMLFormComponent {
      */
     public getDefaultWidth() {
         return 'lg-2,md-4,sm-5,xs-6';
-
     }
 }
 
