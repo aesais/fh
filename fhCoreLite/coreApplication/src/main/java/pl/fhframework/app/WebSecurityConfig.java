@@ -19,8 +19,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.csrf.InvalidCsrfTokenException;
-import org.springframework.security.web.csrf.MissingCsrfTokenException;
 import org.springframework.security.web.firewall.FirewalledRequest;
 import org.springframework.security.web.firewall.HttpFirewall;
 import org.springframework.security.web.firewall.RequestRejectedException;
@@ -36,11 +36,7 @@ import pl.fhframework.core.security.SecurityProviderInitializer;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Created by krzysztof.kobylarek on 2017-05-22.
@@ -111,7 +107,10 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         if (!csrfProtection){
             http.csrf().disable();
         } else {
+            CookieCsrfTokenRepository csrfRepo = CookieCsrfTokenRepository.withHttpOnlyFalse();
+            csrfRepo.setHeaderName("X-CSRF-TOKEN");
             http.csrf()
+                .csrfTokenRepository(csrfRepo)
                 .ignoringRequestMatchers(new AntPathRequestMatcher("/login"))
                   .and()
                 .exceptionHandling()
@@ -196,7 +195,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Bean
     AccessDeniedHandler csrfRedirectAccessDeniedHandler() {
         return (request, response, ex) -> {
-            if (ex instanceof InvalidCsrfTokenException) {
+            if (ex instanceof InvalidCsrfTokenException &&
+                !request.getRequestURI().startsWith(request.getContextPath() + "/fileUpload")) {
                 response.sendRedirect(request.getContextPath() + "/login?error");
             } else {
                 response.sendError(HttpServletResponse.SC_FORBIDDEN, ex.getMessage());

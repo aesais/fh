@@ -5,5 +5,6 @@ export let FileUploadRU = {
     "no file extension": "Файл без расширения. Возможен один из следующих: {0}.",
     "upload error": "При загрузке файла произошла ошибка",
     "upload aborted": "Загрузка файла прервана",
+    "file is not valid xml": "Файл имеет неверный формат XML",
     "abort": "Прервать"
 };

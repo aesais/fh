@@ -5,5 +5,6 @@ export let FileUploadPL = {
   "no file extension": "Brak rozszerzenia pliku. Wymagane jedno z: {0}.",
   "upload error": "Błąd podczas przesyłania pliku",
   "upload aborted": "Przerwano przesyłanie pliku",
+  "file is not valid xml": "Plik ma nieprawidłowy format XML",
   "abort": "Przerwij"
 }

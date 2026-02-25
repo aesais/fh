@@ -5,5 +5,6 @@ export let FileUploadEN = {
   "no file extension": "File without extension. Required is one of: {0}.",
   "upload error": "Error during file upload",
   "upload aborted": "File upload aborted",
+  "file is not valid xml": "File is not valid XML",
   "abort": "Abort"
 };

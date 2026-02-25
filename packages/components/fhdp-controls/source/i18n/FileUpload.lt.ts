@@ -5,5 +5,6 @@ export let FileUploadLT = {
   "no file extension": "Failas be plėtinio. Privalomas vienas iš šių: {0}.",
   "upload error": "Įkeliant failą įvyko klaida",
   "upload aborted": "Failo įkėlimas nutrauktas",
+  "file is not valid xml": "Failas yra neteisingo XML formato.",
   "abort": "Nutraukti"
 };
