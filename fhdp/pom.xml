@@ -67,17 +67,6 @@
         <url>http://github.com/assecopl/fh/tree/master</url>
     </scm>
 
-    <distributionManagement>
-        <snapshotRepository>
-            <id>nexus-releases</id>
-            <url>http://10.5.0.230:8081/repository/sisc-snapshots/</url>
-        </snapshotRepository>
-        <repository>
-            <id>nexus-releases</id>
-            <url>http://10.5.0.230:8081/repository/sisc-releases/</url>
-        </repository>
-    </distributionManagement>
-
     <dependencies>
         <dependency>
             <groupId>org.slf4j</groupId>
@@ -168,13 +157,18 @@
                 </plugins>
             </build>
         </profile>
+        <profile>
+            <id>build-example</id>
+            <modules>
+                <module>fhdp-example</module>
+            </modules>
+        </profile>
     </profiles>
 
     <modules>
         <module>bom</module>
         <module>fhdp-commons</module>
         <module>fhdp-components</module>
-        <module>fhdp-example</module>
     </modules>
 
 </project>
