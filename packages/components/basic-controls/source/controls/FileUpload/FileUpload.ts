@@ -182,7 +182,6 @@ class FileUpload extends HTMLFormComponent {
                         if (!error && xmlExpected && sentFileExtension === 'xml') {
                             const ok = await this.isLikelyXmlFile(file);
                             if (!ok) {
-                                console.log(" checking if it is xml failed - returning with error");
                                 FhContainer.get<NotificationEvent>('Events.NotificationEvent').fire({
                                     level: 'error',
                                     message: this.__('file is not valid xml', [file.name]).innerText
