@@ -246,5 +246,11 @@
                 </plugins>
             </build>
         </profile>
+		<profile>
+			<id>build-example</id>
+			<modules>
+				<module>example</module>
+			</modules>
+		</profile>
 	</profiles>
 </project>
