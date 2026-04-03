@@ -116,17 +116,29 @@ class LayoutHandler {
             const currentMainForm: any = this.getCurrentLayoutContainer( "mainForm", true);
             const currentMenuForm = this.getCurrentLayoutContainer("menuForm", true);
             const currentNavbarForm = this.getCurrentLayoutContainer("navbarForm", true);
+            const currentHeaderButtons = this.getCurrentLayoutContainer("appHeaderButtons", true);
+            const currentUserInitial = this.getCurrentLayoutContainer( "userInitial", true);
+            const currentSystemInfo = this.getCurrentLayoutContainer( "systemInfo", true);
 
             const targetMainForm = this.getLayoutContainer("mainForm", true);
             const targetMenuForm = this.getLayoutContainer("menuForm", true);
             const targetNavbarForm = this.getLayoutContainer( "navbarForm", true);
+            const targetHeaderButtons = this.getLayoutContainer( "appHeaderButtons", true);
+            const targetUserInitial = this.getLayoutContainer( "userInitial", true);
+            const targetSystemInfo = this.getLayoutContainer( "systemInfo", true);
 
             currentMainForm.contents().appendTo(targetMainForm);
             currentMenuForm.contents().appendTo(targetMenuForm);
             currentNavbarForm.contents().appendTo(targetNavbarForm);
+            currentHeaderButtons.contents().appendTo(targetHeaderButtons);
+            currentUserInitial.contents().appendTo(targetUserInitial);
+            currentSystemInfo.contents().appendTo(targetSystemInfo);
             currentMainForm.html("");
             currentMenuForm.html("");
             currentNavbarForm.html("");
+            currentHeaderButtons.html("");
+            currentUserInitial.html("");
+            currentSystemInfo.html("");
 
             this.currentMainLayout = this.targetLayout;
 
