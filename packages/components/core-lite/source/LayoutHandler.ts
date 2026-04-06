@@ -114,15 +114,26 @@ class LayoutHandler {
      * Moving designer components is not implemented.
      */
     public finishLayoutProcessing(){
+        // Uwzględniamy specjalne traktowanie layout "standard", które w zmiennych jest pozbawione prefix
+        const targetLayoutElement = this.targetLayout === 'standard'
+            ? document.getElementById(this.prefix + this.targetLayout)
+            : document.getElementById(this.targetLayout);
+
         if(this.currentMainLayout != this.targetLayout) {
             if (ENV_IS_DEVELOPMENT) {
-                console.log("Ustawiam currentLayout");
+                console.log("Zmiana aktywnego layout");
             }
-            const targetLayoutElement = document.getElementById(this.targetLayout);
+            // Uwzględniamy specjalne traktowanie layout "standard", które w zmiennych jest pozbawione prefix
+            const currentLayoutElement = this.currentMainLayout === "standard"
+                ? document.getElementById(this.prefix + this.currentMainLayout)
+                : document.getElementById(this.currentMainLayout);
+            // dajemy sygnał zmiany aktywnego layout, aby ewentualni obserwatorzy mogli wywołać akcje typu destroy
+            currentLayoutElement.classList.remove("active-layout");
             // domyślna lista z identyfikatorami elementów na stronie, które mają zostać skopiowane
             const copyElements = new Set<string>(LAYOUT_GLOBAL_ELEMENTS);
             // opcjonalna lista z identyfikatorami elementów na stronie, które mają zostać skopiowane
-            const customElementsList: string | undefined = targetLayoutElement.dataset.customElementsList;
+            const targetLayoutWrapper: HTMLElement | null = targetLayoutElement.querySelector<HTMLElement>('[data-custom-elements-list]');
+            const customElementsList: string | undefined = targetLayoutWrapper?.dataset.customElementsList;
             if (customElementsList && customElementsList.length > 0) {
                 customElementsList.split(',')
                     .filter(elementId => elementId && elementId.trim().length > 0)
@@ -134,12 +145,14 @@ class LayoutHandler {
                 currentElement.contents().appendTo(targetElement);
                 currentElement.html("");
             })
-            // ustawiamy nowy layout jako pierwszy w drzewie DOM, aby naprawić błąd z obsługą akcji w menu
-            document.getElementById(this.currentMainLayout).before(targetLayoutElement);
+            // Ustawiamy nowy layout jako pierwszy w drzewie DOM, aby naprawić błąd z obsługą akcji w menu.
+            currentLayoutElement.before(targetLayoutElement);
+            // dajemy sygnał zmiany aktywnego layout, aby ewentualni obserwatorzy mogli wywołać akcje typu init
+            targetLayoutElement.classList.add("active-layout");
             this.currentMainLayout = this.targetLayout;
-
         }
-        $("#" + this.targetLayout).removeClass("d-none");
+
+        targetLayoutElement.classList.remove("d-none");
 
         if (ENV_IS_DEVELOPMENT) {
             console.log("finishLayoutProcessing", this.currentMainLayout, this.targetLayout);
