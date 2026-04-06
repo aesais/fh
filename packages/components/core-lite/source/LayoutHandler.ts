@@ -3,6 +3,12 @@ import {injectable} from "inversify";
 declare const ENV_IS_DEVELOPMENT: boolean;
 declare const $ :any;
 
+const LAYOUT_GLOBAL_ELEMENTS = [
+    'mainForm',
+    'menuForm',
+    'navbarForm',
+];
+
 @injectable()
 class LayoutHandler {
 
@@ -112,34 +118,24 @@ class LayoutHandler {
             if (ENV_IS_DEVELOPMENT) {
                 console.log("Ustawiam currentLayout");
             }
-            //TODO Maybay we do not have to moves mainForm content on layout change.To discuss.
-            const currentMainForm: any = this.getCurrentLayoutContainer( "mainForm", true);
-            const currentMenuForm = this.getCurrentLayoutContainer("menuForm", true);
-            const currentNavbarForm = this.getCurrentLayoutContainer("navbarForm", true);
-            const currentHeaderButtons = this.getCurrentLayoutContainer("appHeaderButtons", true);
-            const currentUserInitial = this.getCurrentLayoutContainer( "userInitial", true);
-            const currentSystemInfo = this.getCurrentLayoutContainer( "systemInfo", true);
-
-            const targetMainForm = this.getLayoutContainer("mainForm", true);
-            const targetMenuForm = this.getLayoutContainer("menuForm", true);
-            const targetNavbarForm = this.getLayoutContainer( "navbarForm", true);
-            const targetHeaderButtons = this.getLayoutContainer( "appHeaderButtons", true);
-            const targetUserInitial = this.getLayoutContainer( "userInitial", true);
-            const targetSystemInfo = this.getLayoutContainer( "systemInfo", true);
-
-            currentMainForm.contents().appendTo(targetMainForm);
-            currentMenuForm.contents().appendTo(targetMenuForm);
-            currentNavbarForm.contents().appendTo(targetNavbarForm);
-            currentHeaderButtons.contents().appendTo(targetHeaderButtons);
-            currentUserInitial.contents().appendTo(targetUserInitial);
-            currentSystemInfo.contents().appendTo(targetSystemInfo);
-            currentMainForm.html("");
-            currentMenuForm.html("");
-            currentNavbarForm.html("");
-            currentHeaderButtons.html("");
-            currentUserInitial.html("");
-            currentSystemInfo.html("");
-
+            const targetLayoutElement = document.getElementById(this.targetLayout);
+            // domyślna lista z identyfikatorami elementów na stronie, które mają zostać skopiowane
+            const copyElements = new Set<string>(LAYOUT_GLOBAL_ELEMENTS);
+            // opcjonalna lista z identyfikatorami elementów na stronie, które mają zostać skopiowane
+            const customElementsList: string | undefined = targetLayoutElement.dataset.customElementsList;
+            if (customElementsList && customElementsList.length > 0) {
+                customElementsList.split(',')
+                    .filter(elementId => elementId && elementId.trim().length > 0)
+                    .forEach(element => copyElements.add(element.trim()));
+            }
+            copyElements.forEach(elementId => {
+                const currentElement= this.getCurrentLayoutContainer(elementId, true);
+                const targetElement = this.getLayoutContainer(elementId, true);
+                currentElement.contents().appendTo(targetElement);
+                currentElement.html("");
+            })
+            // ustawiamy nowy layout jako pierwszy w drzewie DOM, aby naprawić błąd z obsługą akcji w menu
+            document.getElementById(this.currentMainLayout).before(targetLayoutElement);
             this.currentMainLayout = this.targetLayout;
 
         }
