@@ -1,5 +1,6 @@
 package pl.fhframework.plugins.fhjpa.jee;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -44,6 +45,9 @@ public class FHJEEDatabaseConfiguration {
     @Value("${fh.dataSource.hbm2ddl:update}")
     private String hbm2ddl;
 
+    @Value("${fh.dataSource.hbm2ddl.schema_filter_provider}")
+    private String schemaFilterProvider;
+
     @Value("${fh.dataSource.providerClassName:org.hibernate.ejb.HibernatePersistence}")
     private String providerClassName;
 
@@ -84,6 +88,9 @@ public class FHJEEDatabaseConfiguration {
         props.put("hibernate.transaction.jta.platform", "org.hibernate.service.jta.platform.internal.JBossAppServerJtaPlatform");
         props.put("hibernate.dialect", dialect);
         props.put("hibernate.hbm2ddl.auto", hbm2ddl);
+        if (StringUtils.isNotBlank(schemaFilterProvider)) {
+            props.put("hibernate.hbm2ddl.schema_filter_provider", schemaFilterProvider.trim());
+        }
 
         factory.setJpaProperties(props);
         factory.afterPropertiesSet();
