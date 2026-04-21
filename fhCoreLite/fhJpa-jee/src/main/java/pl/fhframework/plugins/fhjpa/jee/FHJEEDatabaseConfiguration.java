@@ -45,7 +45,7 @@ public class FHJEEDatabaseConfiguration {
     @Value("${fh.dataSource.hbm2ddl:update}")
     private String hbm2ddl;
 
-    @Value("${fh.dataSource.hbm2ddl.schema_filter_provider}")
+    @Value("${fh.dataSource.hbm2ddl.schema_filter_provider:}")
     private String schemaFilterProvider;
 
     @Value("${fh.dataSource.providerClassName:org.hibernate.ejb.HibernatePersistence}")
