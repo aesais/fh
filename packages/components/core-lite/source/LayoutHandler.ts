@@ -3,6 +3,12 @@ import {injectable} from "inversify";
 declare const ENV_IS_DEVELOPMENT: boolean;
 declare const $ :any;
 
+const LAYOUT_GLOBAL_ELEMENTS = [
+    'mainForm',
+    'menuForm',
+    'navbarForm',
+];
+
 @injectable()
 class LayoutHandler {
 
@@ -108,30 +114,45 @@ class LayoutHandler {
      * Moving designer components is not implemented.
      */
     public finishLayoutProcessing(){
+        // Uwzględniamy specjalne traktowanie layout "standard", które w zmiennych jest pozbawione prefix
+        const targetLayoutElement = this.targetLayout === 'standard'
+            ? document.getElementById(this.prefix + this.targetLayout)
+            : document.getElementById(this.targetLayout);
+
         if(this.currentMainLayout != this.targetLayout) {
             if (ENV_IS_DEVELOPMENT) {
-                console.log("Ustawiam currentLayout");
+                console.log("Zmiana aktywnego layout");
             }
-            //TODO Maybay we do not have to moves mainForm content on layout change.To discuss.
-            const currentMainForm: any = this.getCurrentLayoutContainer( "mainForm", true);
-            const currentMenuForm = this.getCurrentLayoutContainer("menuForm", true);
-            const currentNavbarForm = this.getCurrentLayoutContainer("navbarForm", true);
-
-            const targetMainForm = this.getLayoutContainer("mainForm", true);
-            const targetMenuForm = this.getLayoutContainer("menuForm", true);
-            const targetNavbarForm = this.getLayoutContainer( "navbarForm", true);
-
-            currentMainForm.contents().appendTo(targetMainForm);
-            currentMenuForm.contents().appendTo(targetMenuForm);
-            currentNavbarForm.contents().appendTo(targetNavbarForm);
-            currentMainForm.html("");
-            currentMenuForm.html("");
-            currentNavbarForm.html("");
-
+            // Uwzględniamy specjalne traktowanie layout "standard", które w zmiennych jest pozbawione prefix
+            const currentLayoutElement = this.currentMainLayout === "standard"
+                ? document.getElementById(this.prefix + this.currentMainLayout)
+                : document.getElementById(this.currentMainLayout);
+            // dajemy sygnał zmiany aktywnego layout, aby ewentualni obserwatorzy mogli wywołać akcje typu destroy
+            currentLayoutElement.classList.remove("active-layout");
+            // domyślna lista z identyfikatorami elementów na stronie, które mają zostać skopiowane
+            const copyElements = new Set<string>(LAYOUT_GLOBAL_ELEMENTS);
+            // opcjonalna lista z identyfikatorami elementów na stronie, które mają zostać skopiowane
+            const targetLayoutWrapper: HTMLElement | null = targetLayoutElement.querySelector<HTMLElement>('[data-custom-elements-list]');
+            const customElementsList: string | undefined = targetLayoutWrapper?.dataset.customElementsList;
+            if (customElementsList && customElementsList.length > 0) {
+                customElementsList.split(',')
+                    .filter(elementId => elementId && elementId.trim().length > 0)
+                    .forEach(element => copyElements.add(element.trim()));
+            }
+            copyElements.forEach(elementId => {
+                const currentElement= this.getCurrentLayoutContainer(elementId, true);
+                const targetElement = this.getLayoutContainer(elementId, true);
+                currentElement.contents().appendTo(targetElement);
+                currentElement.html("");
+            })
+            // Ustawiamy nowy layout jako pierwszy w drzewie DOM, aby naprawić błąd z obsługą akcji w menu.
+            currentLayoutElement.before(targetLayoutElement);
+            // dajemy sygnał zmiany aktywnego layout, aby ewentualni obserwatorzy mogli wywołać akcje typu init
+            targetLayoutElement.classList.add("active-layout");
             this.currentMainLayout = this.targetLayout;
-
         }
-        $("#" + this.targetLayout).removeClass("d-none");
+
+        targetLayoutElement.classList.remove("d-none");
 
         if (ENV_IS_DEVELOPMENT) {
             console.log("finishLayoutProcessing", this.currentMainLayout, this.targetLayout);
