@@ -48,6 +48,11 @@ public class AppNavBarUC extends FhdpBaseUC implements INavbar, ISystemUseCase {
     @Value("${fhframework.language.default:pl}")
     private String defaultLanguage;
 
+    @Value("${wcag.declaration.of.accessibility.url:}")
+    private String declarationOfAccessibilityUrl;
+    @Value("${wcag.declaration.of.accessibility.hidden:false}")
+    private boolean declarationOfAccessibilityHidden;
+
     @Value("${fhdp.notification.timeout:20000}")
     private String notificationTimeout;
 
@@ -118,6 +123,7 @@ public class AppNavBarUC extends FhdpBaseUC implements INavbar, ISystemUseCase {
         this.model.setAppSider(appSider);
         this.model.setSessionClock(sessionClock);
         this.model.setOnlyContrastStyle(isOnlyContrastStyle);
+        model.setDeclarationOfAccessibilityHidden(declarationOfAccessibilityHidden);
 
         this.model.setLogin(this.getUserSession().getSystemUser().getLogin());
         FhUtils.setCookieByKey("operationLabels", "false");
@@ -356,6 +362,11 @@ public class AppNavBarUC extends FhdpBaseUC implements INavbar, ISystemUseCase {
     @Action
     public void logout() {
         eventRegistry.fireRedirectEvent(logoutPath, false);
+    }
+
+    @Action
+    public void displayDeclarationOfAccessibility() {
+        eventRegistry.fireRedirectEvent(declarationOfAccessibilityUrl, true);
     }
 
 //    @Action
