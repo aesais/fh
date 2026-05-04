@@ -15,6 +15,7 @@
         <Invisible when="operationSider==false">operationSider</Invisible>
         <Invisible when="helpSider==false">helpSider</Invisible>
         <Invisible when="sessionClock==false">sessionClock</Invisible>
+        <Invisible when="declarationOfAccessibilityHidden==true">declarationOfConformanceBtn</Invisible>
     </AvailabilityConfiguration>
     <Row styleClasses="flex-nowrap">
         <Dropdown width="md-2" label="{language}"
@@ -38,6 +39,10 @@
                 hintTrigger="HOVER" hintPlacement="BOTTOM" hint="{$.fhdp.menu.ui.navbar.help}"
                 onClick="displayHelpPageSider"  styleClasses="tray-button button"
                 id="helpSider"/>
+        <Button width="md-2" label="[icon='fas fa-file-alt']"
+                hintTrigger="HOVER" hintPlacement="BOTTOM" hint="{$.fhdp.menu.ui.declaration.of.accessibility.help}"
+                onClick="displayDeclarationOfAccessibility"  styleClasses="tray-button button"
+                id="declarationOfConformanceBtn"/>
         <Button width="md-2" label="[icon='far fa-clock']"
                 hintTrigger="HOVER" hintPlacement="BOTTOM" hint="{counter}"
                 styleClasses="tray-button button"
