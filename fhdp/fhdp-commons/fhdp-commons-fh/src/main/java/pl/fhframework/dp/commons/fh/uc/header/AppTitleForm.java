@@ -18,6 +18,8 @@ public class AppTitleForm extends Form<AppTitleForm.Model> {
         private String appName;
         private boolean versionVisibility;
         private String version;
+        private boolean declarationOfAccessibilityHidden;
+        private String declarationOfAccessibilityUrl;
     }
 
     public AppTitleForm() {
