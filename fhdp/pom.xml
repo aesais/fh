@@ -4,7 +4,7 @@
     <parent>
         <groupId>pl.fhframework</groupId>
         <artifactId>fh-compile-bom</artifactId>
-        <version>4.10.7.PL.21</version>
+        <version>4.10.7.PL.22</version>
         <relativePath>../bom-project-lite/fh-compile-bom</relativePath>
     </parent>
     <groupId>pl.fhframework.dp</groupId>
