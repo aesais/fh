@@ -123,7 +123,6 @@ public class AppNavBarUC extends FhdpBaseUC implements INavbar, ISystemUseCase {
         this.model.setAppSider(appSider);
         this.model.setSessionClock(sessionClock);
         this.model.setOnlyContrastStyle(isOnlyContrastStyle);
-        model.setDeclarationOfAccessibilityHidden(declarationOfAccessibilityHidden);
 
         this.model.setLogin(this.getUserSession().getSystemUser().getLogin());
         FhUtils.setCookieByKey("operationLabels", "false");

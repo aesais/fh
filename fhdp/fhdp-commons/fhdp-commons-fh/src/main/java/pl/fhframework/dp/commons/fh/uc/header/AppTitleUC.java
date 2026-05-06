@@ -32,6 +32,11 @@ public class AppTitleUC extends FhdpBaseUC implements ISystemUseCase {
     @Value("${fhdp.appName:true}")
     private boolean appName;
 
+    @Value("${wcag.declaration.of.accessibility.url:}")
+    private String declarationOfAccessibilityUrl;
+    @Value("${wcag.declaration.of.accessibility.hidden:false}")
+    private boolean declarationOfAccessibilityHidden;
+
     private final String productionEnvironment = "production";
 
     private static final String MENU_CONTAINER_ID = "appTitle";
@@ -64,6 +69,8 @@ public class AppTitleUC extends FhdpBaseUC implements ISystemUseCase {
         } else {
             model.setVersion("");
         }
+        model.setDeclarationOfAccessibilityHidden(declarationOfAccessibilityHidden);
+        model.setDeclarationOfAccessibilityUrl(declarationOfAccessibilityUrl);
     }
 
     @Override
