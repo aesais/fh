@@ -18,6 +18,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
 
 import static pl.fhframework.dp.transport.service.TotalHitsRelationFH.GREATER_THAN_OR_EQUAL_TO;
 
@@ -98,14 +99,24 @@ public class GenericFacadeService<ID, DTO extends IPersistentObject, LIST extend
         if(query == null) {
             throw new RuntimeException("query can not be null");
         }
+        query.setFirstRow(0);
+        query.setSize(10);
+        return new PageModel<>(createDataSource(query, limit));
+    }
+
+    public Function<Pageable, Page<LIST>> createDataSource(QUERY query, Integer limit) {
+        if(query == null) {
+            throw new RuntimeException("query can not be null");
+        }
         final long totalCount = limit == null ? listCount(query) : 0L ;
         query.setFirstRow(0);
         query.setSize(10);
-        return new PageModel<>(pageable -> limit == null ?
-                                           loadRegisterHFPage(pageable, query, totalCount)
-                                                         :
-                                           loadRegisterHFPageWithLimit(pageable, query, limit));
+        return  pageable -> limit == null ?
+                loadRegisterHFPage(pageable, query, totalCount)
+                :
+                loadRegisterHFPageWithLimit(pageable, query, limit);
     }
+
 
     public List<LIST> listDtoPageable(Pageable pageable, QUERY query) {
         if(query == null) {

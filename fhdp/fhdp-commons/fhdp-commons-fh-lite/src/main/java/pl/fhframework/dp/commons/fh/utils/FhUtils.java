@@ -146,4 +146,17 @@ public class FhUtils {
         dialog.setFormType(FormType.MODAL);
         dialog.showDialog();
     }
+    public static void showConfirmDialogOK(String title, String message, Messages.Severity severity, String okLabel, ClickConsumer ok) {
+        MessagePopup dialog = Messages.builder(SessionManager.getUserSession())
+                .withDialogTitle(title)
+                .withMessage(message)
+                .withSeverityLevel(severity)
+                .withButtonAction(ActionButton.get(okLabel, (v) -> {
+                    Messages.close(v);
+                    ok.accept();
+                }))
+                .build();
+        dialog.setFormType(FormType.MODAL);
+        dialog.showDialog();
+    }
 }

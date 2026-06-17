@@ -10,6 +10,7 @@ import pl.fhframework.dp.transport.converters.CustomZonedDateTimeConverter;
 import pl.fhframework.dp.transport.enums.EndpointCheckFrequencyEnum;
 
 import java.time.LocalDateTime;
+import java.util.regex.Pattern;
 
 /**
  * Created by jacekb.
@@ -55,6 +56,13 @@ public class EndpointCfgDto implements IEndpointCfg, IPersistentObject<String> {
      * Once this constructor is used items in the Elasticsearch won't be overridden
      */
     public EndpointCfgDto() {
+    }
+
+    public EndpointCfgDto(String sysAndService) {
+        String[] elements = sysAndService.split(Pattern.quote("_"));
+        this.systemName = elements[0];
+        this.serviceName = elements[1];
+        this.id = sysAndService;
     }
 
     public EndpointCfgDto(String systemName, String serviceName) {

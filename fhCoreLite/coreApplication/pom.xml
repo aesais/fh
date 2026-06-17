@@ -29,6 +29,11 @@
             <version>${project.version}</version>
         </dependency>
         <dependency>
+            <groupId>pl.fhframework</groupId>
+            <artifactId>camundaControls</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
             <groupId>pl.fhframework.core.security.provider</groupId>
             <artifactId>securityDataProvider-jdbc</artifactId>
             <version>${project.version}</version>

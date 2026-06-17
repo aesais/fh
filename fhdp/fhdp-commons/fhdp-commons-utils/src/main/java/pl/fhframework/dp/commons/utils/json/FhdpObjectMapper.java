@@ -16,5 +16,6 @@ public class FhdpObjectMapper extends ObjectMapper {
         this.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         registerModule(new JavaTimeModule());
         configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
+        this.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
     }
 }

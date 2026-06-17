@@ -4,6 +4,8 @@ components/basic-controls/node_modules/ \
 components/basic-controls/dist/ \
 components/charts-controls/node_modules/ \
 components/charts-controls/dist/ \
+components/camunda-controls/node_modules/ \
+components/camunda-controls/dist/ \
 components/core-lite/node_modules/ \
 components/core-lite/dist/ \
 components/fhdp-charts/node_modules/ \

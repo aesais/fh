@@ -301,8 +301,8 @@ abstract class TableFixedHeaderAndHorizontalScroll extends HTMLFormComponent {
             }.bind(this));
 
             this.container.addEventListener('mouseup', function (e) {
-                e.stopPropagation();
-                e.preventDefault();
+                // e.stopPropagation(); //blokada propagacji powodowała problem na innym komponencie czekającym na mouseUp (CamundaProcessInstanceViewer) i została wyłączona
+                // e.preventDefault();
                 this.thElm = undefined;
             }.bind(this));
 

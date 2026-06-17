@@ -47,13 +47,16 @@
     "webpack-merge": "5.8.0",
     "webpack-obfuscator": "3.5.1",
     "webpack-stats-plugin": "1.1.1",
-    "zlib": "1.0.5"
+    "zlib": "1.0.5",
+    "source-map-loader": "^1.0.0",
+    "style-loader": "1.3.0"
   },
   "dependencies": {
-    "fhdp-charts": "4.10.5-PL-5-SNAPSHOT-1712671083139",
-    "fhdp-fh-starter": "4.10.5-PL-5-SNAPSHOT-1712671083139"
+    "fhdp-charts": "4.10.7-PL-SNAPSHOT-1781558877717",
+    "fh-camunda-controls": "4.10.7-PL-SNAPSHOT-1781558877717",
+    "fhdp-fh-starter": "4.10.7-PL-SNAPSHOT-1781558877717"
   },
   "resolutions": {
-    "canvas": "3.1.0"
+    "domify": " 2.0.0"
   }
 }

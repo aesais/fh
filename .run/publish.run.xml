@@ -1,7 +1,7 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="publish" type="NodeJSConfigurationType" path-to-node="node" node-parameters="cli.js deploy --fhVer=4.10.6-PL --verbose --snap" path-to-js-file="cli.js" working-dir="$PROJECT_DIR$/scripts">
     <envs>
-      <env name="REGISTRY_PATH" value="http://172.26.20.61:8873/" />
+      <env name="REGISTRY_PATH" value="https://registry.yarnpkg.com/" />
     </envs>
     <method v="2" />
   </configuration>

@@ -2,19 +2,24 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <parent>
-        <groupId>pl.fhframework</groupId>
-        <artifactId>fh-boot-bom</artifactId>
-        <version>4.10.7.PL-SNAPSHOT</version>
-        <relativePath>../../bom-project-lite/fh-boot-bom</relativePath>
-    </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>fhdp-example</artifactId>
+    <groupId>pl.fhframework</groupId>
+    <version>4.10.7.PL-SNAPSHOT</version>
 
     <properties>
         <maven.compiler.source>8</maven.compiler.source>
         <maven.compiler.target>8</maven.compiler.target>
+        <offlineNodeDownloadRoot></offlineNodeDownloadRoot>
+        <offlineNpmDownloadRoot></offlineNpmDownloadRoot>
+        <NODE_ENV>development</NODE_ENV>
+
+        <spring.boot.version>2.7.18</spring.boot.version>
+        <fh.version>4.10.7.PL-SNAPSHOT</fh.version>
+        <sfl4j.version>1.7.36</sfl4j.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     </properties>
 
     <dependencyManagement>
@@ -22,93 +27,115 @@
             <dependency>
                 <groupId>pl.fhframework.dp</groupId>
                 <artifactId>fhdp-bom</artifactId>
-                <version>${project.version}</version>
+                <version>${fh.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
+
+            <dependency>
+                <groupId>org.infinispan</groupId>
+                <artifactId>infinispan-core</artifactId>
+                <version>13.0.20.Final</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.infinispan</groupId>
+                <artifactId>infinispan-commons</artifactId>
+                <version>13.0.20.Final</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
+
     <dependencies>
-        <dependency>
-            <groupId>pl.fhframework.dp</groupId>
-            <artifactId>fhdp-commons-fh-lite</artifactId>
-            <version>${project.version}</version>
-        </dependency>
+
         <dependency>
             <groupId>pl.fhframework.dp</groupId>
             <artifactId>fhdp-components</artifactId>
-            <version>${project.version}</version>
+            <version>${fh.version}</version>
         </dependency>
-        <dependency>
-            <groupId>pl.fhframework</groupId>
-            <artifactId>fh-compiler</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>pl.fhframework</groupId>
-            <artifactId>coreApplication</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>pl.fhframework.core.security.provider</groupId>
-            <artifactId>securityDataProvider-jdbc</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>pl.fhframework.core.security.permission</groupId>
-            <artifactId>permissionProvider-jdbc</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>pl.fhframework</groupId>
-            <artifactId>fhLogback</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>ch.qos.logback</groupId>
-            <artifactId>logback-classic</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-databind</artifactId>
-        </dependency>
+
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <scope>provided</scope>
         </dependency>
-    </dependencies>
 
+        <dependency>
+            <groupId>pl.fhframework</groupId>
+            <artifactId>fh-compiler</artifactId>
+            <version>${fh.version}</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>integrationCoreLite</artifactId>
+                    <groupId>pl.fhframework.integration</groupId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>pl.fhframework</groupId>
+            <artifactId>fhLogback</artifactId>
+            <version>${fh.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>1.2.3</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.infinispan</groupId>
+            <artifactId>infinispan-core</artifactId>
+            <scope>compile</scope>
+        </dependency>
+
+
+        <dependency>
+            <groupId>pl.fhframework.dp</groupId>
+            <artifactId>fhdp-commons-fh-lite</artifactId>
+            <version>${fh.version}</version>
+            <scope>compile</scope>
+        </dependency>
+
+
+        <dependency>
+            <groupId>pl.fhframework</groupId>
+            <artifactId>coreApplication</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+
+        <dependency>
+            <groupId>pl.fhframework.core.security.provider</groupId>
+            <artifactId>securityDataProvider-jdbc</artifactId>
+            <version>${fh.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>pl.fhframework.core.security.permission</groupId>
+            <artifactId>permissionProvider-jdbc</artifactId>
+            <version>${fh.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>pl.fhframework.dp</groupId>
+            <artifactId>fhdp-commons-utils</artifactId>
+            <version>${fh.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+
+    </dependencies>
     <build>
         <plugins>
-            <!-- ANT copies XMLs of dynamic classes and keeps last modified timestamps (maven-resources-plugin does NOT) -->
-            <plugin>
-                <artifactId>maven-antrun-plugin</artifactId>
-                <version>1.7</version>
-                <executions>
-                    <execution>
-                        <phase>process-resources</phase>
-                        <configuration>
-                            <tasks>
-                                <copy todir="${project.build.outputDirectory}" preservelastmodified="true">
-                                    <fileset dir="src/main/java">
-                                        <include name="**/*.frm" />
-                                        <include name="**/*.duc" />
-                                        <include name="**/*.dmo" />
-                                        <include name="**/*.dru" />
-                                        <include name="**/*.srv" />
-                                        <include name="menu.xml" />
-                                        <include name="module.xml" />
-                                    </fileset>
-                                </copy>
-                            </tasks>
-                        </configuration>
-                        <goals>
-                            <goal>run</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
             <plugin>
                 <groupId>com.github.eirslett</groupId>
                 <artifactId>frontend-maven-plugin</artifactId>
@@ -116,77 +143,33 @@
                 <executions>
                     <execution>
                         <id>install-node-and-yarn</id>
-                        <phase>generate-resources</phase>
+                        <phase>initialize</phase>
                         <goals>
                             <goal>install-node-and-yarn</goal>
                         </goals>
                         <configuration>
-                            <nodeVersion>v18.16.0</nodeVersion>
+                            <nodeVersion>v18.17.0</nodeVersion>
                             <yarnVersion>v1.22.10</yarnVersion>
                         </configuration>
                     </execution>
                     <execution>
-                        <id>yarn config</id>
-                        <phase>generate-resources</phase>
+                        <id>yarn config registry</id>
+                        <phase>process-resources</phase>
                         <goals>
                             <goal>yarn</goal>
                         </goals>
                         <configuration>
-                            <arguments>config set registry https://registry.yarnpkg.com</arguments>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>yarn cache clean 1/2</id>
-                        <phase>generate-resources</phase>
-                        <goals>
-                            <goal>yarn</goal>
-                        </goals>
-                        <configuration>
-							<yarnInheritsProxyConfigFromMaven>false</yarnInheritsProxyConfigFromMaven>
-                            <arguments>cache clean</arguments>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>yarn cache clean 2/2</id>
-                        <phase>generate-resources</phase>
-                        <goals>
-                            <goal>yarn</goal>
-                        </goals>
-                        <configuration>
-							<yarnInheritsProxyConfigFromMaven>false</yarnInheritsProxyConfigFromMaven>
-                            <arguments>--update-checksums</arguments>
+                            <arguments>config set registry https://registry.yarnpkg.com/</arguments>
                         </configuration>
                     </execution>
                     <execution>
                         <id>yarn install</id>
-                        <phase>generate-resources</phase>
+                        <phase>process-resources</phase>
                         <goals>
                             <goal>yarn</goal>
                         </goals>
                         <configuration>
-							<yarnInheritsProxyConfigFromMaven>false</yarnInheritsProxyConfigFromMaven>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>yarn upgrade</id>
-                        <phase>generate-resources</phase>
-                        <goals>
-                            <goal>yarn</goal>
-                        </goals>
-                        <configuration>
-							<yarnInheritsProxyConfigFromMaven>false</yarnInheritsProxyConfigFromMaven>
-                            <arguments>upgrade fhdp-fh-starter</arguments>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>yarn upgrade 2</id>
-                        <phase>generate-resources</phase>
-                        <goals>
-                            <goal>yarn</goal>
-                        </goals>
-                        <configuration>
-							<yarnInheritsProxyConfigFromMaven>false</yarnInheritsProxyConfigFromMaven>
-                            <arguments>upgrade fhdp-charts</arguments>
+                            <arguments>install --frozen-lockfile --ignore-scripts</arguments>
                         </configuration>
                     </execution>
                     <execution>
@@ -202,6 +185,35 @@
                     </execution>
                 </executions>
             </plugin>
+            <!-- ANT copies XMLs of dynamic classes and keeps last modified timestamps (maven-resources-plugin does NOT) -->
+            <plugin>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>1.7</version>
+                <executions>
+                    <execution>
+                        <phase>process-resources</phase>
+                        <configuration>
+                            <tasks>
+                                <copy todir="${project.build.outputDirectory}" preservelastmodified="true">
+                                    <fileset dir="src/main/java">
+                                        <include name="**/*.frm"/>
+                                        <include name="**/*.duc"/>
+                                        <include name="**/*.dmo"/>
+                                        <include name="**/*.dru"/>
+                                        <include name="**/*.srv"/>
+                                        <include name="menu.xml"/>
+                                        <include name="module.xml"/>
+                                    </fileset>
+                                </copy>
+                            </tasks>
+                        </configuration>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>

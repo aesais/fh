@@ -52,6 +52,8 @@ public class AppNavBarForm extends Form<AppNavBarForm.Model> {
         private boolean translationLT;
         private boolean translationNO;
         private boolean translationViewKey;
+        private boolean declarationOfAccessibilityHidden;
+        private String declarationOfAccessibilityUrl;
 
         private boolean languageDropdown;
         private boolean appSider;
