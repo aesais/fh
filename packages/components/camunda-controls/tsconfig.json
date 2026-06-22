@@ -1,0 +1,18 @@
+{
+  "compilerOptions": {
+    "sourceMap": true,
+    "inlineSourceMap": false,  // wbuduj mapę w .js (zamiast osobnego pliku), tutaj false
+    "inlineSources": true,     // wbuduj też oryginalne źródła .ts w mapę
+    "target": "es5",
+    "outDir": "dist",
+    "lib": ["es6", "dom"],
+    "types": ["reflect-metadata", "jquery", "jqueryui", "bootstrap"],
+    "module": "commonjs",
+    "baseUrl": "types",
+    "moduleResolution": "node",
+    "declaration": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true
+  },
+  "exclude": ["node_modules", "target", "dist"]
+}

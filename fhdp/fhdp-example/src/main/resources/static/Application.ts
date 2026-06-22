@@ -3,6 +3,7 @@ import "reflect-metadata";
 import {FhApplication} from "fhdp-fh-starter";
 import {initFhCallbacks} from "./FhApplicationCallbacks";
 import './Application.css';
+import {CamundaControls} from "fh-camunda-controls";
 
 function closeTooltipByBodyEvent() {
     const body = document.getElementsByTagName("body")[0];
@@ -27,6 +28,7 @@ $(function () {
             enableCookieAlert: true,
         }
     })
+    fhInstance.registerModule(CamundaControls)
     initFhCallbacks();
     fhInstance.init();
 });

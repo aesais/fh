@@ -38,6 +38,7 @@
         <module>pubsub-standalone</module>
         <module>reportsLite</module>
         <module>chartsControls</module>
+        <module>camundaControls</module>
         <module>coreApplication</module>
         <module>defaultApplication</module>
         <module>fhLogback</module>

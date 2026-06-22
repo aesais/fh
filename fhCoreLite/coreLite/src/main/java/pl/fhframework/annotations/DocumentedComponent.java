@@ -32,6 +32,7 @@ public @interface DocumentedComponent {
         ARRANGEMENT,
         IMAGE_HTML_MD,
         CHARTS_MAPS,
+        CAMUNDA,
         TEMPLATE,
         OTHERS,
         ;

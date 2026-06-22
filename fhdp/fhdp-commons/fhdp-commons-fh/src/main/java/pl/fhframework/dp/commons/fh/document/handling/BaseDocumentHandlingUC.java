@@ -461,6 +461,10 @@ public  abstract class BaseDocumentHandlingUC<MODEL extends BaseDocumentHandling
             super.buttonsFormManagement(true);
         }
     }
+    //wymaga specyficznej implementacji wyświetlenia instancji procesu Camundy
+    @Action(validate = false)
+    public void showProcess(){
+    }
 
 //    protected abstract OperationPagedTableSource setOperationPagedTableSource();
 

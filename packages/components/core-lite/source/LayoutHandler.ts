@@ -150,7 +150,6 @@ class LayoutHandler {
             // dajemy sygnał zmiany aktywnego layout, aby ewentualni obserwatorzy mogli wywołać akcje typu init
             targetLayoutElement.classList.add("active-layout");
             this.currentMainLayout = this.targetLayout;
-        }
 
         targetLayoutElement.classList.remove("d-none");
 

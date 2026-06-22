@@ -289,6 +289,17 @@
         <xs:attribute type="pixelOrPercentageType" name="height"/>
     </xs:complexType>
 
+    <xs:complexType name="CamundaProcessInstanceViewerType">
+        <xs:attribute type="xs:string" name="id"/>
+        <xs:attributeGroup ref="FormElementTypeGroup"/>
+        <xs:attribute type="xs:string" name="bpmnActivityIds"/>
+        <xs:attribute type="xs:string" name="selectedActivityInstanceId"/>
+        <xs:attribute type="xs:string" name="selectedBpmnElementIdsChain"/>
+        <xs:attribute type="xs:string" name="incidentBpmnActivityIds"/>
+        <xs:attribute type="xs:string" name="processDefinitionBpmn" use="required"/>
+        <xs:attribute type="xs:string" name="height" use="required"/>
+    </xs:complexType>
+
     <xs:complexType name="ButtonType" mixed="true">
         <xs:attributeGroup ref="FormElementTypeGroup"/>
         <xs:attributeGroup ref="ButtonTypeAttributeGroup"/>
@@ -885,6 +896,7 @@
             <xs:element type="RowType" name="Row"/>
             <xs:element type="AnchorType" name="Anchor"/>
             <xs:element type="UmlDiagramType" name="UmlDiagram"/>
+            <xs:element type="CamundaProcessInstanceViewerType" name="CamundaProcessInstanceViewer"/>
         </xs:choice>
         <xs:attributeGroup ref="PanelGroupTypeGroup"/>
     </xs:complexType>
@@ -1638,6 +1650,7 @@
             <xs:element type="RowType" name="Row"/>
             <xs:element type="AnchorType" name="Anchor"/>
             <xs:element type="UmlDiagramType" name="UmlDiagram"/>
+            <xs:element type="CamundaProcessInstanceViewerType" name="CamundaProcessInstanceViewer"/>
         </xs:choice>
         <xs:attribute type="horizontalAlignType" name="horizontalAlign" default="left"/>
         <xs:attribute type="pixelOrPercentageType" name="height"/>
@@ -1846,6 +1859,7 @@
             <xs:element type="MdFileViewerType" name="MdFileViewer"/>
             <xs:element type="AccordionType" name="Accordion"/>
             <xs:element type="BarChartType" name="BarChart"/>
+            <xs:element type="CamundaProcessInstanceViewerType" name="CamundaProcessInstanceViewer"/>
             <xs:element type="ButtonType" name="Button"/>
             <xs:element type="ButtonGroupType" name="ButtonGroup"/>
             <xs:element type="InputTextType" name="InputText"/>

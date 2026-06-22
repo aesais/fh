@@ -154,6 +154,24 @@ public class SubsystemElementsLiteTree extends SubsystemElementsTree {
         return result;
     }
 
+    public List<ITreeElement> filterAllTreeElements(List<ITreeElement> allTreeElements) {
+        List<ITreeElement> result = new ArrayList<>();
+        for (ITreeElement element : allTreeElements) {
+            if (element instanceof UseCaseInformation) {
+                result.add(element);
+            } else if (element instanceof DynamicUseCasesGroup) {
+                DynamicUseCasesGroup current = (DynamicUseCasesGroup) element;
+                List<ITreeElement> allSubelements = current.getSubelements();
+                List<ITreeElement> available = filterAllTreeElements(allSubelements);
+                if (available.size() > 0) {
+                    DynamicUseCasesGroup usdg = new DynamicUseCasesGroup(current.getLabel(), current.getDescription(), current.getIcon(), current.getPosition(), current.getModes(), available, current.getCloudServerName(), current.getActivityToken());
+                    result.add(usdg);
+                }
+            }
+        }
+        return result;
+    }
+
     protected boolean requiresRefresh() {
         for (Subsystem subsystem : SubsystemManager.getSubsystemInfos()) {
             if (subsystem.requiresUpdate()) {
