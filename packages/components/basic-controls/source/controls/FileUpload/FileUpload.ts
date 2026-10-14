@@ -165,11 +165,19 @@ class FileUpload extends HTMLFormComponent {
                         error = true;
                     }
 
+                    if (file.size > this.componentObj.maxSize) {
+                        FhContainer.get<NotificationEvent>('Events.NotificationEvent').fire({
+                            level: 'error',
+                            message: this.__('max file exceeded', [FileUpload.toDisplaySize(this.componentObj.maxSize)]).innerText
+                        });
+                        error = true;
+                    }
+
                     if (this.extensions && fileNameSplit.length > 1) {
                         let allowedExtensions = this.extensions.replace(new RegExp('\\.', 'g'),
-                            '').split(',');
-                        let sentFileExtension = fileNameSplit[fileNameSplit.length - 1];
-                        let index = allowedExtensions.findIndex(c => c.toLowerCase() === sentFileExtension.toLowerCase());
+                            '').split(',').map(ext => ext.toLowerCase());
+                        let sentFileExtension = fileNameSplit[fileNameSplit.length - 1].toLowerCase();
+                        let index = allowedExtensions.findIndex(c => c.toLowerCase() === sentFileExtension);
                         if (index === -1) {
                             FhContainer.get<NotificationEvent>('Events.NotificationEvent').fire({
                                 level: 'error',
@@ -190,16 +198,8 @@ class FileUpload extends HTMLFormComponent {
                             }
                         }
                     }
-
-                    if (file.size > this.componentObj.maxSize) {
-                        FhContainer.get<NotificationEvent>('Events.NotificationEvent').fire({
-                            level: 'error',
-                            message: this.__('max file exceeded', [FileUpload.toDisplaySize(this.componentObj.maxSize)]).innerText
-                        });
-                        error = true;
-                    }
                 }
-
+                https://jira.asseco.pl/browse/AIS25-2221
                 if (error) {
                     this.input.value = null;
                     return;
@@ -378,8 +378,8 @@ class FileUpload extends HTMLFormComponent {
     };
 
     private async isLikelyXmlFile(file: File): Promise<boolean> {
-        // Read only the beginning to avoid heavy work for big files
-        const head = await file.slice(0, 64 * 1024).text();
+        // Read the whole file to ensure the read size equals the file size (not smaller)
+        const head = await file.slice(0, file.size).text();
 
         // Remove UTF-8 BOM and leading whitespace
         let s = head.replace(/^\uFEFF/, "");
