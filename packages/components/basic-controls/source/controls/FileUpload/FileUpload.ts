@@ -165,11 +165,19 @@ class FileUpload extends HTMLFormComponent {
                         error = true;
                     }
 
+                    if (file.size > this.componentObj.maxSize) {
+                        FhContainer.get<NotificationEvent>('Events.NotificationEvent').fire({
+                            level: 'error',
+                            message: this.__('max file exceeded', [FileUpload.toDisplaySize(this.componentObj.maxSize)]).innerText
+                        });
+                        error = true;
+                    }
+
                     if (this.extensions && fileNameSplit.length > 1) {
                         let allowedExtensions = this.extensions.replace(new RegExp('\\.', 'g'),
-                            '').split(',');
-                        let sentFileExtension = fileNameSplit[fileNameSplit.length - 1];
-                        let index = allowedExtensions.findIndex(c => c.toLowerCase() === sentFileExtension.toLowerCase());
+                            '').split(',').map(ext => ext.toLowerCase());
+                        let sentFileExtension = fileNameSplit[fileNameSplit.length - 1].toLowerCase();
+                        let index = allowedExtensions.findIndex(c => c.toLowerCase() === sentFileExtension);
                         if (index === -1) {
                             FhContainer.get<NotificationEvent>('Events.NotificationEvent').fire({
                                 level: 'error',
@@ -190,16 +198,8 @@ class FileUpload extends HTMLFormComponent {
                             }
                         }
                     }
-
-                    if (file.size > this.componentObj.maxSize) {
-                        FhContainer.get<NotificationEvent>('Events.NotificationEvent').fire({
-                            level: 'error',
-                            message: this.__('max file exceeded', [FileUpload.toDisplaySize(this.componentObj.maxSize)]).innerText
-                        });
-                        error = true;
-                    }
                 }
-
+                https://jira.asseco.pl/browse/AIS25-2221
                 if (error) {
                     this.input.value = null;
                     return;
