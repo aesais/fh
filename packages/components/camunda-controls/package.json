@@ -1,6 +1,6 @@
 {
   "name": "fh-camunda-controls",
-  "version": "4.10.7-PL-SNAPSHOT-1781558877717",
+  "version": "4.10.7-PL-SNAPSHOT-1792586354803",
   "main": "dist/Module.js",
   "types": "dist/Module.d.ts",
   "description": "fh framework Camunda controls",
@@ -22,7 +22,7 @@
   },
   "dependencies": {
     "bpmn-js": "^17.0.0",
-    "fh-forms-handler": "4.10.7-PL-SNAPSHOT-1781558877717",
+    "fh-forms-handler": "4.10.7-PL-SNAPSHOT-1792586354803",
     "copyfiles": "2.4.1"
   }
 }
